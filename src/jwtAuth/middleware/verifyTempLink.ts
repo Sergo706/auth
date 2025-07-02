@@ -1,0 +1,169 @@
+import { verifyTempJwtLink } from "../../tempLinks.js";
+import { Request, Response, NextFunction } from "express";
+import { logger } from "../utils/logger.js";
+import { uniLimiter } from "../utils/limiters/protectedEndpoints/linkVerificationLimiter.js";
+import { guard } from "../utils/limiters/utils/guard.js";
+import { makeConsecutiveCache } from "../utils/limiters/utils/consecutiveCache.js";
+import { resetLimitersUni } from "../utils/limiters/protectedEndpoints/linkVerificationLimiter.js";
+import { uniLimiter as downStreamBlackList } from "../utils/limiters/protectedEndpoints/tempPostRoutesLimiter.js";
+import { consecutiveForjti as JtiMfaCache } from "./verifyEmailMFA.js";
+import { consecutiveForjti as JtiPasswordResetCache } from "./verifyPasswordReset.js";
+
+const consecutiveForIpPassword = makeConsecutiveCache< {countData:number} >(2000, 1000 * 60 * 30);
+const consecutiveForIpMfa = makeConsecutiveCache< {countData:number} >(2000, 1000 * 60 * 30);
+const usageCountPost = makeConsecutiveCache<{count:number}>(1000, 1000 * 60 * 20);
+const usageCountGet = makeConsecutiveCache<{count:number}>(1000, 1000 * 60 * 20);
+
+const allowedPerSuccesfulGet = 5;
+const allowedPerSuccesfulPost = 1;
+
+export const linkMfaVerification = async (req: Request, res: Response, next: NextFunction) => {
+const log = logger.child({service: 'auth', branch: `tempLinks`, linkType: 'mfa'})
+const token = String(req.query.temp);
+
+log.info('Verifing link...')
+
+
+if (!(await guard(uniLimiter, req.ip!, consecutiveForIpMfa, 1, 'ip', log, res))) return;
+
+if (!token) {
+    log.warn('Link not provided');
+    res.status(400).json({error: 'Link not provided'});
+    return;
+}
+
+const results = verifyTempJwtLink(token, 'MFA', 'MAGIC_LINK_MFA_CHECKS');
+
+if (!results.valid || !results.payload) {
+    log.warn({details: results.errorType},'Link is not valid or expired');
+    res.status(400).json({error: 'Link is not valid or expired', details: results.errorType});
+    return;
+}
+
+if (Number(req.params.visitor) !== results.payload.visitor) {
+  log.warn('Invalid link URL');
+   res.status(400).json({ error: 'Invalid link URL' });
+  return;
+}
+    const raw = results.payload;
+    
+  if (typeof raw.visitor !== 'number') {
+    log.warn('Malformed token payload');
+     res.status(401).json({ error: 'Malformed token payload' })
+     return;
+  }
+    req.link = {     
+      visitor: raw.visitor,  
+      subject: raw.subject,
+      purpose: raw.purpose,
+      jti: raw.jti
+    };
+
+  if (!(await guard(downStreamBlackList, req.link.jti!, JtiMfaCache, 1, 'Link Checker of downstream logic', log, res ))) return;
+
+   if (req.method === 'GET') {
+     const getEntry = (usageCountGet.get(req.link.jti!)?.count ?? 0) + 1;
+     usageCountGet.set(req.link.jti!, { count: getEntry });
+     log.info({count: getEntry, out_of: allowedPerSuccesfulGet},'User hit a mfa link, with a get req.');
+
+      if (getEntry > allowedPerSuccesfulGet) {
+        log.warn({count: getEntry, out_of: allowedPerSuccesfulGet},'User hit an expired mfa link with a get method');
+        res.status(400).json({error: 'This link can only be used once'})
+        return;
+      };
+
+    log.info('link verified');
+     consecutiveForIpMfa.delete(req.ip!);
+     await resetLimitersUni(req.ip!)
+     res.status(200).json({link: 'MFA Code'});
+    return;  
+  }
+
+  const postEntry = (usageCountPost.get(req.link.jti!)?.count ?? 0) + 1;
+  usageCountPost.set(req.link.jti!, { count: postEntry });
+  log.info({count: postEntry, out_of: allowedPerSuccesfulPost},'User hit an mfa link, with a post req.');
+
+   if (postEntry > allowedPerSuccesfulPost) {
+     log.warn({count: postEntry, out_of: allowedPerSuccesfulGet},'User hit an expired mfa link with a post method');
+     res.status(400).json({error: 'This link can only be used once'})
+     return;
+   };
+
+  return next();
+} 
+
+
+export const linkPasswordVerification = async (req: Request, res: Response, next: NextFunction) => {
+const log = logger.child({service: 'auth', branch: `tempLinks`, linkType: 'password-reset'})
+const token = String(req.query.temp);
+
+log.info('Verifing link...')
+
+
+if (!(await guard(uniLimiter, req.ip!, consecutiveForIpPassword, 1, 'ip', log, res))) return;
+
+if (!token) {
+  log.warn('Link not provided');
+    res.status(400).json({error: 'Link not provided'});
+    return;
+}
+
+const results = verifyTempJwtLink(token, 'PASSWORD_RESET', 'MAGIC_LINK_Restart');
+
+
+if (!results.valid || !results.payload) {
+  log.warn({details: results.errorType},'Link is not valid or expired');
+    res.status(400).json({error: 'Link is not valid or expired'});
+    return;
+}
+
+if (Number(req.params.visitor) !== results.payload.visitor) {
+  log.warn('Invalid link URL');
+   res.status(400).json({ error: 'Invalid link URL' });
+  return;
+}
+    const raw = results.payload;
+    
+  if (typeof raw.visitor !== 'number') {
+    log.warn('Malformed token payload');
+     res.status(401).json({ error: 'Malformed token payload' })
+     return;
+  }
+    req.link = {        
+      visitor: raw.visitor,  
+      subject: raw.subject,
+      purpose: raw.purpose,
+      jti: raw.jti
+    };
+
+   if (!(await guard(downStreamBlackList, req.link.jti!, JtiPasswordResetCache, 1, 'Link Checker of downstream logic', log, res ))) return;
+   if (req.method === 'GET') {
+
+     const getEntry = (usageCountGet.get(req.link.jti!)?.count ?? 0) + 1;
+     usageCountGet.set(req.link.jti!, { count: getEntry });
+     log.info({count: getEntry, out_of: allowedPerSuccesfulGet},'User hit a password reset link, with a get req.');
+
+      if (getEntry > allowedPerSuccesfulGet) {
+        log.warn({count: getEntry, out_of: allowedPerSuccesfulGet},'User hit an expired password link with a get method');
+        res.status(400).json({error: 'This link can only be used once'})
+        return;
+      };
+
+      log.info('link verified')
+      consecutiveForIpPassword.delete(req.ip!);
+      await resetLimitersUni(req.ip!)
+     res.status(200).json({link: 'Password Reset'});
+    return;  
+  }
+  const postEntry = (usageCountPost.get(req.link.jti!)?.count ?? 0) + 1;
+  usageCountPost.set(req.link.jti!, { count: postEntry });
+  log.info({count: postEntry, out_of: allowedPerSuccesfulPost},'User hit a password reset link, with a post req.');
+
+   if (postEntry > allowedPerSuccesfulPost) {
+     log.warn({count: postEntry, out_of: allowedPerSuccesfulPost},'User hit an expired password link with a post method');
+     res.status(400).json({error: 'This link can only be used once'})
+     return;
+   };
+
+  return next();
+} 
