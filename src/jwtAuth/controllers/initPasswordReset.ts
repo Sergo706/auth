@@ -39,7 +39,7 @@ export const initPasswordReset = async (req: Request, res: Response, next: NextF
      return; 
  } 
 
-  const validetedEmail = result.data.email
+  const validetedEmail = result.data!.email
   const compositeKey = `${req.ip!}_${validetedEmail}`;
 
   if (!(await guard(emailLimiter, validetedEmail, consecutiveForEmail, 2, 'email', log, res))) return;

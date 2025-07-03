@@ -41,7 +41,7 @@ export const GoogleSignUp = async (req: Request, res: Response, next: NextFuncti
           return; 
       } 
 
-        const validUserData = result.data;
+        const validUserData = result.data!;
         const canaryCookie = req.cookies.canary_id;
         let accessToken: string, refreshToken: IssuedRefreshToken;
         const compositeKey = `${req.ip!}_${validUserData.sub}`;

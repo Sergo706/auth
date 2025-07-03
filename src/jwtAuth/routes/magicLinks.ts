@@ -4,7 +4,7 @@ import { verifyMFA } from "../middleware/verifyEmailMFA.js";
 import { contentType } from "../middleware/validateContentType.js";
 import { verifyNewPassword } from "../middleware/verifyPasswordReset.js";
 import { initPasswordReset } from "../controllers/initPasswordReset.js";
-import { validator } from "../../../../botDetector/middlewares/canaryCookieChecker.js"
+import { detectBots } from "@riavzon/botdetector"; 
 
 const router = Router();
 
@@ -23,7 +23,7 @@ router
           }
         }
       }), 
-      validator,
+      detectBots,
     verifyMFA
   );
 
@@ -57,7 +57,7 @@ router
           }
         }
       }),   
-      validator,
+      detectBots,
     verifyNewPassword
   );
 

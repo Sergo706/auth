@@ -47,7 +47,7 @@ if (!req.is('application/json')) {
      res.status(403).json({"banned": true})
      return; 
  } 
- const {confirmedPassword, password} = result.data;
+ const {confirmedPassword, password} = result.data!;
 
  if (confirmedPassword !== password) {
         log.info(`Passwords didnt match.`)

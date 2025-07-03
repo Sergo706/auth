@@ -7,8 +7,8 @@
   "type": "module",
   "main": "/dist/services/jwtAuth/middleware/verifyJwt.js",
   "scripts": {
-    "build": "tsc -b",
-    "prepare": "npm run build"
+    "build": "tsc",
+    "test": "npm run build"
   },
   "dependencies": {
     "argon2": "^0.43.0",
@@ -28,6 +28,14 @@
     "telegraf": "^4.16.3",
     "zod": "^3.25.28",
     "ip-range-check": "^0.2.0",
-    "@riavzon/botdetector": "git+ssh://git@github.com:Sergo706/botDetector.git#main"
+    "@types/cookie-parser": "^1.4.8",
+    "@types/date-fns": "^2.5.3",
+    "@types/ejs": "^3.1.5",
+    "@types/express": "^5.0.1",
+    "@types/he": "^1.2.3",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/node": "^22.15.33",
+    "@types/sanitize-html": "^2.16.0",
+    "ts-node": "^10.9.2"
   }
 }

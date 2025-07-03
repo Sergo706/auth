@@ -50,7 +50,7 @@ export async function verifyMFA (req: Request, res: Response, next: NextFunction
      return; 
  } 
 
-  const validetedCode = result.data.code;
+  const validetedCode = result.data!.code;
   const submittedHash = crypto.createHash("sha256").update((validetedCode as any)).digest("hex");
 
   if (!(await guard(ipLimit, submittedHash, consecutiveForsubmittedHash, 1,'submittedHash', log, res))) return;

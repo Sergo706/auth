@@ -1,6 +1,6 @@
 import mysql2 from 'mysql2/promise';
 import { config } from './secret.js'
-import mysql from 'mysql2'; 
+import mysql, { Pool } from 'mysql2'; 
 
  const db = await mysql2.createConnection({
   host: config.db.host,
@@ -35,5 +35,5 @@ export const poolForLibary = mysql.createPool({
   connectionLimit: 10,          
   queueLimit: 0,             
   connectTimeout: 990000,
-});
+}) as Pool;
 

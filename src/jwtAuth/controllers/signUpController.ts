@@ -46,7 +46,7 @@ if ("valid" in result) {
  
   const validUserData = result.data
 
-  const { Name , email, password, confirmedPassword, rememberUser, termsConsent } = validUserData;
+  const { Name , email, password, confirmedPassword, rememberUser, termsConsent } = validUserData!;
   const compositeKey = `${req.ip!}_${email}`;
 
   

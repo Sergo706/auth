@@ -1,7 +1,6 @@
 import { pool } from "./jwtAuth/config/dbConnection.js";
 import { RowDataPacket } from 'mysql2';
-import parseUA from '../../botDetector/helpers/UAparser.js';
-import { getdata } from '../../../botDetector/helpers/getIPInformation.js';
+import { getGeoData, parseUA} from '@riavzon/botdetector';
 import ipRangeCheck from 'ip-range-check' 
 import { revokeRefreshToken } from "./refreshTokens.js";
 import { createHash } from "crypto";
@@ -211,7 +210,7 @@ if (tokenResults.canary_id !== cookie) {
     };
 
 
-const [incomingGeo] = await Promise.all([ getdata(ipAddress) ]);
+const [incomingGeo] = await Promise.all([ getGeoData(ipAddress) ]);
 const incomingParsedUA = parseUA(ua);
 
     if (incomingGeo.proxy || incomingGeo.hosting) {

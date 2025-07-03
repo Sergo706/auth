@@ -1,7 +1,5 @@
 import { sendLog } from "./telegramLogger.js";
-import { banIp } from "../../../../botDetector/penalties/banIP.js";
-import { updateIsBot } from "../../../../botDetector/db/updateIsBot.js";
-import { updateBannedIP } from "../../../../botDetector/db/updateBanned.js";
+import { banIp, updateIsBot, updateBannedIP } from "@riavzon/botdetector"
 import { Request } from "express";
 
 export async function handleXSS(req: Request, message: string, log: any) {
