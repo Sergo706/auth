@@ -20,7 +20,8 @@
   },
   "scripts": {
     "build": "tsc && mkdir -p dist && cp -R src/**/emails dist/jwtAuth",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "prepack": "npm run build"
   },
   "dependencies": {
     "@riavzon/botdetector": "git+ssh://git@github.com:Sergo706/botDetector.git#main",
