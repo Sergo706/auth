@@ -19,10 +19,12 @@
     }
   },
   "scripts": {
-    "build":  "npm --prefix ./node_modules/@riavzon/botdetector install && npm --prefix ./node_modules/@riavzon/botdetector run prepare && npm run build",
-    "prepare": "npm run build"
+    "build-deps": "npm --prefix ./node_modules/@riavzon/botdetector install && npm --prefix ./node_modules/@riavzon/botdetector run prepare",
+    "build-lib": "tsc",
+    "prepare": "npm run build-deps && npm run build-lib"
   },
   "dependencies": {
+    "@riavzon/botdetector": "git+ssh://git@github.com:Sergo706/botDetector.git#main",
     "@types/cookie-parser": "^1.4.8",
     "@types/date-fns": "^2.5.3",
     "@types/ejs": "^3.1.5",
