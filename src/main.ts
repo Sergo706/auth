@@ -95,8 +95,6 @@ export { default as tokenRotationRoutes } from './jwtAuth/routes/TokenRotations.
 export { protectRoute } from './jwtAuth/middleware/verifyJwt.js';
 
 
-
-// Niceties for full customization
 /**
  * @description
  * Enforces that a request can only post cookies to your server,
