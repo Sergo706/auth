@@ -19,7 +19,7 @@
     }
   },
   "scripts": {
-    "build": "tsc && mkdir -p dist && cp -R src/**/emails dist/jwtAuth",
+    "build": "tsc && cp -R src/jwtAuth/emails dist/jwtAuth",
     "prepare": "npm run build"
   },
   "dependencies": {
