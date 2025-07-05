@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { logger } from "../utils/logger.js";
+import { getLogger } from "../utils/logger.js";
 declare module 'express-serve-static-core' {
   interface Request {
     token?: string;
@@ -7,7 +7,7 @@ declare module 'express-serve-static-core' {
 }
 
 export const requireAccessToken = (req: Request, res: Response, next: NextFunction) => {
-        const log = logger.child({service: 'auth', branch: 'guard'})
+        const log = getLogger().child({service: 'auth', branch: 'guard'})
         const authHeader = (req.get('authorization') || '').trim();
 
          if (!authHeader.startsWith('Bearer ')) {                       

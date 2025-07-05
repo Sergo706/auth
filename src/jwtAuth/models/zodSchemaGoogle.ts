@@ -23,4 +23,7 @@ family_name: makeSafeString({ min: 2, max: 72 }).optional(),
 locale: makeSafeString({ min: 2, max: 20 }).optional(),
 })
 
+export const customProviders = {
+
+}
  export type NewUserGoogle = z.infer<typeof googleAuth>;

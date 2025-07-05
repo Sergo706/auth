@@ -1,9 +1,9 @@
-import { logger } from "../utils/logger.js";
+import { getLogger } from "../utils/logger.js";
 import { verifyAccessToken } from "../../accsessTokens.js";
 import { Request, Response, NextFunction } from "express";
 import { strangeThings } from "../../anomalies.js";
 import { sendTempMfaLink } from "../utils/emailMFA.js";
-import { blackList as BlacklistedAccessToken } from '../utils/limiters/protectedEndpoints/tokensLimiters.js'
+import { getLimiters } from '../utils/limiters/protectedEndpoints/tokensLimiters.js'
 import type { claims } from "../../accsessTokens.js";
 import { makeConsecutiveCache } from "../utils/limiters/utils/consecutiveCache.js";
 import { guard } from "../utils/limiters/utils/guard.js";
@@ -14,8 +14,8 @@ export const protectRoute = async (req: Request, res: Response, next: NextFuncti
  const token = req.token;
  const session = req.cookies.session;
  const canary = req.cookies.canary_id;
- 
-  const log = logger.child({service: 'auth', branch: 'access token'})
+const { blackList } = getLimiters();
+  const log = getLogger().child({service: 'auth', branch: 'access token'})
     log.info(`verifing access token...`);
 
     if (!token){
@@ -49,7 +49,7 @@ export const protectRoute = async (req: Request, res: Response, next: NextFuncti
     res.status(401).json({ error: 'Malformed token payload' })
     return;
   }
-     if (!(await guard(BlacklistedAccessToken, result.payload.jti!, consecutiveForJti, 2, 'access token blacklist', log, res))) return;
+     if (!(await guard(blackList, result.payload.jti!, consecutiveForJti, 2, 'access token blacklist', log, res))) return;
   
       const {valid, reason, reqMFA, userId, visitorId} = await
     strangeThings(session, canary, req.ip!, req.get('User-Agent')!, false);

@@ -5,29 +5,25 @@
   "license": "ISC",
   "author": "",
   "type": "module",
-  "main": "/dist/services/jwtAuth/middleware/verifyJwt.js",
+  "files": [
+    "dist/**/*",
+    "README.md"
+  ],
+  "main": "./dist/main.js",
+  "types": "./dist/main.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/main.js",
+      "require": "./dist/main.js",
+      "types": "./dist/main.d.ts"
+    }
+  },
   "scripts": {
-    "build": "tsc",
-    "test": "npm run build"
+    "build": "tsc && mkdir -p dist && cp -R src/**/emails dist/jwtAuth",
+    "prepare": "npm run build"
   },
   "dependencies": {
-    "argon2": "^0.43.0",
-    "cookie-parser": "^1.4.7",
-    "date-fns": "^4.1.0",
-    "dotenv": "^16.4.7",
-    "ejs": "^3.1.10",
-    "express": "^5.1.0",
-    "he": "^1.2.0",
-    "jsonwebtoken": "^9.0.2",
-    "lru-cache": "^11.1.0",
-    "mysql2": "^3.14.0",
-    "pino": "^9.7.0",
-    "rate-limiter-flexible": "^7.0.0",
-    "resend": "^4.5.2",
-    "sanitize-html": "^2.17.0",
-    "telegraf": "^4.16.3",
-    "zod": "^3.25.28",
-    "ip-range-check": "^0.2.0",
+    "@riavzon/botdetector": "github:Sergo706/botDetector",
     "@types/cookie-parser": "^1.4.8",
     "@types/date-fns": "^2.5.3",
     "@types/ejs": "^3.1.5",
@@ -36,6 +32,23 @@
     "@types/jsonwebtoken": "^9.0.9",
     "@types/node": "^22.15.33",
     "@types/sanitize-html": "^2.16.0",
-    "ts-node": "^10.9.2"
+    "argon2": "^0.43.0",
+    "cookie-parser": "^1.4.7",
+    "date-fns": "^4.1.0",
+    "dotenv": "^16.4.7",
+    "ejs": "^3.1.10",
+    "express": "^5.1.0",
+    "he": "^1.2.0",
+    "ip-range-check": "^0.2.0",
+    "jsonwebtoken": "^9.0.2",
+    "lru-cache": "^11.1.0",
+    "mysql2": "^3.14.0",
+    "pino": "^9.7.0",
+    "rate-limiter-flexible": "^7.0.0",
+    "resend": "^4.5.2",
+    "sanitize-html": "^2.17.0",
+    "telegraf": "^4.16.3",
+    "ts-node": "^10.9.2",
+    "zod": "^3.25.28"
   }
 }

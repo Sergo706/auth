@@ -2,11 +2,11 @@ import { Request, Response, NextFunction } from "express";
 import { verifyPassword } from "../utils/hash.js";
 import { validateSchema } from "../utils/validateZodSchema.js";
 import { login } from "../models/zodLoginSchema.js";
-import { pool } from "../config/dbConnection.js";
-import { config } from "../config/secret.js";
-import { logger } from "../utils/logger.js";
+import { getPool } from "../config/dbConnection.js";
+import { getConfiguration } from "../config/configuration.js";
+import { getLogger } from "../utils/logger.js";
 import { RowDataPacket } from "mysql2";
-import { uniLimiter, resetLoginKey, ipLimiter, emailLimiter } from "../utils/limiters/protectedEndpoints/loginLimiter.js";
+import { getLimiters, resetLimitersUni } from "../utils/limiters/protectedEndpoints/loginLimiter.js";
 import { generateRefreshToken } from "../../refreshTokens.js";
 import { generateAccessToken } from "../../accsessTokens.js";
 import { makeCookie } from "../utils/cookieGenerator.js";
@@ -19,9 +19,9 @@ const consecutive429 = makeConsecutiveCache< {countData:number} >(2000, 1000 * 6
 const consecutiveForEmail = makeConsecutiveCache< {countData:number} >(2000, 1000 * 24 * 60 * 60);
 
 export const handleLogin = async (req: Request, res: Response, next: NextFunction) => {
-
-const log = logger.child({service: 'auth', branch: 'classic', type: 'login'});
-
+const { ipLimiter, emailLimiter, uniLimiter } = getLimiters();
+const log = getLogger().child({service: 'auth', branch: 'classic', type: 'login'});
+const { jwt } = getConfiguration();
 log.info(`Validating data...`)
 
  
@@ -48,6 +48,7 @@ const {email, password} = result.data!;
 const compositeKey = `${req.ip!}_${email}`;
 if (!(await guard(emailLimiter, email, consecutiveForEmail, 2,'email', log, res))) return;
 if (!(await guard(uniLimiter,  compositeKey, consecutive429, 3, 'ip+email', log, res))) return;
+const pool = await getPool();
 
 log.info(`Data parsed and sanitized, searching for user...`)
   const [user] = await pool.execute<RowDataPacket[]>(`
@@ -79,9 +80,9 @@ log.info(`Data parsed and sanitized, searching for user...`)
     consecutiveForIp.delete(req.ip!);
     consecutive429.delete(compositeKey);
     consecutiveForEmail.delete(email)
-    await resetLoginKey(compositeKey);
+    await resetLimitersUni(compositeKey);
 
-      const refreshToken = await generateRefreshToken(config.auth.jwt.refresh_ttl, results.id);
+      const refreshToken = await generateRefreshToken(jwt.refresh_tokens.refresh_ttl, results.id);
       const accessToken  = generateAccessToken({ id: results.id, visitor_id: results.visitor_id, jti: crypto.randomUUID() });
 
           makeCookie(res, 'iat', Date.now().toString(), {
@@ -97,7 +98,7 @@ log.info(`Data parsed and sanitized, searching for user...`)
             sameSite: "strict", 
             expires: refreshToken!.expiresAt,
             secure: true,
-            domain: config.auth.jwt.domain,
+            domain: jwt.refresh_tokens.domain,
             path: '/'
             })
 

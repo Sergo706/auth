@@ -1,18 +1,20 @@
 import { ResultSetHeader, RowDataPacket } from "mysql2/promise";
-import { pool } from "../config/dbConnection.js";
+import { getPool } from "../config/dbConnection.js";
 import { sendLog } from "../utils/telegramLogger.js";
 import { User } from "../types/newUser.js";
 import { NewUser } from "./zodSignUpSchemas.js";
 import { generateAccessToken } from "../../accsessTokens.js";
 import { generateRefreshToken } from "../../refreshTokens.js";
 import { IssuedRefreshToken } from "../../refreshTokens.js";
-import { config } from "../config/secret.js";
-import { logger } from "../utils/logger.js";
+import { getConfiguration } from "../config/configuration.js";
+import { getLogger } from "../utils/logger.js";
 export async function createUser(cookie: string, data: NewUser): 
 Promise<  
 { success: boolean;  accessToken?: string; refreshToken?: IssuedRefreshToken; duplicate?: true;  }
 > {  
-    const log = logger.child({service: 'auth', branch: 'classic', type: 'signup'});
+    const pool = await getPool()
+    const log = getLogger().child({service: 'auth', branch: 'classic', type: 'signup'});
+    const { jwt } = getConfiguration();
     log.info(`Creating user...`)
     try {
         const [visitorsData]  = await pool.execute<RowDataPacket[]>
@@ -43,7 +45,7 @@ Promise<
             const [newUser] = await pool.execute<ResultSetHeader>(stm, params);  
             const newUserId =  newUser.insertId;
             log.info(`User created, isussing tokens...`)
-            const refresh = await generateRefreshToken(config.auth.jwt.refresh_ttl,  newUserId);
+            const refresh = await generateRefreshToken(jwt.refresh_tokens.refresh_ttl,  newUserId);
             const accessToken = generateAccessToken({id: newUserId, visitor_id: results.visitor_id, jti: crypto.randomUUID()});
             log.info(`New User created succsesfuly!`)
             sendLog('New User created', `New User created succsesfuly!`)

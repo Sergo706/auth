@@ -1,7 +1,7 @@
 import crypto, { createHash } from 'crypto'
-import { pool } from "./jwtAuth/config/dbConnection.js";
+import { getPool } from "./jwtAuth/config/dbConnection.js";
 import { ResultSetHeader, RowDataPacket } from 'mysql2';
-import { logger } from './jwtAuth/utils/logger.js';
+import { getLogger } from './jwtAuth/utils/logger.js';
 
 interface token {
   id:         number;
@@ -20,8 +20,8 @@ export interface IssuedRefreshToken {
   hashedToken: string;
   expiresAt: Date;
 }
-const log = logger.child({service: 'auth', branch: 'refresh tokens'})
- const strictAuth = logger.child({service: 'auth', branch: 'strict auth'})
+ const log = getLogger().child({service: 'auth', branch: 'refresh tokens'})
+ const strictAuth = getLogger().child({service: 'auth', branch: 'strict auth'})
 
 export async function rotateRefreshToken(ttl: number, userId: number, oldClientToken: string, hashed?: boolean): Promise<{
     rotated: boolean,
@@ -29,6 +29,7 @@ export async function rotateRefreshToken(ttl: number, userId: number, oldClientT
     hashedToken?: string;
     expiresAt?: Date;
 }> {
+const pool = await getPool()   
 log.info({userId},'generating and rotating new refresh tokens...')
     const token = crypto.randomBytes(64).toString('hex');
     const hashedToken = createHash('sha256').update(token).digest('hex');
@@ -77,7 +78,7 @@ export async function generateRefreshToken(ttl: number, userId: number): Promise
     const token = crypto.randomBytes(64).toString('hex');
     const hashedToken = createHash('sha256').update(token).digest('hex');
     const expiresAt = new Date(Date.now() + ttl);
-
+    const pool = await getPool()
     try { 
     const mainStm = `
     INSERT INTO refresh_tokens
@@ -105,12 +106,13 @@ export async function consumeAndVerifyRefreshToken(clientToken: string, hashed?:
 Promise<
   { valid: boolean; userId?: number; visitor_id?: number;  reason?: string, sessionTTL?: Date}
   > {
-strictAuth.info('consumeAndVerifyRefreshToken entered, verifing token...')
+strictAuth.info('consumeAndVerifyRefreshToken entered, verifying token...')
 let hashedClientToken = clientToken;
 
 if (!hashed) {
     hashedClientToken = createHash('sha256').update(clientToken).digest('hex');
 }
+const pool = await getPool();
 
 const conn   = await pool.getConnection();
 
@@ -202,7 +204,7 @@ if (info.affectedRows === 0) {
         };
 
     await conn.commit();
-    strictAuth.info({userId: results.user_id},'Token verified and consumed succesfuly')
+    strictAuth.info({userId: results.user_id},'Token verified and consumed successfully')
     return {
         valid: true,
         userId: results.user_id,
@@ -230,7 +232,7 @@ log.info('verifyRefreshToken entered, verifing token...')
 if (!hashed) {
     hashedClientToken = createHash('sha256').update(clientToken).digest('hex');
 }
-
+const pool = await getPool()
     try { 
         const [info] = await pool.execute<ResultSetHeader>(
            `UPDATE refresh_tokens
@@ -316,7 +318,7 @@ export async function revokeRefreshToken(clientToken: string, hashed?: boolean):
     if (!hashed) {
         hashedClientToken = createHash('sha256').update(clientToken).digest('hex');
     }
-
+    const pool = await getPool()
    try { 
         await pool.execute<RowDataPacket[]>
         ("UPDATE refresh_tokens SET valid = 0 WHERE token = ? LIMIT 1", [hashedClientToken]);

@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
-import { logger } from '../utils/logger.js';
+import { getLogger } from '../utils/logger.js';
+
 export function cookieOnly(req: Request, res: Response, next: NextFunction) {
-  const log = logger.child({service: 'auth', branch: 'content guard'})
+  const log = getLogger().child({service: 'auth', branch: 'content guard'})
   if (typeof req.cookies.session !== 'string') {
     log.warn('Refresh token missing')
      res.status(401).json({ error: 'Refresh token missing' });

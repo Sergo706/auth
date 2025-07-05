@@ -1,7 +1,7 @@
 import express, { Router } from "express";
 import { handleSignUp } from "../controllers/signUpController.js";
 import { contentType } from "../middleware/validateContentType.js";
-import { GoogleSignUp } from "../controllers/googleOuath.js";
+import { OAuthHandler } from "../controllers/googleOuath.js";
 import { handleLogin } from "../controllers/loginController.js";
 const router = Router();
 
@@ -50,7 +50,7 @@ handleLogin
 );
 
 router.post(
-  '/auth/google',
+  '/auth/OAth/:providerName',
   contentType('application/json'),
   express.json({ 
     limit: '4kb',
@@ -72,7 +72,7 @@ router.post(
     next()
   },
 
-GoogleSignUp
+OAuthHandler
 );
 
 

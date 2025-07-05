@@ -1,11 +1,10 @@
 import { verifyTempJwtLink } from "../../tempLinks.js";
 import { Request, Response, NextFunction } from "express";
-import { logger } from "../utils/logger.js";
-import { uniLimiter } from "../utils/limiters/protectedEndpoints/linkVerificationLimiter.js";
+import { getLogger } from "../utils/logger.js";
+import { getUniLimiter, resetLimitersUni } from "../utils/limiters/protectedEndpoints/linkVerificationLimiter.js";
 import { guard } from "../utils/limiters/utils/guard.js";
 import { makeConsecutiveCache } from "../utils/limiters/utils/consecutiveCache.js";
-import { resetLimitersUni } from "../utils/limiters/protectedEndpoints/linkVerificationLimiter.js";
-import { uniLimiter as downStreamBlackList } from "../utils/limiters/protectedEndpoints/tempPostRoutesLimiter.js";
+import { getLimiters, resetLimitersUni as resetLimiters } from "../utils/limiters/protectedEndpoints/tempPostRoutesLimiter.js";
 import { consecutiveForjti as JtiMfaCache } from "./verifyEmailMFA.js";
 import { consecutiveForjti as JtiPasswordResetCache } from "./verifyPasswordReset.js";
 
@@ -18,21 +17,25 @@ const allowedPerSuccesfulGet = 5;
 const allowedPerSuccesfulPost = 1;
 
 export const linkMfaVerification = async (req: Request, res: Response, next: NextFunction) => {
-const log = logger.child({service: 'auth', branch: `tempLinks`, linkType: 'mfa'})
+const log = getLogger().child({service: 'auth', branch: `tempLinks`, linkType: 'mfa'})
 const token = String(req.query.temp);
+const { uniLimiter } = getLimiters();
 
-log.info('Verifing link...')
+log.info('Verifying link...')
 
 
-if (!(await guard(uniLimiter, req.ip!, consecutiveForIpMfa, 1, 'ip', log, res))) return;
+if (!(await guard(getUniLimiter(), req.ip!, consecutiveForIpMfa, 1, 'ip', log, res))) return;
 
 if (!token) {
     log.warn('Link not provided');
     res.status(400).json({error: 'Link not provided'});
     return;
 }
+  const signature = token.split(".");
+  const claimsJson = Buffer.from(signature[1], 'base64url').toString('utf-8');
+  const claims = JSON.parse(claimsJson);
 
-const results = verifyTempJwtLink(token, 'MFA', 'MAGIC_LINK_MFA_CHECKS');
+const results = verifyTempJwtLink(token, 'MFA', 'MAGIC_LINK_MFA_CHECKS', claims.jti);
 
 if (!results.valid || !results.payload) {
     log.warn({details: results.errorType},'Link is not valid or expired');
@@ -59,7 +62,7 @@ if (Number(req.params.visitor) !== results.payload.visitor) {
       jti: raw.jti
     };
 
-  if (!(await guard(downStreamBlackList, req.link.jti!, JtiMfaCache, 1, 'Link Checker of downstream logic', log, res ))) return;
+  if (!(await guard(uniLimiter, req.link.jti!, JtiMfaCache, 1, 'Link Checker of downstream logic', log, res ))) return;
 
    if (req.method === 'GET') {
      const getEntry = (usageCountGet.get(req.link.jti!)?.count ?? 0) + 1;
@@ -94,21 +97,24 @@ if (Number(req.params.visitor) !== results.payload.visitor) {
 
 
 export const linkPasswordVerification = async (req: Request, res: Response, next: NextFunction) => {
-const log = logger.child({service: 'auth', branch: `tempLinks`, linkType: 'password-reset'})
+const log = getLogger().child({service: 'auth', branch: `tempLinks`, linkType: 'password-reset'})
 const token = String(req.query.temp);
-
+const { uniLimiter } = getLimiters();
 log.info('Verifing link...')
 
 
-if (!(await guard(uniLimiter, req.ip!, consecutiveForIpPassword, 1, 'ip', log, res))) return;
+if (!(await guard(getUniLimiter(), req.ip!, consecutiveForIpPassword, 1, 'ip', log, res))) return;
 
 if (!token) {
   log.warn('Link not provided');
     res.status(400).json({error: 'Link not provided'});
     return;
 }
+  const signature = token.split(".");
+  const claimsJson = Buffer.from(signature[1], 'base64url').toString('utf-8');
+  const claims = JSON.parse(claimsJson);
 
-const results = verifyTempJwtLink(token, 'PASSWORD_RESET', 'MAGIC_LINK_Restart');
+const results = verifyTempJwtLink(token, 'PASSWORD_RESET', 'MAGIC_LINK_Restart', claims.jti);
 
 
 if (!results.valid || !results.payload) {
@@ -136,7 +142,7 @@ if (Number(req.params.visitor) !== results.payload.visitor) {
       jti: raw.jti
     };
 
-   if (!(await guard(downStreamBlackList, req.link.jti!, JtiPasswordResetCache, 1, 'Link Checker of downstream logic', log, res ))) return;
+   if (!(await guard(uniLimiter, req.link.jti!, JtiPasswordResetCache, 1, 'Link Checker of downstream logic', log, res ))) return;
    if (req.method === 'GET') {
 
      const getEntry = (usageCountGet.get(req.link.jti!)?.count ?? 0) + 1;

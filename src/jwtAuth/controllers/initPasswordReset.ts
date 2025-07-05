@@ -1,9 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
 import { email } from '../models/zodSchema.js';
 import { sendTempPasswordResetLink } from '../utils/changePassword.js';
-import { logger } from '../utils/logger.js';
+import { getLogger } from '../utils/logger.js';
 import { validateSchema } from '../utils/validateZodSchema.js';
-import {  uniLimiter, resetUnionLimiter, ipLimiter, emailLimiter } from "../utils/limiters/protectedEndpoints/passwordResetFlow/initPasswordResetLimiter.js";
+import {  getLimiters, resetLimitersUni } from "../utils/limiters/protectedEndpoints/passwordResetFlow/initPasswordResetLimiter.js";
 import { makeConsecutiveCache } from '../utils/limiters/utils/consecutiveCache.js';
 import { guard } from '../utils/limiters/utils/guard.js';
 import { waitSomeTime } from '../utils/timeEnum.js';
@@ -13,8 +13,8 @@ import { waitSomeTime } from '../utils/timeEnum.js';
   const consecutiveForCompositeKey = makeConsecutiveCache< {countData:number} >(2000, 1000 * 60 * 30);
 
 export const initPasswordReset = async (req: Request, res: Response, next: NextFunction) => {
-
-  const log = logger.child({service: 'auth', branch: 'password-reset'})
+  const { uniLimiter, ipLimiter, emailLimiter } = getLimiters();
+  const log = getLogger().child({service: 'auth', branch: 'password-reset'})
   log.info('Starting password reset process...');
   const start = Date.now();
   try { 
@@ -57,7 +57,7 @@ export const initPasswordReset = async (req: Request, res: Response, next: NextF
         consecutiveForIp.delete(req.ip!)
         consecutiveForEmail.delete(validetedEmail);
         consecutiveForCompositeKey.delete(compositeKey)
-        await resetUnionLimiter(compositeKey);
+        await resetLimitersUni(compositeKey);
         log.info(`Reset email was send successfuly.`)
   };
 

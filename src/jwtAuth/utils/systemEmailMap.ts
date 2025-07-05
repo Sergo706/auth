@@ -2,6 +2,7 @@ import { EmailData } from "./systemEmails.js";
 import { sendSystemEmail } from "./systemEmails.js";
 
 export async function mfaEmail(userName: string, code: number, email: string, url: string): Promise<void> {
+    
 const emailData: EmailData = {
     userName: userName,
     code: code,

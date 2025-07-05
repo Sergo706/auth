@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction } from "express";
-import { logger } from "../utils/logger.js";
+import { getLogger } from "../utils/logger.js";
 
 export const requireRefreshToken = (req: Request, res: Response, next: NextFunction) => {
        const rawRefreshToken = req.cookies.session;
-        const log = logger.child({service: 'auth', branch: 'guard'})
+        const log = getLogger().child({service: 'auth', branch: 'guard'})
         if (!rawRefreshToken) {
             log.warn('Refresh token missing')
             res.status(401).json({error: 'Refresh token missing'});

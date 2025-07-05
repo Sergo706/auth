@@ -1,16 +1,18 @@
 import { ResultSetHeader } from "mysql2";
-import { pool } from "../config/dbConnection.js";
+import { getPool } from "../config/dbConnection.js";
 import { generateAccessToken } from "../../accsessTokens.js";
 import { generateRefreshToken, IssuedRefreshToken } from "../../refreshTokens.js";
-import { config } from "../config/secret.js";
-import { logger } from "../utils/logger.js";
+import { getConfiguration } from "../config/configuration.js";
+import { getLogger } from "../utils/logger.js";
 
 export async function findUserByProvider(provider: string, provider_id: string): Promise<{
     user: boolean;
     accessToken?: string;
     refreshToken?: IssuedRefreshToken;
 }> {
-    const log = logger.child({service: 'auth', branch: 'oauth'});
+    const log = getLogger().child({service: 'auth', branch: 'oauth'});
+    const { jwt } = getConfiguration();
+    const pool = await getPool()
     try {
         const [findUser] = await pool.execute<ResultSetHeader[]>(`
             SELECT id, visitor_id FROM users
@@ -31,7 +33,7 @@ export async function findUserByProvider(provider: string, provider_id: string):
 
         if (id && visitor_id) {
           const accessToken = generateAccessToken({id: id, visitor_id: visitor_id, jti: crypto.randomUUID()});
-          const refresh = await generateRefreshToken(config.auth.jwt.refresh_ttl,  id);
+          const refresh = await generateRefreshToken(jwt.refresh_tokens.refresh_ttl,  id);
           return {
             user: true,
             accessToken: accessToken,

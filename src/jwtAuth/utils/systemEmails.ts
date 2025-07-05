@@ -1,14 +1,13 @@
 import { Resend } from 'resend';
-import { config } from '../config/secret.js';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import ejs from "ejs";
-
+import { getConfiguration } from '../config/configuration.js';
 
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const resend = new Resend(config.email.resend);
+
 
 export interface EmailData {
     userName: string;
@@ -38,6 +37,8 @@ export async function sendSystemEmail(
     ) {
     let html: string;
     const toField = Array.isArray(recipients) ? recipients : [recipients];
+    const { email } = getConfiguration();
+    const resend = new Resend(email.resend_key);
     const renderData = {
         ...userData
     }
@@ -51,7 +52,7 @@ export async function sendSystemEmail(
    }
 
   const { data, error } = await resend.emails.send({
-    from: 'noreply@riavzon.com',
+    from: email.email,
     to: toField,
     subject: subject,
     html: html,

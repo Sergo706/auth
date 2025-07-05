@@ -1,6 +1,6 @@
-import { config } from './jwtAuth/config/secret.js';
 import jwt, { JwtPayload } from 'jsonwebtoken';
-import { logger } from './jwtAuth/utils/logger.js';
+import { getLogger } from './jwtAuth/utils/logger.js';
+import { getConfiguration } from './jwtAuth/config/configuration.js';
 
 const { TokenExpiredError, JsonWebTokenError } = jwt;
 export interface claims {
@@ -9,22 +9,23 @@ export interface claims {
   jti: string
 }
 
-const key = config.auth.jwt.jwt_secret!;
- const log = logger.child({service: 'auth', branch: 'access token'})
+
+ const log = getLogger().child({service: 'auth', branch: 'access token'})
 
 export function generateAccessToken(user: {id: number, visitor_id: number, jti: string}): string {
+  const { jwt: { jwt_secret_key, access_tokens, refresh_tokens } } = getConfiguration();
 
 const payload = {
   visitor: user.visitor_id,
 }
 
-const token = jwt.sign(payload, key, { 
-algorithm: 'HS512',
-expiresIn: '15m',
-audience: 'api.riavzon.com2',
-issuer: 'auth.riavzon.com2',
-subject: user.id.toString(),
-jwtid:    user.jti,
+const token = jwt.sign(payload, jwt_secret_key, { 
+algorithm: access_tokens.algorithm ?? 'HS512',
+expiresIn: access_tokens.expiresIn ?? '15m',
+audience: access_tokens.audience ?? refresh_tokens.domain,
+issuer:   access_tokens.issuer ?? refresh_tokens.domain,
+subject: access_tokens.subject ?? user.id.toString(),
+jwtid:   access_tokens.jwtid ?? user.jti,
 })
 
 log.info({user},'Generated new access token')
@@ -34,12 +35,13 @@ return token;
 
 
 export function verifyAccessToken(token: string, Payload: claims): {valid: boolean, payload?: JwtPayload, errorType?: string} {
-log.info('Verifing access token...')
+log.info('Verifying access token...')
+  const { jwt: { jwt_secret_key, access_tokens, refresh_tokens } } = getConfiguration();
   try {
-   const check = jwt.verify(token, key, {
-     algorithms: ['HS512'],
-     audience: 'api.riavzon.com2',
-     issuer: 'auth.riavzon.com2',
+   const check = jwt.verify(token, jwt_secret_key, {
+     algorithms: [access_tokens.algorithm ?? 'HS512'],
+     audience: access_tokens.audience ?? refresh_tokens.domain,
+     issuer: access_tokens.issuer ?? refresh_tokens.domain,
      subject: Payload.sub,
      jwtid: Payload.jti,
     }); 

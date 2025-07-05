@@ -1,39 +1,54 @@
 import mysql2 from 'mysql2/promise';
-import { config } from './secret.js'
 import mysql, { Pool } from 'mysql2'; 
+import { getConfiguration } from './configuration.js';
 
- const db = await mysql2.createConnection({
-  host: config.db.host,
-  port: config.db.port ? parseInt(config.db.port) : undefined,
-  user: config.db.user,
-  password: config.db.password,
-  database: config.db.name,
-  connectTimeout: 990000,
-});
-export default db;
-console.log(`Connected to MySQL! to ${config.db.name} as ${config.db.user}`);
+let pool: mysql2.Pool;
 
-export const pool = mysql2.createPool({
-  host: config.db.host,
-  port: config.db.port ? parseInt(config.db.port, 10) : undefined,
-  user: config.db.user,
-  password: config.db.password,
-  database: config.db.name,
-  waitForConnections: true,      
-  connectionLimit: 10,          
-  queueLimit: 0,             
-  connectTimeout: 990000,
-});
+export async function getPool() { 
+  if (pool) return pool;
+  const { store } = getConfiguration()
 
-export const poolForLibary = mysql.createPool({
-  host: config.db.host,
-  port: config.db.port ? parseInt(config.db.port, 10) : undefined,
-  user: config.db.user,
-  password: config.db.password,
-  database: config.db.name,
-  waitForConnections: true,      
-  connectionLimit: 10,          
-  queueLimit: 0,             
-  connectTimeout: 990000,
-}) as Pool;
+  try { 
+  pool = mysql2.createPool ({
+    host: store.host,
+    port: store.port,
+    user: store.user,
+    password: store.password,
+    database: store.databaseName,
+    waitForConnections: true,      
+    connectionLimit: store.connectionLimit,          
+    queueLimit: store.queueLimit,             
+    connectTimeout: store.connectTimeout,
+  });
+  console.log(`Connected to MySQL! to ${store.databaseName} as ${store.user}`);
+} catch(err) {
+  console.log(`Error connecting to MySQL`, err);
+  throw err;
+}
+return pool;
+}
 
+let poolForLib: mysql.Pool;
+export async function poolForLibary() { 
+  if (pool) return pool;
+  const { store } = getConfiguration()
+
+  try { 
+  poolForLib = mysql.createPool ({
+    host: store.host,
+    port: store.port,
+    user: store.user,
+    password: store.password,
+    database: store.databaseName,
+    waitForConnections: true,      
+    connectionLimit: store.connectionLimit,          
+    queueLimit: store.queueLimit,             
+    connectTimeout: store.connectTimeout,
+  }) as Pool;
+  console.log(`Connected to MySQL! to ${store.databaseName} as ${store.user}`);
+} catch(err) {
+  console.log(`Error connecting to MySQL`, err);
+  throw err;
+}
+return pool;
+}

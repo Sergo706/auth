@@ -1,8 +1,8 @@
 import  jwt , { JwtPayload } from "jsonwebtoken";
-import { config } from "./jwtAuth/config/secret.js";
-import { logger } from "./jwtAuth/utils/logger.js";
+import { getLogger } from "./jwtAuth/utils/logger.js";
+import { getConfiguration } from "./jwtAuth/config/configuration.js";
 
-const key = config.auth.jwt.magicLinks;
+
 const { TokenExpiredError, JsonWebTokenError } = jwt;
 
 export interface LinkTokenPayload {
@@ -12,30 +12,36 @@ export interface LinkTokenPayload {
   jti?: string;
 }
 
-const log = logger.child({service: 'auth', branch: 'tempLinks', type: 'signature'})
+const log = getLogger().child({service: 'auth', branch: 'tempLinks', type: 'signature'})
 export function tempJwtLink (payload: LinkTokenPayload): string {
+const { magic_links } = getConfiguration(); 
+
 log.info({payload},`Generating link signature...`)
-const token = jwt.sign(payload, key!, {
-   algorithm: 'HS512',
-   expiresIn: '20m',
+
+const token = jwt.sign(payload, magic_links.jwt_secret_key, {
+   algorithm:  'HS512',
+   expiresIn: magic_links.expiresIn ?? '20m',
    subject: payload.subject,
    issuer: payload.purpose,
-   audience:   `https://${config.auth.jwt.domain}`,
+   audience:   `https://${magic_links.domain}`,
+   jwtid: payload.jti
 })
 log.info({payload},`Generated link signature`)
 return token;
 }
 
 
-export function verifyTempJwtLink (token: string, purpose: string, subject: string): 
+export function verifyTempJwtLink (token: string, purpose: string, subject: string, jti: string): 
 {valid: boolean, payload?: JwtPayload, errorType?: string} {
 log.info(`verifing link signature`)
+const { magic_links } = getConfiguration(); 
 try {
-    const check = jwt.verify(token, key!, {
+    const check = jwt.verify(token, magic_links.jwt_secret_key!, {
          algorithms: ['HS512'],
          issuer: purpose,
          subject: subject,
-         audience:   `https://${config.auth.jwt.domain}`,
+         audience:   `https://${magic_links.domain}`,
+         jwtid: jti
     })
     log.info({check},`verified signature`)
 

@@ -1,26 +1,26 @@
 import { Request, Response } from "express";
 import { verifyRefreshToken, generateRefreshToken, revokeRefreshToken } from "../../refreshTokens.js";
 import { makeCookie } from "../utils/cookieGenerator.js";
-import { config } from "../config/secret.js";
 import { strangeThings } from "../../anomalies.js";
 import { sendTempMfaLink } from "../utils/emailMFA.js";
-import { logger } from "../utils/logger.js";
+import { getLogger } from "../utils/logger.js";
 import { rotateRefreshToken } from "../../refreshTokens.js";
 import { createHash } from "crypto";
 import { guard } from "../utils/limiters/utils/guard.js";
-import { refreshTokenLimiter, refreshTokenLimiterUnion } from "../utils/limiters/protectedEndpoints/tokensLimiters.js";
+import { getLimiters } from "../utils/limiters/protectedEndpoints/tokensLimiters.js";
 import { makeConsecutiveCache } from "../utils/limiters/utils/consecutiveCache.js";
-
+import { getConfiguration } from "../config/configuration.js";
 
 const consecutiveForIp = makeConsecutiveCache< {countData:number} >(2000, 1000 * 60 * 60 * 12);
 const consecutiveForCompositeKey = makeConsecutiveCache< {countData:number} >(2000, 60 * 60 * 12);
 const consecutiveForRefreshToken = makeConsecutiveCache< {countData:number} >(2000, 1000 * 60 * 60 * 12);
 
 export const rotateRefreshTokens = async (req: Request, res: Response) => { 
+        const { jwt } = getConfiguration();
         const rawRefreshToken = req.cookies.session;
         const canary_id = req.cookies.canary_id;
-        const log = logger.child({service: 'auth', branch: 'refresh tokens'})
-
+        const log = getLogger().child({service: 'auth', branch: 'refresh tokens'})
+        const { refreshTokenLimiterUnion, refreshTokenLimiter } = getLimiters();
         log.info(`Refreshing token...`)
 
       if (!canary_id) {
@@ -70,7 +70,7 @@ export const rotateRefreshTokens = async (req: Request, res: Response) => {
 
          const result = await verifyRefreshToken(rawRefreshToken);       
       
-         if (result.valid && Date.now() - result.sessionTTL!.getTime() >= config.auth.jwt.MAX_SESSION_LIFE) {
+         if (result.valid && Date.now() - result.sessionTTL!.getTime() >= jwt.refresh_tokens.MAX_SESSION_LIFE) {
           const revoke = await revokeRefreshToken(rawRefreshToken, false);
               if (!revoke.success) {
                   log.error(`DB error revoking token`)
@@ -81,7 +81,7 @@ export const rotateRefreshTokens = async (req: Request, res: Response) => {
              httpOnly: true,
              sameSite: "strict", 
              secure: true,
-             domain: config.auth.jwt.domain,
+             domain: jwt.refresh_tokens.domain,
              path: '/'
             });
 
@@ -89,7 +89,7 @@ export const rotateRefreshTokens = async (req: Request, res: Response) => {
              httpOnly: true,
              sameSite: "strict", 
              secure: true,
-             domain: config.auth.jwt.domain,
+             domain: jwt.refresh_tokens.domain,
              path: '/'
             }); 
             log.info({user: result.userId},`User's Session is expired`);
@@ -125,7 +125,7 @@ export const rotateRefreshTokens = async (req: Request, res: Response) => {
            }
 
            log.info({userID: result.userId, visitorId: result.visitor_id},`Refresh verified...`)
-           const updateToken = await rotateRefreshToken(config.auth.jwt.refresh_ttl, result.userId, rawRefreshToken, false);
+           const updateToken = await rotateRefreshToken(jwt.refresh_tokens.refresh_ttl, result.userId, rawRefreshToken, false);
            log.info({userID: result.userId, visitorId: result.visitor_id},`Rotating token...`)
 
            let newTokenValue; 
@@ -137,7 +137,7 @@ export const rotateRefreshTokens = async (req: Request, res: Response) => {
               expiresAt    = updateToken.expiresAt;
            } else {
             log.info({userID: result.userId, visitorId: result.visitor_id},`Token can't be rotated, generating new one...`)
-           const newSession = await generateRefreshToken(config.auth.jwt.refresh_ttl, result.userId);
+           const newSession = await generateRefreshToken(jwt.refresh_tokens.refresh_ttl, result.userId);
               newTokenValue = newSession.raw;
               expiresAt     = newSession.expiresAt;
            }
@@ -153,7 +153,7 @@ export const rotateRefreshTokens = async (req: Request, res: Response) => {
                sameSite: "strict", 
                expires: expiresAt,
                secure: true,
-               domain: config.auth.jwt.domain,
+               domain: jwt.refresh_tokens.domain,
               path: '/'
             })
             log.info({userID: result.userId, visitorId: result.visitor_id},`Refresh Token was expired and now is up to date`)

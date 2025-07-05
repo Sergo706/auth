@@ -1,7 +1,7 @@
 import pinoNS from 'pino';
 import { existsSync, mkdirSync } from 'fs';
 import path from 'path';
-import { config } from '../config/secret.js';
+import { getConfiguration } from '../config/configuration.js';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -38,22 +38,29 @@ const transport = pinoNS.transport({
     }
   ]
 });
+let logger: pinoNS.Logger;  
 
-export const logger = (pinoNS as any)(
-  {
-    level: config.logs,
-    timestamp: pinoNS.stdTimeFunctions.isoTime,
-    mixin() { return { uptime: process.uptime() }; },
-    redact: {
-      paths: [
-        'req.headers.authorization',
-        'user.password',
-        'accessToken',
-        'refresh_token',
-        '*.secret'
-      ],
-      censor: '[SECRET]'
-    }
-  },
-  transport
-);
+export function getLogger() {
+  if (logger) return logger;       
+  const { logLevel } = getConfiguration();
+  logger = (pinoNS as any)(
+    {
+      level: logLevel,             
+      timestamp: pinoNS.stdTimeFunctions.isoTime,
+      mixin() { return { uptime: process.uptime() }; },
+      redact: {
+        paths: [
+          'req.headers.authorization',
+          'user.password',
+          'accessToken',
+          'refresh_token',
+          '*.secret'
+        ],
+        censor: '[SECRET]'
+      }
+    },
+    transport
+  );
+
+  return logger;
+}

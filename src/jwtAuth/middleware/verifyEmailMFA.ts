@@ -1,16 +1,16 @@
 import { NextFunction, Request, Response } from 'express';
-import { pool } from '../config/dbConnection.js';
+import { getPool } from '../config/dbConnection.js';
 import { ResultSetHeader, RowDataPacket } from "mysql2";
 import crypto from 'crypto';
 import { code } from '../models/zodSchema.js'
 import { generateRefreshToken, revokeRefreshToken, verifyRefreshToken } from '../../refreshTokens.js';
 import { generateAccessToken } from '../../accsessTokens.js';
-import { config } from '../config/secret.js';
+import { getConfiguration } from '../config/configuration.js';
 import { makeCookie } from '../utils/cookieGenerator.js';
-import { logger } from '../utils/logger.js';
+import { getLogger } from '../utils/logger.js';
 import { validateSchema } from '../utils/validateZodSchema.js';
 import { guard } from "../utils/limiters/utils/guard.js";
-import { uniLimiter, resetCompositeKey, ipLimit  } from "../utils/limiters/protectedEndpoints/tempPostRoutesLimiter.js";
+import { getLimiters, resetLimitersUni } from "../utils/limiters/protectedEndpoints/tempPostRoutesLimiter.js";
 import { makeConsecutiveCache } from "../utils/limiters/utils/consecutiveCache.js"
 
 
@@ -19,9 +19,10 @@ export const consecutiveForjti = makeConsecutiveCache< {countData:number} >(2000
 const consecutiveForsubmittedHash = makeConsecutiveCache< {countData:number} >(2000, 1000 * 60 * 10);
 
 export async function verifyMFA (req: Request, res: Response, next: NextFunction) {
-  const log = logger.child({service: 'auth', branch: 'mfa', visitorId: req.newVisitorId ?? req.link.visitor})
-   
-  log.info(`Verifing mfa code...`)
+  const log = getLogger().child({service: 'auth', branch: 'mfa', visitorId: req.newVisitorId ?? req.link.visitor})
+  const { uniLimiter, ipLimit  } = getLimiters();
+  const { jwt } = getConfiguration();
+  log.info(`Verifying mfa code...`)
 
  if (!req.is('application/json')) {
     log.warn('Content type is not json!')
@@ -60,7 +61,7 @@ export async function verifyMFA (req: Request, res: Response, next: NextFunction
     res.status(500).json({ error: 'No Session Token' });
     return;
   }
-
+const pool = await getPool()
 const conn = await pool.getConnection();
 try { 
    await conn.beginTransaction();
@@ -127,7 +128,7 @@ const currentVisitorId = req.newVisitorId || req.link.visitor;
   consecutiveForSlowDown.delete(req.ip!);
   consecutiveForjti.delete(req.link.jti!);
   consecutiveForsubmittedHash.delete(submittedHash!);
-  await resetCompositeKey(req.ip!);
+  await resetLimitersUni(req.ip!);
 
  log.info(`updated users and visitors, generating tokens...`)
   const token = rows[0].token;
@@ -156,7 +157,7 @@ const currentVisitorId = req.newVisitorId || req.link.visitor;
   });
   
     const newRefresh = await generateRefreshToken(
-    config.auth.jwt.refresh_ttl,
+    jwt.refresh_tokens.refresh_ttl,
     userId
   );
 
@@ -173,7 +174,7 @@ const currentVisitorId = req.newVisitorId || req.link.visitor;
      sameSite: "strict", 
      expires: newRefresh!.expiresAt,
      secure: true,
-     domain: config.auth.jwt.domain,
+     domain: jwt.refresh_tokens.domain,
      path: '/'
   })
     log.info(`MFA Verified! and new tokens are set`)

@@ -3,24 +3,25 @@ import { revokeRefreshToken, verifyRefreshToken } from "../../refreshTokens.js";
 import { generateAccessToken } from "../../accsessTokens.js";
 import { strangeThings } from "../../anomalies.js";
 import { sendTempMfaLink } from "../utils/emailMFA.js";
-import { logger } from "../utils/logger.js";
-import { config } from "../config/secret.js";
+import { getLogger } from "../utils/logger.js";
 import { createHash } from "crypto";
 import { guard } from "../utils/limiters/utils/guard.js";
-import { refreshAccessTokenLimiter, blackList, refreshTokenLimiter } from "../utils/limiters/protectedEndpoints/tokensLimiters.js";
+import { getLimiters} from "../utils/limiters/protectedEndpoints/tokensLimiters.js";
 import { makeConsecutiveCache } from "../utils/limiters/utils/consecutiveCache.js";
 import { resetLimiters } from "../utils/limiters/utils/resetLimiters.js";
-
+import { getConfiguration } from "../config/configuration.js";
 
 const consecutiveForIp = makeConsecutiveCache< {countData:number} >(2000, 1000 * 60 * 10);
 const consecutiveForCompositeKey = makeConsecutiveCache< {countData:number} >(2000, 1000 * 60 * 10);
 const consecutiveForRefreshToken = makeConsecutiveCache< {countData:number} >(2000, 1000 * 60 * 60 * 12);
 
 export const rotateAccessToken =  async (req: Request, res: Response) => {
+        const { jwt } = getConfiguration();
+
         const rawRefreshToken = req.cookies.session;
         const canary_id = req.cookies.canary_id;
-        const log = logger.child({service: 'auth', branch: 'access token'})
-
+        const log = getLogger().child({service: 'auth', branch: 'access token'})
+        const { refreshAccessTokenLimiter, refreshTokenLimiter } = getLimiters();
         log.info('Rotating access token...')
 
       if (!canary_id) {
@@ -67,7 +68,7 @@ export const rotateAccessToken =  async (req: Request, res: Response) => {
 
          const result = await verifyRefreshToken(rawRefreshToken);
 
-          if (result.valid && Date.now() - result.sessionTTL!.getTime() >= config.auth.jwt.MAX_SESSION_LIFE) {
+          if (result.valid && Date.now() - result.sessionTTL!.getTime() >= jwt.refresh_tokens.MAX_SESSION_LIFE) {
            const revoke = await revokeRefreshToken(rawRefreshToken, false);
                if (!revoke.success) {
                    log.error(`DB error revoking token`)
@@ -78,7 +79,7 @@ export const rotateAccessToken =  async (req: Request, res: Response) => {
               httpOnly: true,
               sameSite: "strict", 
               secure: true,
-              domain: config.auth.jwt.domain,
+              domain: jwt.refresh_tokens.domain,
               path: '/'
              });
              
@@ -86,7 +87,7 @@ export const rotateAccessToken =  async (req: Request, res: Response) => {
               httpOnly: true,
               sameSite: "strict", 
               secure: true,
-              domain: config.auth.jwt.domain,
+              domain: jwt.refresh_tokens.domain,
               path: '/'
              }); 
              log.info({user: result.userId},`User's Session is expired`);
@@ -108,7 +109,7 @@ export const rotateAccessToken =  async (req: Request, res: Response) => {
 
         resetLimiters(log, hashedToken, [refreshTokenLimiter]);
         consecutiveForRefreshToken.delete(hashedToken);
-        log.info({userId: result.userId, visitorId: result.visitor_id},`access token rotated succesfuly`)
+        log.info({userId: result.userId, visitorId: result.visitor_id},`access token rotated successfully`)
         res.status(200).json({ accessToken: accessToken, accessIat: Date.now().toString() });
         return;
 

@@ -1,12 +1,12 @@
 import { hashPassword } from "../utils/hash.js";
 import { Request, Response, NextFunction } from "express";
-import { pool } from "../config/dbConnection.js";
+import { getPool } from "../config/dbConnection.js";
 import { passwords } from "../models/zodSchema.js";
 import { ResultSetHeader, RowDataPacket } from "mysql2";
-import { logger } from "../utils/logger.js";
+import { getLogger } from "../utils/logger.js";
 import { validateSchema } from "../utils/validateZodSchema.js";
 import { guard } from "../utils/limiters/utils/guard.js";
-import { uniLimiter, ipLimit, resetCompositeKey } from "../utils/limiters/protectedEndpoints/tempPostRoutesLimiter.js";
+import { getLimiters, resetLimitersUni } from "../utils/limiters/protectedEndpoints/tempPostRoutesLimiter.js";
 import { makeConsecutiveCache } from "../utils/limiters/utils/consecutiveCache.js";
 
 
@@ -15,7 +15,8 @@ const consecutiveForIp = makeConsecutiveCache< {countData:number} >(2000, 1000 *
 export const consecutiveForjti = makeConsecutiveCache< {countData:number} >(2000, 1000 * 60 * 20);
 
 export const verifyNewPassword = async (req: Request, res: Response, next: NextFunction) => {
-  const log = logger.child({service: 'auth', branch: 'password-reset'})
+  const log = getLogger().child({service: 'auth', branch: 'password-reset'})
+  const { uniLimiter, ipLimit  } = getLimiters();
   log.info(`Verifing new password...`)
 
 if (!req.is('application/json')) {
@@ -54,7 +55,7 @@ if (!req.is('application/json')) {
         res.status(400).json({error: `Password dosn't match`,  "banned": false })
         return;
  }
-
+const pool = await getPool()
 const conn = await pool.getConnection();
   try {
     await conn.beginTransaction();
@@ -101,7 +102,7 @@ const conn = await pool.getConnection();
     log.info({visitorId: req.link.visitor, userId: findUser[0].id},`Reset password succesfuly`);
     consecutiveForCompositeKey.delete(compositeKey);
     consecutiveForIp.delete(req.ip!);
-    await resetCompositeKey(compositeKey);
+    await resetLimitersUni(compositeKey);
    res.status(200).json({ success: true });
    return;
 

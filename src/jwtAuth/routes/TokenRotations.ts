@@ -5,6 +5,7 @@ import { rotateRefreshTokens } from '../controllers/rotateRefreshTokens.js';
 import { requireRefreshToken } from "../middleware/requireRefreshToken.js";
 import { handleLogout } from "../controllers/logout.js";
 import { rotateCredentials } from "../controllers/rotateOnEveryUse.js";
+import { getConfiguration } from "../config/configuration.js";
 const router = Router();
 
 
@@ -19,7 +20,19 @@ router.post(
 '/auth/user/refresh-session',
   requireRefreshToken,
   cookieOnly,
- rotateRefreshTokens
+ async (req, res, next) => {
+    try {
+      const { jwt: { refresh_tokens } } = getConfiguration();
+
+      if (refresh_tokens.rotateOnEveryAccessExpiry) {
+        await rotateCredentials(req, res);
+      } else {
+        await rotateRefreshTokens(req, res);
+      }
+    } catch (err) {
+      next(err);
+    }
+  }
 );
 
 router.post(

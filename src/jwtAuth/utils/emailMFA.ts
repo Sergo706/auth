@@ -1,9 +1,9 @@
 import { tempJwtLink } from "../../tempLinks.js";
 import { mfaEmail } from "../utils/systemEmailMap.js";
-import { pool } from "../config/dbConnection.js";
+import { getPool } from "../config/dbConnection.js";
 import { RowDataPacket } from "mysql2";
 import crypto from 'crypto';
-import { logger } from "../utils/logger.js";
+import { getLogger } from "../utils/logger.js";
 
 
 export async function sendTempMfaLink(
@@ -11,7 +11,7 @@ user: { userId: number; visitor: number },
 sessionToken: string,
 ): Promise<boolean> {
 const jti = `${crypto.randomUUID()}${crypto.randomBytes(64).toString('hex')}`;
-const log = logger.child({service: 'auth', branch: 'mfa', visitorId: user.visitor})
+const log = getLogger().child({service: 'auth', branch: 'mfa', visitorId: user.visitor})
   const tempToken = tempJwtLink(
     { 
       visitor: user.visitor,   
@@ -30,6 +30,7 @@ const log = logger.child({service: 'auth', branch: 'mfa', visitorId: user.visito
   const expires = new Date(Date.now() + 7 * 60 * 1000);
   const hashedClientToken = crypto.createHash('sha256').update(sessionToken).digest('hex');
   const params = [user.userId, hashedClientToken, jti, hashedCode, expires];
+  const pool = await getPool()
   const conn = await pool.getConnection();
 
   try { 

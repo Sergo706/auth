@@ -1,10 +1,10 @@
-import { pool } from "./jwtAuth/config/dbConnection.js";
+import { getPool } from "./jwtAuth/config/dbConnection.js";
 import { RowDataPacket } from 'mysql2';
-import { getGeoData, parseUA} from '@riavzon/botdetector';
+import { getGeoData, parseUA } from '@riavzon/botdetector'
 import ipRangeCheck from 'ip-range-check' 
 import { revokeRefreshToken } from "./refreshTokens.js";
 import { createHash } from "crypto";
-import { logger } from "./jwtAuth/utils/logger.js";
+import { getLogger } from "./jwtAuth/utils/logger.js";
 
 
 interface RefreshRow {
@@ -52,8 +52,9 @@ Promise <{
 }>
 
 {
+const pool = await getPool()
 const hashedClientToken = createHash('sha256').update(token).digest('hex');
-const log = logger.child({service: 'auth', branch: 'anomalies', visitor_cookie: cookie, ip:ipAddress});
+const log = getLogger().child({service: 'auth', branch: 'anomalies', visitor_cookie: cookie, ip:ipAddress});
 const [rows] = await pool.execute<RowDataPacket[]>(`
 
 SELECT 

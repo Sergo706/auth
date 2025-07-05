@@ -3,14 +3,14 @@ import { hashPassword } from "../utils/hash.js";
 import { newUser } from "../models/zodSignUpSchemas.js";
 import { createUser } from "../models/createUser.js";
 import { makeCookie } from "../utils/cookieGenerator.js";
-import { config } from "../config/secret.js";
-import { logger } from "../utils/logger.js";
+import { getConfiguration } from "../config/configuration.js";
+import { getLogger } from "../utils/logger.js";
 import { validateSchema } from "../utils/validateZodSchema.js";
 import { isDisposable } from "../utils/isEmailDisposable.js";
 import { isValidDomain } from "../utils/DnsMxLookUp.js";
 import { guard } from "../utils/limiters/utils/guard.js";
 import { makeConsecutiveCache } from "../utils/limiters/utils/consecutiveCache.js";
-import { uniLimiterIp, uniLimiterComposite,emailLimit } from "../utils/limiters/protectedEndpoints/signupLimiter.js";
+import { getLimiters } from "../utils/limiters/protectedEndpoints/signupLimiter.js";
 
 
 const consecutiveForIp = makeConsecutiveCache< {countData:number} >(2000, 1000 * 60 * 30);
@@ -18,10 +18,10 @@ const consecutiveForCompositeKey = makeConsecutiveCache< {countData:number} >(20
 const consecutiveForEmail = makeConsecutiveCache< {countData:number} >(2000, 1000 * 60 * 60 * 24);
 
 export const handleSignUp = async (req: Request, res: Response, next: NextFunction) => {
-  const log = logger.child({service: 'auth', branch: 'classic', type: 'signup'});
-
+  const log = getLogger().child({service: 'auth', branch: 'classic', type: 'signup'});
+  const { uniLimiterIp, uniLimiterComposite, emailLimiter } = getLimiters();
   log.info('Starting signup process...')
-
+  const { jwt } = getConfiguration();
 
   if (!req.is('application/json')) {
     log.warn('Unexpected content type');
@@ -67,7 +67,7 @@ if ("valid" in result) {
     return; 
   }
 
-  if (!(await guard(emailLimit, email, consecutiveForEmail, 2, 'email', log, res))) return;
+  if (!(await guard(emailLimiter, email, consecutiveForEmail, 2, 'email', log, res))) return;
 
   const hashedPassword = await hashPassword(password, log)
 
@@ -105,7 +105,7 @@ if ("valid" in result) {
         sameSite: "strict", 
         expires: refreshToken!.expiresAt,
         secure: true,
-        domain: config.auth.jwt.domain,
+        domain: jwt.refresh_tokens.domain,
         path: '/'
         })
         res.status(201).json({ 

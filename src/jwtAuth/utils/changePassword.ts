@@ -1,18 +1,19 @@
 import { tempJwtLink } from "../../tempLinks.js";
 import { LinkTokenPayload } from "../../tempLinks.js";
 import { resetPasswordEmail } from "../utils/systemEmailMap.js";
-import { pool } from "../config/dbConnection.js";
+import { getPool } from "../config/dbConnection.js";
 import { RowDataPacket } from "mysql2";
 import crypto from 'crypto'
-import { logger } from "../utils/logger.js";
+import { getLogger } from "../utils/logger.js";
 
 
 
 export async function sendTempPasswordResetLink(
 email: string,
 ):Promise<{valid: boolean; error?: string}>{
-const log = logger.child({service: 'auth', branch: 'password-reset'})
+const log = getLogger().child({service: 'auth', branch: 'password-reset'})
 log.info('Searching for user email...')
+const pool = await getPool()
  try { 
  const [results] =  await pool.execute<RowDataPacket[]>(`
     SELECT id, name, email AS user_email, visitor_id
