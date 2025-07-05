@@ -19,9 +19,8 @@
     }
   },
   "scripts": {
-    "build-deps": "npm --prefix ./node_modules/@riavzon/botdetector install && npm --prefix ./node_modules/@riavzon/botdetector run prepare",
-    "build-lib": "tsc",
-    "prepare": "npm run build-deps && npm run build-lib"
+    "build": "tsc && mkdir -p dist && cp -R src/**/emails dist/jwtAuth",
+    "prepare": "npm run build"
   },
   "dependencies": {
     "@riavzon/botdetector": "git+ssh://git@github.com:Sergo706/botDetector.git#main",
