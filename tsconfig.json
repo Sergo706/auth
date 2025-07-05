@@ -14,6 +14,6 @@
     "composite": true,
     "declaration": true                            
   },
-  "include": ["src/**/*",  "src/**/*.json"],
+  "include": ["src/**/*",  "src/**/*.json", "src/**/*global.d.ts"],
   "exclude": ["node_modules"]
 }
