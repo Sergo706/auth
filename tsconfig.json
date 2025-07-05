@@ -12,8 +12,9 @@
     "strict": true,                                      
     "skipLibCheck": true,
     "composite": true,
-    "declaration": true                            
+    "declaration": true,
+    "declarationMap": true                            
   },
-  "include": ["src/**/*",  "src/**/*.json", "src/**/*global.d.ts"],
+  "include": ["src/**/*",  "src/**/*.json", "src/global.d.ts"],
   "exclude": ["node_modules"]
 }

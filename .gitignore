@@ -15,3 +15,4 @@ dist/
 .env.*
 !.env.example
 package-lock.json
+*.tsbuildinfo
