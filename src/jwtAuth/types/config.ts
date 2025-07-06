@@ -46,7 +46,6 @@ export interface AuthConfig {
        rotateOnEveryAccessExpiry: boolean;
        refresh_ttl: number;
        domain: string;
-       magicLinks: string;
        MAX_SESSION_LIFE: number;
      }
    },

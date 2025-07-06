@@ -2,7 +2,6 @@ import { ResultSetHeader, RowDataPacket } from "mysql2/promise";
 import { getPool } from "../config/dbConnection.js";
 import { sendLog } from "../utils/telegramLogger.js";
 import { OauthUser } from "../types/newUser.js";
-import { NewUserGoogle } from "./zodSchemaGoogle.js";
 import { generateAccessToken } from "../../accsessTokens.js";
 import { generateRefreshToken } from "../../refreshTokens.js";
 import { IssuedRefreshToken } from "../../refreshTokens.js";
