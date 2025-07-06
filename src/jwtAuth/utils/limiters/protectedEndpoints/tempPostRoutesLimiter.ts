@@ -68,8 +68,6 @@ function buildLimiter(): LimiterBundle {
     blockDuration: 20 * 60,  
     keyPrefix: 'used_jti',
     tableName: 'tempPostRoutes',
-    inMemoryBlockOnConsumed: 0,
-    inMemoryBlockDuration: 20 * 60 
   });
 
   return {
