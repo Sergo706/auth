@@ -44,14 +44,15 @@ export function tempJwtLink (payload: LinkTokenPayload): string {
 const { magic_links } = getConfiguration(); 
 const log = getLogger().child({service: 'auth', branch: 'tempLinks', type: 'signature'})
 log.info({payload},`Generating link signature...`)
+const { jti, ...safePayload } = payload;
 
-const token = jwt.sign(payload, magic_links.jwt_secret_key, {
+const token = jwt.sign(safePayload, magic_links.jwt_secret_key, {
    algorithm:  'HS512',
    expiresIn: magic_links.expiresIn ?? '20m',
    subject: payload.subject,
    issuer: payload.purpose,
    audience:   `https://${magic_links.domain}`,
-   jwtid: payload.jti
+   jwtid: jti
 })
 log.info({payload},`Generated link signature`)
 return token;
