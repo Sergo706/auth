@@ -12,6 +12,25 @@ export interface claims {
 
  const log = getLogger().child({service: 'auth', branch: 'access token'})
 
+/**
+ * @description
+ * Generate a short-lived access token.
+ *
+ * @param {{ id: number; visitor_id: number; jti: string }} user
+ *   The payload for the access token, containing:
+ *   - `id`: the user’s unique identifier
+ *   - `visitor_id`: the visitor’s session identifier
+ *   - `jti`: a unique token identifier (JWT ID)
+ *
+ * @returns {string}
+ *   A signed JWT access token string.
+ *
+ * @example
+ * import { v4 as uuid } from "uuid";
+ *
+ * const user = { id: 1, visitor_id: 12, jti: uuid() };
+ * const token = generateAccessToken(user);
+ */
 export function generateAccessToken(user: {id: number, visitor_id: number, jti: string}): string {
   const { jwt: { jwt_secret_key, access_tokens, refresh_tokens } } = getConfiguration();
 
@@ -32,8 +51,31 @@ log.info({user},'Generated new access token')
 return token;
 };
 
-
-
+/**
+ * @description
+ * Verify and decode a JWT access token.
+ *
+ * @param {string} token
+ *   The JWT string to verify.
+ * @param {import('./accsessTokens.js').claims} Payload
+ *   The expected payload shape/schema for validation.
+ *
+ * @returns {{ valid: boolean; payload?: JwtPayload; errorType?: string }}
+ *   An object indicating verification success, the decoded payload if valid,
+ *   or an error type if verification failed.
+ *
+ * @example
+ * import { claims } from './accsessTokens.js';
+ *
+ * const result = verifyAccessToken(token, claims);
+ * if (result.valid) {
+ *   console.log('Payload:', result.payload);
+ * } else {
+ *   console.error('Error verifying token:', result.errorType);
+ * }
+ *
+ * @see {@link ./accsessTokens.js}
+ */
 export function verifyAccessToken(token: string, Payload: claims): {valid: boolean, payload?: JwtPayload, errorType?: string} {
 log.info('Verifying access token...')
   const { jwt: { jwt_secret_key, access_tokens, refresh_tokens } } = getConfiguration();

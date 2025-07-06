@@ -8,6 +8,40 @@ import { generateRefreshToken } from "../../refreshTokens.js";
 import { IssuedRefreshToken } from "../../refreshTokens.js";
 import { getConfiguration } from "../config/configuration.js";
 import { getLogger } from "../utils/logger.js";
+
+
+
+/**
+ * @description
+ * Create a new local user account.
+ *
+ * @param {string} cookie
+ *   The `canary_id` cookie value from the client.
+ * @param {import('./jwtAuth/types/newUser.js').NewUser} data
+ *   The new user’s registration details.
+ *
+ * @returns {Promise<{
+ *   success: boolean;
+ *   accessToken?: string;
+ *   refreshToken?: IssuedRefreshToken;
+ *   duplicate?: true;
+ * }>}
+ * Resolves with an object indicating whether creation succeeded. If a user with the same
+ * credentials already exists, `duplicate` will be `true`. On success, issued tokens are returned.
+ *
+ * @example
+ * import { NewUser } from './jwtAuth/types/newUser.js';
+ *
+ * const data: NewUser = { email: 'alice@example.com', password: 's3cr3t' };
+ * const result = await createUser(req.cookies.canary_id, data);
+ * if (result.success) {
+ *   console.log('Access Token:', result.accessToken);
+ * } else if (result.duplicate) {
+ *   console.warn('User already exists');
+ * }
+ *
+ * @see {@link ./models/createUser.js}
+ */
 export async function createUser(cookie: string, data: NewUser): 
 Promise<  
 { success: boolean;  accessToken?: string; refreshToken?: IssuedRefreshToken; duplicate?: true;  }

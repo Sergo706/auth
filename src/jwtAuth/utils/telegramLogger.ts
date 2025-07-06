@@ -46,7 +46,26 @@
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;');
   }
-  
+/**
+ * @description
+ * Logs a message to your configured Telegram chat.
+ *
+ * @param {string} title
+ *   A brief title or subject for the log message.
+ * @param {string} message
+ *   The detailed content of the log message to send.
+ *
+ * @returns {Promise<void>}
+ *   Resolves when the message has been sent, or throws on failure.
+ *
+ * @see {@link ./telegramLogger.js}
+ *
+ * @example
+ * await sendLog(
+ *   'User signed up',
+ *   'A new user has just signed up with email alice@example.com'
+ * );
+ */
   export async function sendLog(title: string, message: string) {
     const { bot, logChatId } = getTelegram();  
     try { 

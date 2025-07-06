@@ -14,6 +14,33 @@ const consecutiveForCompositeKey = makeConsecutiveCache< {countData:number} >(20
 const consecutiveForIp = makeConsecutiveCache< {countData:number} >(2000, 1000 * 60 * 10);
 export const consecutiveForjti = makeConsecutiveCache< {countData:number} >(2000, 1000 * 60 * 20);
 
+/**
+ * @description
+ * Verifies the “reset password” token (e.g., from an emailed link), ensures
+ * it’s valid and not expired.  
+ * On success, sends `res.status(200).json({ success: true })` and skips to the next handler.
+ * On failure, calls `next(err)` to pass control to your error handler.
+ *
+ * @name verifyNewPassword
+ * @function
+ * @param {import('express').Request} req
+ *   The Express request object.
+ * @param {import('express').Response} res
+ *   The Express response object.
+ * @param {import('express').NextFunction} next
+ *   The next middleware function.
+ *
+ * @returns {Promise<void>}
+ *   Resolves after sending a JSON response or invoking `next` on error.
+ *
+ * @see {@link ./middleware/verifyPasswordReset.js}
+ *
+ * @example
+ * app.post('/password/reset', verifyNewPassword, (req, res) => {
+ *   // If verification succeeded, you reach here
+ *   res.redirect('/login');
+ * });
+ */
 export const verifyNewPassword = async (req: Request, res: Response, next: NextFunction) => {
   const log = getLogger().child({service: 'auth', branch: 'password-reset'})
   const { uniLimiter, ipLimit  } = getLimiters();

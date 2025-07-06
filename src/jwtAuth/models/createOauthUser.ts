@@ -9,7 +9,50 @@ import { IssuedRefreshToken } from "../../refreshTokens.js";
 import { getConfiguration } from "../config/configuration.js";
 import { getLogger } from "../utils/logger.js";
 import { StandardProfile } from "../utils/newOauthProvider.js";
-
+/**
+ * @description
+ * Create a new OAuth user record using the provided profile data.
+ *
+ * @param {string} cookie
+ *   The `canary_id` cookie value from the client.
+ * @param {import('./jwtAuth/types/newUser.js').StandardProfile} data
+ *   The OAuth-standard profile information returned by the provider.
+ * @param {string} provider
+ *   The unique identifier of the user at the OAuth provider.
+ *
+ * @returns {Promise<{
+ *   success: boolean;
+ *   accessToken?: string;
+ *   refreshToken?: IssuedRefreshToken;
+ *   duplicate?: true;
+ * }>}
+ * Resolves with an object indicating whether the user was created.
+ * If a user with the same provider ID already exists, `duplicate` will be `true`.
+ * On success, issued tokens are returned.
+ *
+ * @example
+ * import { StandardProfile } from './jwtAuth/types/newUser.js';
+ *
+ * const profile: StandardProfile = {
+ *   id: '1234567890',
+ *   displayName: 'Alice',
+ *   emails: [{ value: 'alice@example.com' }],
+ *   // …other profile fields…
+ * };
+ *
+ * const result = await createOauthUser(
+ *   req.cookies.canary_id,
+ *   profile,
+ *   '1234567890'
+ * );
+ * if (result.success) {
+ *   console.log('Access Token:', result.accessToken);
+ * } else if (result.duplicate) {
+ *   console.warn('OAuth user already exists');
+ * }
+ *
+ * @see {@link ./models/createOauthUser.js}
+ */
 export async function createOauthUser(cookie: string, data: StandardProfile, provider: string): 
 Promise <  
 { success: boolean;  accessToken?: string; refreshToken?: IssuedRefreshToken; duplicate?: true;  }

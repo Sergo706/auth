@@ -6,6 +6,31 @@ import crypto from 'crypto';
 import { getLogger } from "../utils/logger.js";
 
 
+/**
+ * @description
+ * Sends a one-time MFA link via email to a valid registered user.
+ *
+ * @param {{ userId: number; visitor: number }} user
+ *   The user’s identifiers:
+ *   - `userId`: the user’s unique ID.
+ *   - `visitor`: the visitor/session ID.
+ * @param {string} sessionToken
+ *   The session or refresh token to include in the MFA link.
+ *
+ * @returns {Promise<boolean>}
+ *   Resolves to `true` if the email was sent successfully, otherwise `false`.
+ *
+ * @example
+ * const user = { userId: 13, visitor: 14 };
+ * const success = await sendTempMfaLink(user, refreshToken);
+ * if (success) {
+ *   console.log('MFA link sent.');
+ * } else {
+ *   console.error('Failed to send MFA link.');
+ * }
+ *
+ * @see {@link ./emailMFA.js}
+ */
 export async function sendTempMfaLink(
 user: { userId: number; visitor: number },
 sessionToken: string,

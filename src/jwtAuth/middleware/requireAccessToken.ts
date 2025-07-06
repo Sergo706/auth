@@ -5,7 +5,22 @@ declare module 'express-serve-static-core' {
     token?: string;
   }
 }
-
+/**
+ * @description
+ * Verifies that the incoming request carries a access‐token, verifies it downstream.
+ * (in Authorization header or cookie). 
+ * 
+ * Fails 401 on invalid/absent token.
+ *
+ * @name requireAccessToken
+ * @function
+ * @param {Request}   req
+ * @param {Response}  res
+ * @param {NextFunction} next
+ * @see {@link ./middleware/requireAccessToken.js}
+ * @example
+ * app.get('/protected', requireAccessToken, (req, res) => { … });
+ */
 export const requireAccessToken = (req: Request, res: Response, next: NextFunction) => {
         const log = getLogger().child({service: 'auth', branch: 'guard'})
         const authHeader = (req.get('authorization') || '').trim();

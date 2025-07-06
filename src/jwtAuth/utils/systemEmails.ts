@@ -28,13 +28,45 @@ export interface EmailData {
         alt: string;
      }[]
 }
-
+/**
+ * @description
+ * Sends emails via your SMTP provider.
+ *
+ * @param {string | string[]} recipients
+ *   One or more recipient email addresses.
+ * @param {string} subject
+ *   The subject line for the email.
+ * @param {import('./systemEmails.js').EmailData} userData
+ *   The data to populate the email template (see `EmailData` in `systemEmails.js`).
+ * @param {string} template
+ *   The name of the email template to use.
+ *
+ * @returns {Promise<void>}
+ *   Resolves when the email has been sent (or throws on failure).
+ *
+ * @see {@link ./systemEmails.js}
+ *
+ * @example
+ * import { EmailData } from './systemEmails.js';
+ *
+ * const data: EmailData = {
+ *   name: 'Alice',
+ *   resetLink: 'https://example.com/reset?token=xyz'
+ * };
+ *
+ * await sendSystemEmail(
+ *   ['alice@example.com', 'bob@example.com'],
+ *   'Welcome to Our Service!',
+ *   data,
+ *   'welcomeTemplate'
+ * );
+ */
 export async function sendSystemEmail(
     recipients: string[] | string,
      subject: string, 
      userData: EmailData, 
      template: string,
-    ) {
+    ): Promise<void> {
     let html: string;
     const toField = Array.isArray(recipients) ? recipients : [recipients];
     const { email } = getConfiguration();

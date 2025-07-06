@@ -41,7 +41,47 @@ interface RefreshRow {
   suspicos_activity_score: number;
 }
 
-
+/**
+ * @description
+ * Anomaly-detection utility implementing bot-detection heuristics, IP differences,
+ * device differences, and more. Use this to determine if a refresh token use
+ * should trigger MFA or block the session.
+ *
+ * @param {string} token - The raw or hashed refresh token to inspect.
+ * @param {string} cookie - The `canary_id` cookie value from the client.
+ * @param {string} ipAddress - The client’s IP address.
+ * @param {string} ua - The client’s User-Agent string.
+ * @param {boolean} rotated - Whether the refresh token has already been rotated.
+ *
+ * @returns {Promise<{
+ *   valid: boolean;
+ *   reason: string;
+ *   reqMFA: boolean;
+ *   userId?: number;
+ *   visitorId?: number;
+ * }>}
+ * Resolves with an object indicating:
+ * - `valid`: whether the request passes anomaly checks  
+ * - `reason`: description of any anomaly detected  
+ * - `reqMFA`: if true, require MFA before proceeding  
+ * - `userId` / `visitorId`: IDs to associate on success  
+ *
+ * @see {@link ./anomalies.js}
+ *
+ * @example
+ * const { valid, reason, reqMFA, userId, visitorId } = await strangeThings(
+ *   rawRefreshToken,
+ *   canary_id,
+ *   req.ip!,
+ *   req.get('User-Agent')!,
+ *   false
+ * );
+ * if (!valid && reqMFA) {
+ *   // prompt for MFA
+ * } else if (!valid) {
+ *   // block or log anomaly
+ * }
+ */     
 export async function strangeThings (token: string, cookie: string, ipAddress: string, ua: string, rotated: boolean):
 Promise <{
   valid: boolean;

@@ -51,6 +51,31 @@ function mapProvider<Schema extends ZodType>(config: ProviderConfig<Schema>) {
   }
 }
 
+/**
+ * @description
+ * Retrieves and instantiates all OAuth providers defined in your application configuration,
+ * and optionally registers additional provider(s) passed as an argument.
+ * If `newProviders` is provided, those configs are registered first.
+ *
+ * @function configureOauthProviders
+ * @param {import('../models/provider').ProviderConfig|import('../models/provider').ProviderConfig[]} [newProviders]
+ *   A single provider config or an array of provider configs to register
+ *   before returning the full list.
+ * @returns {import('../models/provider').OAuthProvider[]}
+ *   An array of instantiated OAuthProvider objects, including any newly registered ones.
+ * @see {@link ./newOauthProvider.js}
+ * @example
+ * // 1 Use only configured providers:
+ * const providers = configureOauthProviders();
+ *
+ * // 2 Register one extra provider on the fly:
+ * import { customConfig } from './myCustomProvider';
+ * const providersWithCustom = configureOauthProviders(customConfig);
+ *
+ * // 3 Register multiple extras:
+ * import { googleConfig, facebookConfig } from './oauthConfigs';
+ * const allProviders = configureOauthProviders([googleConfig, facebookConfig]);
+ */
 export function getProviders(override?: ProviderConfig<ZodType>[]) {
       const raw = override ?? getConfiguration().providers ?? [];      
       return  raw.map((p) => mapProvider(p));

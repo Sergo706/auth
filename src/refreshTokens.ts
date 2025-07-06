@@ -23,6 +23,25 @@ export interface IssuedRefreshToken {
  const log = getLogger().child({service: 'auth', branch: 'refresh tokens'})
  const strictAuth = getLogger().child({service: 'auth', branch: 'strict auth'})
 
+/**
+ * @description
+ * Search for and rotate the provided refresh token.
+ *
+ * @function rotateRefreshToken
+ * @param {number} ttl - Time-to-live duration (in milliseconds).
+ * @param {number} userId - The user's unique identifier.
+ * @param {string} oldClientToken - The current refresh token to be rotated.
+ * @param {boolean} [hashed] - If true, indicates the provided token is already hashed.
+ *
+ * @returns {Promise<object>} Resolves to an object containing:
+ * - `rotated` {boolean}: Whether rotation was successful.
+ * - `raw?` {string}: The new raw token string, if rotation succeeded.
+ * - `hashedToken?` {string}: Hashed value of the new token, if rotation succeeded.
+ * - `expiresAt?` {Date}: Expiration date of the new token, if rotation succeeded.
+ * 
+ * @example
+ * rotateRefreshToken(1000 * 60 * 60 * 24 * 3, 14, oldToken, true);
+ */
 export async function rotateRefreshToken(ttl: number, userId: number, oldClientToken: string, hashed?: boolean): Promise<{
     rotated: boolean,
     raw?: string;
@@ -72,7 +91,18 @@ log.info({userId},'generating and rotating new refresh tokens...')
  }
 
 }
-
+/**
+ * @description
+ * Generate and hash a fresh refresh token.
+ *
+ * @function generateRefreshToken
+ * @param {number} ttl - Time-to-live duration of the refresh token (milliseconds).
+ * @param {number} userId - The user's unique identifier.
+ * @returns {Promise<IssuedRefreshToken>} A promise resolving to an issued and hashed refresh token object.
+ *
+ * @example
+ * generateRefreshToken(1000 * 60 * 60 * 24 * 3, 14);
+ */
 export async function generateRefreshToken(ttl: number, userId: number): Promise<IssuedRefreshToken> {
     log.info({userId},'generating a new refresh token...')
     const token = crypto.randomBytes(64).toString('hex');
@@ -101,7 +131,29 @@ export async function generateRefreshToken(ttl: number, userId: number): Promise
     expiresAt,
   };
 }
-
+/**
+ * @description
+ * Verify and consume a refresh token. After calling this, the token cannot be used a second time—
+ * suitable when refresh tokens rotate on every access token rotation. Additionally, if a revoked or
+ * already-used token is presented again, it will be deleted and the user will be forced to log in
+ * again on all open sessions. If the token is hashed, set the `hashed` parameter to true.
+ *
+ * @param {string} clientToken - The refresh token to verify and consume.
+ * @param {boolean} [hashed] - If true, indicates `clientToken` is already hashed.
+ *
+ * @returns {Promise<{
+ *   valid: boolean;
+ *   userId?: number;
+ *   visitor_id?: number;
+ *   reason?: string;
+ *   sessionTTL?: Date;
+ * }>} Resolves with the validity result and metadata if valid.
+ *
+ * @example
+ * await consumeAndVerifyRefreshToken('clientToken', true);
+ *
+ * @see {@link ./refreshTokens.js}
+ */
 export async function consumeAndVerifyRefreshToken(clientToken: string, hashed?: boolean): 
 Promise<
   { valid: boolean; userId?: number; visitor_id?: number;  reason?: string, sessionTTL?: Date}
@@ -222,7 +274,20 @@ if (info.affectedRows === 0) {
 }
 
 
-
+/**
+ * @description
+ * Verify a refresh token, revoke it on expiry, and detect if a revoked token is being reused.  
+ * If the token is hashed, set the `hashed` parameter to true.
+ *
+ * @param {string} clientToken - The refresh token to verify.
+ * @param {boolean} [hashed] - If true, indicates `clientToken` is already hashed.
+ *
+ * @returns {Promise<{ valid: boolean; userId?: number; visitor_id?: number; reason?: string; sessionTTL?: Date }>}
+ * Resolves with an object describing token validity and additional metadata if valid.
+ *
+ * @example
+ * await verifyRefreshToken('clientToken', true);
+ */
 export async function verifyRefreshToken(clientToken: string, hashed?: boolean): 
 Promise<
   { valid: boolean; userId?: number; visitor_id?: number;  reason?: string, sessionTTL?:Date }
@@ -310,8 +375,19 @@ const pool = await getPool()
 }
 }
 
-
-
+/**
+ * @description
+ * Revoke any valid client token. If the token is hashed, set the hashed parameter as true.
+ *
+ * @function revokeRefreshToken
+ * @param {string} clientToken - The token to revoke.
+ * @param {boolean} [hashed] - Indicates if the provided token is already hashed.
+ *
+ * @returns {Promise<{success: boolean}>} An object indicating whether revocation succeeded.
+ *
+ * @example
+ * revokeRefreshToken('clientToken', true);
+ */
 export async function revokeRefreshToken(clientToken: string, hashed?: boolean): Promise<{success: boolean}> {
     let hashedClientToken = clientToken; 
     log.info('revokeRefreshToken entered. revoking token...')

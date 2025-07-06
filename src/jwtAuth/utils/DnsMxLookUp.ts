@@ -5,6 +5,29 @@ import { makeConsecutiveCache } from './limiters/utils/consecutiveCache.js';
 
 const cache = makeConsecutiveCache<{valid: boolean}>(300, 1000 * 60 * 60 * 24);
 
+/**
+ * @description
+ * Checks if a domain has valid MX records.
+ *
+ * @param {string} addr - The domain name to validate (e.g., `'example.com'`).
+ * @param {import('pino').Logger} log - A Pino logger instance for recording lookup steps or errors.
+ *
+ * @returns {Promise<boolean>}
+ *   Resolves to `true` if the domain has at least one valid MX record, otherwise `false`.
+ *
+ * @see {@link ./DnsMxLookUp.js}
+ *
+ * @example
+ * import pino from 'pino';
+ * const logger = pino();
+ *
+ * const ok = await isValidDomain('example.com', logger);
+ * if (ok) {
+ *   console.log('Domain is valid for email delivery.');
+ * } else {
+ *   console.error('No valid MX records found.');
+ * }
+ */
 export async function isValidDomain(addr: string, log: pino.Logger): Promise<boolean> {
 const [local, domain] = addr.split('@');
  log.info(`Checking provided user email... domain: ${domain}`);

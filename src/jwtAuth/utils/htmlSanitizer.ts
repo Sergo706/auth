@@ -9,6 +9,32 @@ interface html {
     } 
 }
 
+/**
+ * @description
+ * Decode URI-encoded characters to Unicode (NFKC) and sanitize arbitrary HTML from the input string.
+ *
+ * @param {string} vall
+ *   The raw HTML string to decode and sanitize.
+ *
+ * @returns {{
+ *   vall: string;
+ *   results: {
+ *     htmlFound: boolean;
+ *     tags: Array<{ tagName: string }>;
+ *   };
+ * }}
+ *   An object containing:
+ *   - `vall`: the decoded and cleaned string  
+ *   - `results.htmlFound`: whether any HTML was detected  
+ *   - `results.tags`: a list of detected tags, each with its `tagName`
+ *
+ * @see {@link ./htmlSanitizer.js}
+ *
+ * @example
+ * const { vall, results } = sanitizeInputString(userSubmittedInput);
+ * console.log(vall);           // sanitized text
+ * console.log(results.tags);   // e.g. [{ tagName: 'div' }, { tagName: 'script' }]
+ */
 export default function sanitizeInputString(vall: string): {vall :string, results: html} {
   let results: html = { htmlFound: false };
 

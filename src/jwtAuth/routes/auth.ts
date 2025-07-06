@@ -6,6 +6,23 @@ import { handleLogin } from "../controllers/loginController.js";
 const router = Router();
 
 
+// @ts-check
+/**
+ * @module jwtAuth/routes
+ *
+/**
+ *  @description
+ * Part of the default configuration.
+ * Main authentication routes: signup, login, and OAuth.
+ * 
+ * @type {import('express').Router}
+ * @see {@link ./routes/auth.js}
+ * @example
+ * // mounted under /signup, /login, and  /auth/OAth/:providerName
+ * app.use(authenticationRoutes);
+ */
+
+
 router.post(
   '/signup',
   contentType('application/json'),

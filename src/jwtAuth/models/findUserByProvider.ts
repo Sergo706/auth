@@ -5,6 +5,33 @@ import { generateRefreshToken, IssuedRefreshToken } from "../../refreshTokens.js
 import { getConfiguration } from "../config/configuration.js";
 import { getLogger } from "../utils/logger.js";
 
+
+
+/**
+ * @description
+ * Find a user by their OAuth provider details. If a matching user exists, returns `user: true`
+ * along with newly issued tokens. Otherwise, `user` will be `false`.
+ *
+ * @param {string} provider - The name of the OAuth provider (e.g., `'github'`, `'google'`).
+ * @param {string} provider_id - The unique ID of the user from the OAuth provider.
+ *
+ * @returns {Promise<{
+ *   user: boolean;
+ *   accessToken?: string;
+ *   refreshToken?: IssuedRefreshToken;
+ * }>}
+ * Resolves with an object indicating whether the user was found, and if so, the issued tokens.
+ *
+ * @example
+ * const result = await findUserByProvider('github', '987654321');
+ * if (result.user) {
+ *   // user was found, you can use result.accessToken and result.refreshToken
+ * } else {
+ *   // no user found for this provider
+ * }
+ *
+ * @see {@link ./models/findUserByProvider.js}
+ */
 export async function findUserByProvider(provider: string, provider_id: string): Promise<{
     user: boolean;
     accessToken?: string;

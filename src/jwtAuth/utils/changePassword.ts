@@ -7,7 +7,26 @@ import crypto from 'crypto'
 import { getLogger } from "../utils/logger.js";
 
 
-
+/**
+ * @description
+ * Sends a password‐reset link via email to a valid registered user.
+ *
+ * @param {string} email - The user's email address to send the reset link to.
+ *
+ * @returns {Promise<{ valid: boolean; error?: string }>}
+ * Resolves with an object indicating whether the email was sent successfully.
+ * If `valid` is false, `error` will contain a descriptive message.
+ *
+ * @example
+ * const result = await sendTempPasswordResetLink('email@example.com');
+ * if (result.valid) {
+ *   console.log('Reset link sent.');
+ * } else {
+ *   console.error('Failed to send reset link:', result.error);
+ * }
+ *
+ * @see {@link ./changePassword.js}
+ */
 export async function sendTempPasswordResetLink(
 email: string,
 ):Promise<{valid: boolean; error?: string}>{
