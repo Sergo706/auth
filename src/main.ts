@@ -122,7 +122,7 @@ export { resetLimiters } from './jwtAuth/utils/limiters/utils/resetLimiters.js';
 export { makeRateLimiter, unionLimiter } from './jwtAuth/utils/limiters/rateLimit.js';
 export { getLogger } from './jwtAuth/utils/logger.js'
 export { getGeoData, parseUA, settings , initBotDetector, loadUaPatterns, detectBots, ApiResponse, addBannedCountries, warmUp } from '@riavzon/botdetector'
-
+export { makeEmailTemplate, deleteTemplate, listTemplates } from './jwtAuth/utils/emailTemplateMaker.js'
 /**
  * The Zod schema‐validation library, v4.
  *
@@ -136,3 +136,5 @@ export { getGeoData, parseUA, settings , initBotDetector, loadUaPatterns, detect
  * type User = z.infer<typeof userSchema>;
  */
 export { z } from 'zod/v4';
+git commit -m 'fixed JSdocs display'
+git push -u origin test

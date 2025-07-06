@@ -22,6 +22,11 @@ export interface EmailData {
         label: string;
         path: string
     }[],
+    variables?: {
+       variableOne: string;
+       variableTwo: string;
+       variableThree: string;
+    }[]
     images?: {
         path: string;
         name: string;
