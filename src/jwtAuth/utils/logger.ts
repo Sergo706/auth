@@ -40,6 +40,26 @@ const transport = pinoNS.transport({
 });
 let logger: pinoNS.Logger;  
 
+/**
+ * @description
+ * Get the logger of the library and log custom events you need.  
+ * 3 files will be created under node_modules/@riavzon/jwtauth, in a structured json lines.
+ * 
+ * info.log contains info waring, error, and fatal level logs.
+ * 
+ * warn contains waring, error, and fatal level logs
+ * 
+ * error.log contains error, and fatal level logs
+ *
+ *
+ * @returns {logger}
+ * Configured pino.Logger
+ *
+ * @example
+ * const log = getLogger().child({service: 'auth', branch: 'logout'});
+ * log.info('loggin user out...')
+ * @see {@link https://github.com/pinojs/pino}
+ */
 export function getLogger() {
   if (logger) return logger;       
   const { logLevel } = getConfiguration();
@@ -54,6 +74,14 @@ export function getLogger() {
           'user.password',
           'accessToken',
           'refresh_token',
+          'cookie',
+          'cookies',
+          'canary_id',
+          'req.cookies',
+          'req.cookie',
+          'access_token',
+          'email',
+          'name',
           '*.secret'
         ],
         censor: '[SECRET]'
