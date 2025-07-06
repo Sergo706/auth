@@ -19,7 +19,7 @@ const log = getLogger().child({service: 'auth', branch: `tempLinks`, linkType: '
 const token = String(req.query.temp);
 const { usedJtiLimiter } = getLimiters();
 
-log.info('Verifying link...')
+log.info({ method: req.method }, 'Verifying link...')
 
 
 if (!(await guard(getUniLimiter(), req.ip!, consecutiveForIpMfa, 1, 'ip', log, res))) return;
