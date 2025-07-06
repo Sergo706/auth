@@ -12,7 +12,7 @@ export interface LinkTokenPayload {
   jti?: string;
 }
 
-const log = getLogger().child({service: 'auth', branch: 'tempLinks', type: 'signature'})
+
 /**
  * @description
  * Generate a short-lived JWT link token for actions such as password resets, magic links, or MFA.
@@ -42,7 +42,7 @@ const log = getLogger().child({service: 'auth', branch: 'tempLinks', type: 'sign
  */
 export function tempJwtLink (payload: LinkTokenPayload): string {
 const { magic_links } = getConfiguration(); 
-
+const log = getLogger().child({service: 'auth', branch: 'tempLinks', type: 'signature'})
 log.info({payload},`Generating link signature...`)
 
 const token = jwt.sign(payload, magic_links.jwt_secret_key, {
@@ -101,6 +101,7 @@ return token;
  */
 export function verifyTempJwtLink (token: string, purpose: string, subject: string, jti: string): 
 {valid: boolean, payload?: JwtPayload, errorType?: string} {
+  const log = getLogger().child({service: 'auth', branch: 'tempLinks', type: 'signature'})
 log.info(`verifing link signature`)
 const { magic_links } = getConfiguration(); 
 try {
