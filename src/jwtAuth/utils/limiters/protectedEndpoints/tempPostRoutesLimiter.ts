@@ -9,6 +9,7 @@ import { RateLimiterMemory, RateLimiterMySQL, RLWrapperBlackAndWhite } from 'rat
 interface LimiterBundle {
   uniLimiter: BlockableUnion | RLWrapperBlackAndWhite;
   ipLimit: RateLimiterMySQL | RateLimiterMemory;
+  usedJtiLimiter: RateLimiterMySQL | RateLimiterMemory;
   resetCompositeKey(key: string): Promise<void>;
 }
 
@@ -58,9 +59,23 @@ function buildLimiter(): LimiterBundle {
     inMemoryBlockDuration: rate_limiters?.tempPostRoutesLimiters?.ipLimit.inMemoryBlockDuration ?? 60 * 10 
   });
 
+  const usedJtiLimiter = makeRateLimiter(true, false, {
+    dbName: store.rate_limiters_pool.dbName,
+    storeClient: pool,
+    storeType  : 'mysql2',
+    points: 0,
+    duration: 0,       
+    blockDuration: 20 * 60,  
+    keyPrefix: 'used_jti',
+    tableName: 'tempPostRoutes',
+    inMemoryBlockOnConsumed: 0,
+    inMemoryBlockDuration: 20 * 60 
+  });
+
   return {
     uniLimiter: unionLimiter([limit, slowLimit ], false),
     ipLimit,
+    usedJtiLimiter,
     resetCompositeKey: async (key: string) => {
      await Promise.all([
       limit.delete(key),        
@@ -81,8 +96,8 @@ function ensureLimiter(): LimiterBundle {
 }
 
 export function getLimiters() {
-  const { uniLimiter, ipLimit } = ensureLimiter();
-  return {uniLimiter, ipLimit};
+  const { uniLimiter, ipLimit, usedJtiLimiter } = ensureLimiter();
+  return {uniLimiter, ipLimit, usedJtiLimiter};
 }
 
 export function resetLimitersUni(key: string) {

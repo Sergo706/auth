@@ -4,7 +4,7 @@ import { getLogger } from "../utils/logger.js";
 import { getUniLimiter, resetLimitersUni } from "../utils/limiters/protectedEndpoints/linkVerificationLimiter.js";
 import { guard } from "../utils/limiters/utils/guard.js";
 import { makeConsecutiveCache } from "../utils/limiters/utils/consecutiveCache.js";
-import { getLimiters, resetLimitersUni as resetLimiters } from "../utils/limiters/protectedEndpoints/tempPostRoutesLimiter.js";
+import { getLimiters } from "../utils/limiters/protectedEndpoints/tempPostRoutesLimiter.js";
 import { consecutiveForjti as JtiMfaCache } from "./verifyEmailMFA.js";
 import { consecutiveForjti as JtiPasswordResetCache } from "./verifyPasswordReset.js";
 
@@ -19,7 +19,7 @@ const allowedPerSuccesfulPost = 1;
 export const linkMfaVerification = async (req: Request, res: Response, next: NextFunction) => {
 const log = getLogger().child({service: 'auth', branch: `tempLinks`, linkType: 'mfa'})
 const token = String(req.query.temp);
-const { uniLimiter } = getLimiters();
+const { usedJtiLimiter } = getLimiters();
 
 log.info('Verifying link...')
 
@@ -62,7 +62,7 @@ if (Number(req.params.visitor) !== results.payload.visitor) {
       jti: raw.jti
     };
 
-  if (!(await guard(uniLimiter, req.link.jti!, JtiMfaCache, 1, 'Link Checker of downstream logic', log, res ))) return;
+  if (!(await guard(usedJtiLimiter, req.link.jti!, JtiMfaCache, 1, 'Link Checker of downstream logic', log, res ))) return;
 
    if (req.method === 'GET') {
      const getEntry = (usageCountGet.get(req.link.jti!)?.count ?? 0) + 1;
@@ -99,8 +99,8 @@ if (Number(req.params.visitor) !== results.payload.visitor) {
 export const linkPasswordVerification = async (req: Request, res: Response, next: NextFunction) => {
 const log = getLogger().child({service: 'auth', branch: `tempLinks`, linkType: 'password-reset'})
 const token = String(req.query.temp);
-const { uniLimiter } = getLimiters();
-log.info('Verifing link...')
+const { usedJtiLimiter } = getLimiters();
+log.info('Verifying link...')
 
 
 if (!(await guard(getUniLimiter(), req.ip!, consecutiveForIpPassword, 1, 'ip', log, res))) return;
@@ -142,7 +142,7 @@ if (Number(req.params.visitor) !== results.payload.visitor) {
       jti: raw.jti
     };
 
-   if (!(await guard(uniLimiter, req.link.jti!, JtiPasswordResetCache, 1, 'Link Checker of downstream logic', log, res ))) return;
+   if (!(await guard(usedJtiLimiter, req.link.jti!, JtiPasswordResetCache, 1, 'Link Checker of downstream logic', log, res ))) return;
    if (req.method === 'GET') {
 
      const getEntry = (usageCountGet.get(req.link.jti!)?.count ?? 0) + 1;

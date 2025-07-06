@@ -43,7 +43,7 @@ export const consecutiveForjti = makeConsecutiveCache< {countData:number} >(2000
  */
 export const verifyNewPassword = async (req: Request, res: Response, next: NextFunction) => {
   const log = getLogger().child({service: 'auth', branch: 'password-reset'})
-  const { uniLimiter, ipLimit  } = getLimiters();
+  const { uniLimiter, ipLimit, usedJtiLimiter  } = getLimiters();
   log.info(`Verifing new password...`)
 
 if (!req.is('application/json')) {
@@ -123,7 +123,7 @@ const conn = await pool.getConnection();
      AND valid = 1
      AND user_id IS NOT NULL
     `,[findUser[0].id])
-    await ipLimit.block(req.link.jti!, 60 * 20);
+    await usedJtiLimiter.block(req.link.jti!, 60 * 20);
     await conn.commit();
 
     log.info({visitorId: req.link.visitor, userId: findUser[0].id},`Reset password succesfuly`);

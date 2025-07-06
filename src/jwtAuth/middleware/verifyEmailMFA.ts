@@ -50,7 +50,7 @@ const consecutiveForsubmittedHash = makeConsecutiveCache< {countData:number} >(2
  */
 export async function verifyMFA (req: Request, res: Response, next: NextFunction) {
   const log = getLogger().child({service: 'auth', branch: 'mfa', visitorId: req.newVisitorId ?? req.link.visitor})
-  const { uniLimiter, ipLimit  } = getLimiters();
+  const { uniLimiter, ipLimit, usedJtiLimiter  } = getLimiters();
   const { jwt } = getConfiguration();
   log.info(`Verifying mfa code...`)
 
@@ -153,7 +153,7 @@ const currentVisitorId = req.newVisitorId || req.link.visitor;
     [currentVisitorId, rows[0].user_id]    
   );
 
-  await uniLimiter.block(req.link.jti, 60 * 20);
+  await usedJtiLimiter.block(req.link.jti, 60 * 20);
   await conn.commit();
   consecutiveForSlowDown.delete(req.ip!);
   consecutiveForjti.delete(req.link.jti!);
