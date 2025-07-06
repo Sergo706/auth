@@ -63,7 +63,7 @@ Promise <
         throw new Error(`cookie is undefined `)
     }
 const { jwt } = getConfiguration();  
-const pool = await getPool()
+const pool = getPool()
     try {
     const [visitorsData]  = await pool.execute<RowDataPacket[]>
     ("SELECT country, city , district, visitor_id  FROM visitors WHERE canary_id = ?", [cookie]);

@@ -46,7 +46,7 @@ export async function createUser(cookie: string, data: NewUser):
 Promise<  
 { success: boolean;  accessToken?: string; refreshToken?: IssuedRefreshToken; duplicate?: true;  }
 > {  
-    const pool = await getPool()
+    const pool = getPool()
     const log = getLogger().child({service: 'auth', branch: 'classic', type: 'signup'});
     const { jwt } = getConfiguration();
     log.info(`Creating user...`)

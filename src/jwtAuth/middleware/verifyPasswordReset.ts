@@ -82,7 +82,7 @@ if (!req.is('application/json')) {
         res.status(400).json({error: `Password dosn't match`,  "banned": false })
         return;
  }
-const pool = await getPool()
+const pool = getPool()
 const conn = await pool.getConnection();
   try {
     await conn.beginTransaction();

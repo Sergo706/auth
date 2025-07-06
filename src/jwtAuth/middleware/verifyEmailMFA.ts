@@ -91,7 +91,7 @@ export async function verifyMFA (req: Request, res: Response, next: NextFunction
     res.status(500).json({ error: 'No Session Token' });
     return;
   }
-const pool = await getPool()
+const pool = getPool()
 const conn = await pool.getConnection();
 try { 
    await conn.beginTransaction();

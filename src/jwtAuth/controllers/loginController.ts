@@ -48,7 +48,7 @@ const {email, password} = result.data!;
 const compositeKey = `${req.ip!}_${email}`;
 if (!(await guard(emailLimiter, email, consecutiveForEmail, 2,'email', log, res))) return;
 if (!(await guard(uniLimiter,  compositeKey, consecutive429, 3, 'ip+email', log, res))) return;
-const pool = await getPool();
+const pool = getPool();
 
 log.info(`Data parsed and sanitized, searching for user...`)
   const [user] = await pool.execute<RowDataPacket[]>(`

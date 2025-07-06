@@ -39,7 +39,7 @@ export async function findUserByProvider(provider: string, provider_id: string):
 }> {
     const log = getLogger().child({service: 'auth', branch: 'oauth'});
     const { jwt } = getConfiguration();
-    const pool = await getPool()
+    const pool = getPool()
     try {
         const [findUser] = await pool.execute<ResultSetHeader[]>(`
             SELECT id, visitor_id FROM users

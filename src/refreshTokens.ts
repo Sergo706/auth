@@ -49,7 +49,7 @@ export async function rotateRefreshToken(ttl: number, userId: number, oldClientT
     expiresAt?: Date;
 }> {
 const log = getLogger().child({service: 'auth', branch: 'refresh tokens'})
-const pool = await getPool()   
+const pool = getPool()  
 log.info({userId},'generating and rotating new refresh tokens...')
     const token = crypto.randomBytes(64).toString('hex');
     const hashedToken = createHash('sha256').update(token).digest('hex');
@@ -110,7 +110,7 @@ export async function generateRefreshToken(ttl: number, userId: number): Promise
     const token = crypto.randomBytes(64).toString('hex');
     const hashedToken = createHash('sha256').update(token).digest('hex');
     const expiresAt = new Date(Date.now() + ttl);
-    const pool = await getPool()
+    const pool = getPool()
     try { 
     const mainStm = `
     INSERT INTO refresh_tokens
@@ -167,7 +167,7 @@ let hashedClientToken = clientToken;
 if (!hashed) {
     hashedClientToken = createHash('sha256').update(clientToken).digest('hex');
 }
-const pool = await getPool();
+const pool = getPool();
 
 const conn   = await pool.getConnection();
 
@@ -301,7 +301,7 @@ log.info('verifyRefreshToken entered, verifing token...')
 if (!hashed) {
     hashedClientToken = createHash('sha256').update(clientToken).digest('hex');
 }
-const pool = await getPool()
+const pool = getPool()
     try { 
         const [info] = await pool.execute<ResultSetHeader>(
            `UPDATE refresh_tokens
@@ -399,7 +399,7 @@ export async function revokeRefreshToken(clientToken: string, hashed?: boolean):
     if (!hashed) {
         hashedClientToken = createHash('sha256').update(clientToken).digest('hex');
     }
-    const pool = await getPool()
+    const pool = getPool()
    try { 
         await pool.execute<RowDataPacket[]>
         ("UPDATE refresh_tokens SET valid = 0 WHERE token = ? LIMIT 1", [hashedClientToken]);

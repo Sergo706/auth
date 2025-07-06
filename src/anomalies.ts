@@ -92,7 +92,7 @@ Promise <{
 }>
 
 {
-const pool = await getPool()
+const pool = getPool()
 const hashedClientToken = createHash('sha256').update(token).digest('hex');
 const log = getLogger().child({service: 'auth', branch: 'anomalies', visitor_cookie: cookie, ip:ipAddress});
 const [rows] = await pool.execute<RowDataPacket[]>(`

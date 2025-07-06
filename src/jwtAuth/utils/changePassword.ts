@@ -32,7 +32,7 @@ email: string,
 ):Promise<{valid: boolean; error?: string}>{
 const log = getLogger().child({service: 'auth', branch: 'password-reset'})
 log.info('Searching for user email...')
-const pool = await getPool()
+const pool = getPool()
  try { 
  const [results] =  await pool.execute<RowDataPacket[]>(`
     SELECT id, name, email AS user_email, visitor_id

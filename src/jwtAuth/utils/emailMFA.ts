@@ -55,7 +55,7 @@ const log = getLogger().child({service: 'auth', branch: 'mfa', visitorId: user.v
   const expires = new Date(Date.now() + 7 * 60 * 1000);
   const hashedClientToken = crypto.createHash('sha256').update(sessionToken).digest('hex');
   const params = [user.userId, hashedClientToken, jti, hashedCode, expires];
-  const pool = await getPool()
+  const pool = getPool()
   const conn = await pool.getConnection();
 
   try { 
