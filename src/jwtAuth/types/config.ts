@@ -21,22 +21,22 @@ export interface AuthConfig {
   };
   password: {
       pepper: string;
-      hashLength: number;
-      timeCost: number;
-      memoryCost: number;
+      hashLength?: number;
+      timeCost?: number;
+      memoryCost?: number;
     },
  
   magic_links: {
     jwt_secret_key: string;
-    expiresIn: number;
+    expiresIn?: number;
     domain: string;
   },
   providers?: ProviderConfig<ZodType>[];
    jwt: {
      jwt_secret_key: string ;
      access_tokens: {
-      expiresIn: number;
-      algorithm: jwt.Algorithm | undefined;
+      expiresIn?: number;
+      algorithm?: jwt.Algorithm | undefined;
       audience?: string,
       issuer?: string,
       subject?: string,
