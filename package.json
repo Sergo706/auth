@@ -20,7 +20,8 @@
 
   "scripts": {
     "build": "tsc -p tsconfig.json && cp -R src/jwtAuth/emails dist/jwtAuth && cp src/global.d.ts dist/global.d.ts",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "prepack": "npm run build"
   },
   "dependencies": {
     "@riavzon/botdetector": "git+ssh://git@github.com:Sergo706/botDetector.git#main",
