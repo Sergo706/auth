@@ -5,8 +5,6 @@ import { getUniLimiter, resetLimitersUni } from "../utils/limiters/protectedEndp
 import { guard } from "../utils/limiters/utils/guard.js";
 import { makeConsecutiveCache } from "../utils/limiters/utils/consecutiveCache.js";
 import { getLimiters } from "../utils/limiters/protectedEndpoints/tempPostRoutesLimiter.js";
-import { consecutiveForjti as JtiMfaCache } from "./verifyEmailMFA.js";
-import { consecutiveForjti as JtiPasswordResetCache } from "./verifyPasswordReset.js";
 
 const consecutiveForIpPassword = makeConsecutiveCache< {countData:number} >(2000, 1000 * 60 * 30);
 const consecutiveForIpMfa = makeConsecutiveCache< {countData:number} >(2000, 1000 * 60 * 30);
@@ -68,8 +66,6 @@ if (Number(req.params.visitor) !== results.payload.visitor) {
       res.status(400).json({ error: 'Link is not valid or expired' });
       return 
     }
-
-  if (!(await guard(usedJtiLimiter, req.link.jti!, JtiMfaCache, 1, 'Link Checker of downstream logic', log, res ))) return;
 
    if (req.method === 'GET') {
      const getEntry = (usageCountGet.get(req.link.jti!)?.count ?? 0) + 1;
@@ -155,7 +151,7 @@ if (Number(req.params.visitor) !== results.payload.visitor) {
       res.status(400).json({ error: 'Link is not valid or expired' });
       return 
     }
-    
+
    if (req.method === 'GET') {
 
      const getEntry = (usageCountGet.get(req.link.jti!)?.count ?? 0) + 1;
