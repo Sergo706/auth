@@ -20,7 +20,7 @@ function buildLimiter(): LimiterBundle {
   const limiterConfig = rate_limiters?.tempPostRoutesLimiters?.unionLimiters;
 
   const limit = makeRateLimiter(true, false, {
-    dbName: store.databaseName,
+    dbName: store.rate_limiters_pool.dbName,
     storeClient: pool,
     storeType  : 'mysql2',
     inMemoryBlockOnConsumed: limiterConfig?.limit.inMemoryBlockOnConsumed ?? 1,
@@ -33,7 +33,7 @@ function buildLimiter(): LimiterBundle {
   });
   
   const slowLimit = makeRateLimiter(true, false, {
-    dbName: store.databaseName,
+    dbName: store.rate_limiters_pool.dbName,
     storeClient: pool,
     storeType  : 'mysql2',
     inMemoryBlockOnConsumed: limiterConfig?.slowLimit.inMemoryBlockOnConsumed ?? 5,
@@ -46,7 +46,7 @@ function buildLimiter(): LimiterBundle {
   });
   
   const ipLimit = makeRateLimiter(true, false, {
-    dbName: store.databaseName,
+    dbName: store.rate_limiters_pool.dbName,
     storeClient: pool,
     storeType  : 'mysql2',
     inMemoryBlockOnConsumed: rate_limiters?.tempPostRoutesLimiters?.ipLimit.inMemoryBlockOnConsumed ?? 6,

@@ -1,54 +1,39 @@
-import mysql2 from 'mysql2/promise';
-import mysql, { Pool } from 'mysql2'; 
+import type { Pool as PromisePool } from 'mysql2/promise';
+import type { Pool as CallbackPool } from 'mysql2';
 import { getConfiguration } from './configuration.js';
 
-let pool: mysql2.Pool;
 
-export async function getPool() { 
-  if (pool) return pool;
-  const { store } = getConfiguration()
+let mainPool: PromisePool | undefined;
+let limiterPool: CallbackPool | undefined;
 
-  try { 
-  pool = mysql2.createPool ({
-    host: store.host,
-    port: store.port,
-    user: store.user,
-    password: store.password,
-    database: store.databaseName,
-    waitForConnections: true,      
-    connectionLimit: store.connectionLimit,          
-    queueLimit: store.queueLimit,             
-    connectTimeout: store.connectTimeout,
-  });
-  console.log(`Connected to MySQL! to ${store.databaseName} as ${store.user}`);
-} catch(err) {
-  console.log(`Error connecting to MySQL`, err);
-  throw err;
-}
-return pool;
+/**
+ * Returns the main promise-based MySQL pool used by the auth lib.
+ * This pool must be injected via `configuration({ store: { main: ... } })`.
+ */
+export function getPool(): PromisePool {
+  if (mainPool) return mainPool;
+
+  const { store } = getConfiguration();
+
+  if (!store?.main) {
+    throw new Error('Auth lib: store.main (MySQL pool) must be provided in configuration()');
+  }
+
+  mainPool = store.main;
+  console.log('Auth lib connected to main DB pool');
+  return mainPool;
 }
 
-let poolForLib: mysql.Pool;
-export async function poolForLibary() { 
-  if (pool) return pool;
-  const { store } = getConfiguration()
+export function poolForLibary(): CallbackPool {
+  if (limiterPool) return limiterPool;
 
-  try { 
-  poolForLib = mysql.createPool ({
-    host: store.host,
-    port: store.port,
-    user: store.user,
-    password: store.password,
-    database: store.databaseName,
-    waitForConnections: true,      
-    connectionLimit: store.connectionLimit,          
-    queueLimit: store.queueLimit,             
-    connectTimeout: store.connectTimeout,
-  }) as Pool;
-  console.log(`Connected to MySQL! to ${store.databaseName} as ${store.user}`);
-} catch(err) {
-  console.log(`Error connecting to MySQL`, err);
-  throw err;
-}
-return pool;
+  const { store } = getConfiguration();
+
+  if (!store?.rate_limiters_pool?.store) {
+    throw new Error('Auth lib: store.rate_limiters_pool.store must be provided for limiter support');
+  }
+
+  limiterPool = store.rate_limiters_pool.store as CallbackPool;
+  console.log('Auth lib connected to limiter pool');
+  return limiterPool;
 }

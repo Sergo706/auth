@@ -16,7 +16,7 @@ function buildLimiter(): LimiterBundle {
   const limiterConfig = rate_limiters?.linkVerificationLimiter?.unionLimiter;
 
 const limit = makeRateLimiter(true, false, {
-  dbName: store.databaseName,
+  dbName: store.rate_limiters_pool.dbName,
   storeClient: pool,
   storeType  : 'mysql2',
   inMemoryBlockOnConsumed: limiterConfig?.burstLimiter.inMemoryBlockOnConsumed ?? 2,
@@ -29,7 +29,7 @@ const limit = makeRateLimiter(true, false, {
 });
 
 const slowLimit = makeRateLimiter(true, false, {
-  dbName: store.databaseName,
+  dbName: store.rate_limiters_pool.dbName,
   storeClient: pool,
   storeType  : 'mysql2',
   inMemoryBlockOnConsumed: limiterConfig?.slowLimiter.inMemoryBlockOnConsumed ?? 30,

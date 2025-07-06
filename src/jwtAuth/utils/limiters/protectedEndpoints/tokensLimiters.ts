@@ -20,7 +20,7 @@ function buildLimiter(): LimiterBundle {
   const limiterConfig = rate_limiters?.tokenLimiters?.unionLimiters;
 
   const accessTokenBrute = makeRateLimiter(true, false, {
-    dbName: store.databaseName,
+    dbName: store.rate_limiters_pool.dbName,
     storeClient: pool,
     storeType  : 'mysql2',
     inMemoryBlockOnConsumed: limiterConfig?.refreshAccessTokenLimiter.accessTokenBrute.inMemoryBlockOnConsumed ?? 2,
@@ -33,7 +33,7 @@ function buildLimiter(): LimiterBundle {
   });
   
   const accessTokenSlow = makeRateLimiter(true, false, {
-    dbName: store.databaseName,
+    dbName: store.rate_limiters_pool.dbName,
     storeClient: pool,
     storeType  : 'mysql2',
     inMemoryBlockOnConsumed: limiterConfig?.refreshAccessTokenLimiter.accessTokenSlow.inMemoryBlockOnConsumed ?? 3,
@@ -47,7 +47,7 @@ function buildLimiter(): LimiterBundle {
   
   
   const refreshTokenBrute = makeRateLimiter(true, false, {
-    dbName: store.databaseName,
+    dbName: store.rate_limiters_pool.dbName,
     storeClient: pool,
     storeType  : 'mysql2',
     inMemoryBlockOnConsumed: limiterConfig?.refreshTokenLimiterUnion.refreshTokenBrute.inMemoryBlockOnConsumed ?? 2,
@@ -60,7 +60,7 @@ function buildLimiter(): LimiterBundle {
   });
   
   const refreshTokenSlow = makeRateLimiter(true, false, {
-    dbName: store.databaseName,
+    dbName: store.rate_limiters_pool.dbName,
     storeClient: pool,
     storeType  : 'mysql2',
     inMemoryBlockOnConsumed: limiterConfig?.refreshTokenLimiterUnion.refreshTokenSlow.inMemoryBlockOnConsumed ?? 4,
@@ -74,7 +74,7 @@ function buildLimiter(): LimiterBundle {
   
   
   const refreshTokenLimiter = makeRateLimiter(true, false, {
-    dbName: store.databaseName,
+    dbName: store.rate_limiters_pool.dbName,
     storeClient: pool,
     storeType  : 'mysql2',
     inMemoryBlockOnConsumed: rate_limiters?.tokenLimiters?.refreshTokenLimiter.inMemoryBlockOnConsumed ?? 3,
@@ -87,7 +87,7 @@ function buildLimiter(): LimiterBundle {
   });
   
   const blackList = makeRateLimiter(true, false, {
-    dbName: store.databaseName,
+    dbName: store.rate_limiters_pool.dbName,
     storeClient: pool,
     storeType  : 'mysql2',
     inMemoryBlockOnConsumed: 45,

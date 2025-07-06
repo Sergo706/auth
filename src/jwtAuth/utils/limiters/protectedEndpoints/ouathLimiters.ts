@@ -19,7 +19,7 @@ function buildLimiter(): LimiterBundle {
   const limiterConfig = rate_limiters?.oauthLimiters?.unionLimiter;
   
   const ipLimiterBrute = makeRateLimiter(true, false, {
-    dbName: store.databaseName,
+    dbName: store.rate_limiters_pool.dbName,
     storeClient: pool,
     storeType  : 'mysql2',
     inMemoryBlockOnConsumed: limiterConfig?.ipLimiterBrute.inMemoryBlockOnConsumed ?? 1,
@@ -32,7 +32,7 @@ function buildLimiter(): LimiterBundle {
   });
   
   const ipLimiterSlow = makeRateLimiter(true, false, {
-    dbName: store.databaseName,
+    dbName: store.rate_limiters_pool.dbName,
     storeClient: pool,
     storeType  : 'mysql2',
     inMemoryBlockOnConsumed: limiterConfig?.ipLimiterSlow.inMemoryBlockOnConsumed ?? 25,
@@ -45,7 +45,7 @@ function buildLimiter(): LimiterBundle {
   });
   
    const subLimiter = makeRateLimiter(true, false, {
-    dbName: store.databaseName,
+    dbName: store.rate_limiters_pool.dbName,
     storeClient: pool,
     storeType  : 'mysql2',
     inMemoryBlockOnConsumed: rate_limiters?.oauthLimiters?.subLimiter.inMemoryBlockOnConsumed ?? 5,
@@ -58,7 +58,7 @@ function buildLimiter(): LimiterBundle {
   });
   
    const compositeKeyLimiter = makeRateLimiter(true, false, {
-    dbName: store.databaseName,
+    dbName: store.rate_limiters_pool.dbName,
     storeClient: pool,
     storeType  : 'mysql2',
     inMemoryBlockOnConsumed: rate_limiters?.oauthLimiters?.compositeKeyLimiter.inMemoryBlockOnConsumed ?? 3,

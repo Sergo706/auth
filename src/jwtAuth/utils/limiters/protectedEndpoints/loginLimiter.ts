@@ -18,7 +18,7 @@ function buildLimiter(): LimiterBundle {
   const limiterConfig = rate_limiters?.loginLimiters;
 
   const limit = makeRateLimiter(true, false, {
-    dbName: store.databaseName,
+    dbName: store.rate_limiters_pool.dbName,
     storeClient: pool,
     storeType  : 'mysql2',
     inMemoryBlockOnConsumed: limiterConfig?.unionLimiter.burstLimiter.inMemoryBlockOnConsumed ?? 1,
@@ -31,7 +31,7 @@ function buildLimiter(): LimiterBundle {
   });
   
   const slowLimit = makeRateLimiter(true, false, {
-    dbName: store.databaseName,
+    dbName: store.rate_limiters_pool.dbName,
     storeClient: pool,
     storeType  : 'mysql2',
     inMemoryBlockOnConsumed: limiterConfig?.unionLimiter.slowLimiter.inMemoryBlockOnConsumed ?? 5,
@@ -44,7 +44,7 @@ function buildLimiter(): LimiterBundle {
   });
   
   const ipLimiter = makeRateLimiter(true, false, {
-    dbName: store.databaseName,
+    dbName: store.rate_limiters_pool.dbName,
     storeClient: pool,
     storeType  : 'mysql2',
     inMemoryBlockOnConsumed: rate_limiters?.loginLimiters?.ipLimiter.inMemoryBlockOnConsumed ?? 15,
@@ -57,7 +57,7 @@ function buildLimiter(): LimiterBundle {
   }); 
   
   const emailLimiter = makeRateLimiter(true, false, {
-    dbName: store.databaseName,
+    dbName: store.rate_limiters_pool.dbName,
     storeClient: pool,
     storeType  : 'mysql2',
     inMemoryBlockOnConsumed: rate_limiters?.loginLimiters?.emailLimiter.inMemoryBlockOnConsumed ?? 5,

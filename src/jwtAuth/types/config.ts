@@ -1,18 +1,16 @@
 import jwt from 'jsonwebtoken'
 import { ProviderConfig } from '../utils/newOauthProvider.js';
 import { ZodType } from 'zod/v4';
+import mysql2 from 'mysql2/promise';
+import mysql from 'mysql2'; 
 
 export interface AuthConfig {
   store: {
-    host:     string;
-    port:     number;
-    user:     string;
-    password: string;
-    databaseName:     string;
-    waitForConnection : boolean;
-    connectionLimit: number;
-    queueLimit: number;
-    connectTimeout: number;  
+    main: mysql2.Pool,
+    rate_limiters_pool: {
+      store: mysql.Pool,
+      dbName: string,
+    }
   };
   telegram: {
     token:        string;
