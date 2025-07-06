@@ -21,8 +21,9 @@ if (!config.store || !config.telegram || !config.jwt || !config.email || !config
 
 export function getConfiguration(): AuthConfig {
   if (!cfg) {
-    throw new Error(
-      'Auth System: configuration() must be called once in app start-up'
+    console.trace("Premature getConfiguration() call");
+    throw new Error(`…must be called once…
+      Auth System: configuration() must be called once in app start-up`
     );
   }
   return cfg;

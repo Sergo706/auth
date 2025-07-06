@@ -20,8 +20,8 @@ export interface IssuedRefreshToken {
   hashedToken: string;
   expiresAt: Date;
 }
- const log = getLogger().child({service: 'auth', branch: 'refresh tokens'})
- const strictAuth = getLogger().child({service: 'auth', branch: 'strict auth'})
+
+
 
 /**
  * @description
@@ -48,6 +48,7 @@ export async function rotateRefreshToken(ttl: number, userId: number, oldClientT
     hashedToken?: string;
     expiresAt?: Date;
 }> {
+const log = getLogger().child({service: 'auth', branch: 'refresh tokens'})
 const pool = await getPool()   
 log.info({userId},'generating and rotating new refresh tokens...')
     const token = crypto.randomBytes(64).toString('hex');
@@ -104,6 +105,7 @@ log.info({userId},'generating and rotating new refresh tokens...')
  * generateRefreshToken(1000 * 60 * 60 * 24 * 3, 14);
  */
 export async function generateRefreshToken(ttl: number, userId: number): Promise<IssuedRefreshToken> {
+    const log = getLogger().child({service: 'auth', branch: 'refresh tokens'})
     log.info({userId},'generating a new refresh token...')
     const token = crypto.randomBytes(64).toString('hex');
     const hashedToken = createHash('sha256').update(token).digest('hex');
@@ -158,6 +160,7 @@ export async function consumeAndVerifyRefreshToken(clientToken: string, hashed?:
 Promise<
   { valid: boolean; userId?: number; visitor_id?: number;  reason?: string, sessionTTL?: Date}
   > {
+const strictAuth = getLogger().child({service: 'auth', branch: 'strict auth'})
 strictAuth.info('consumeAndVerifyRefreshToken entered, verifying token...')
 let hashedClientToken = clientToken;
 
@@ -292,6 +295,7 @@ export async function verifyRefreshToken(clientToken: string, hashed?: boolean):
 Promise<
   { valid: boolean; userId?: number; visitor_id?: number;  reason?: string, sessionTTL?:Date }
   > {
+    const log = getLogger().child({service: 'auth', branch: 'refresh tokens'})
 let hashedClientToken = clientToken;
 log.info('verifyRefreshToken entered, verifing token...')
 if (!hashed) {
@@ -389,6 +393,7 @@ const pool = await getPool()
  * revokeRefreshToken('clientToken', true);
  */
 export async function revokeRefreshToken(clientToken: string, hashed?: boolean): Promise<{success: boolean}> {
+    const log = getLogger().child({service: 'auth', branch: 'refresh tokens'})
     let hashedClientToken = clientToken; 
     log.info('revokeRefreshToken entered. revoking token...')
     if (!hashed) {

@@ -10,7 +10,7 @@ export interface claims {
 }
 
 
- const log = getLogger().child({service: 'auth', branch: 'access token'})
+
 
 /**
  * @description
@@ -33,7 +33,7 @@ export interface claims {
  */
 export function generateAccessToken(user: {id: number, visitor_id: number, jti: string}): string {
   const { jwt: { jwt_secret_key, access_tokens, refresh_tokens } } = getConfiguration();
-
+   const log = getLogger().child({service: 'auth', branch: 'access token'})
 const payload = {
   visitor: user.visitor_id,
 }
@@ -77,6 +77,7 @@ return token;
  * @see {@link ./accsessTokens.js}
  */
 export function verifyAccessToken(token: string, Payload: claims): {valid: boolean, payload?: JwtPayload, errorType?: string} {
+const log = getLogger().child({service: 'auth', branch: 'access token'})
 log.info('Verifying access token...')
   const { jwt: { jwt_secret_key, access_tokens, refresh_tokens } } = getConfiguration();
   try {
