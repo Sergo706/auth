@@ -62,6 +62,13 @@ if (Number(req.params.visitor) !== results.payload.visitor) {
       jti: raw.jti
     };
 
+    const isUsed = await usedJtiLimiter.get(req.link.jti!);
+    if (isUsed !== null &&  isUsed.consumedPoints > 0 && isUsed.remainingPoints === 0) {
+      log.warn({userDetail: req.link},'User tried to use a temp link again');
+      res.status(400).json({ error: 'Link is not valid or expired' });
+      return 
+    }
+
   if (!(await guard(usedJtiLimiter, req.link.jti!, JtiMfaCache, 1, 'Link Checker of downstream logic', log, res ))) return;
 
    if (req.method === 'GET') {
@@ -142,7 +149,13 @@ if (Number(req.params.visitor) !== results.payload.visitor) {
       jti: raw.jti
     };
 
-   if (!(await guard(usedJtiLimiter, req.link.jti!, JtiPasswordResetCache, 1, 'Link Checker of downstream logic', log, res ))) return;
+    const isUsed = await usedJtiLimiter.get(req.link.jti!);
+    if (isUsed !== null &&  isUsed.consumedPoints > 0 && isUsed.remainingPoints === 0) {
+      log.warn({userDetail: req.link},'User tried to use a temp link again');
+      res.status(400).json({ error: 'Link is not valid or expired' });
+      return 
+    }
+    
    if (req.method === 'GET') {
 
      const getEntry = (usageCountGet.get(req.link.jti!)?.count ?? 0) + 1;
