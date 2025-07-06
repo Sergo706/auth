@@ -136,5 +136,3 @@ export { makeEmailTemplate, deleteTemplate, listTemplates } from './jwtAuth/util
  * type User = z.infer<typeof userSchema>;
  */
 export { z } from 'zod/v4';
-git commit -m 'fixed JSdocs display'
-git push -u origin test
