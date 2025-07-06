@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken'
-import { ProviderConfig, StandardProfile } from '../utils/newOauthProvider.js';
+import { ProviderConfig } from '../utils/newOauthProvider.js';
 import { ZodType } from 'zod/v4';
 
 export interface AuthConfig {

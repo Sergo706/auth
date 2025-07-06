@@ -62,6 +62,14 @@ import { protectRoute as protectRouteOriginal } from './jwtAuth/middleware/verif
  * @param {import('express').Request}   req   Express request object.
  * @param {import('express').Response}  res   Express response object.
  * @param {import('express').NextFunction} next  Express next handler.
+ * @returns 
+ *   req.user
+ * 
+ *   .userId
+ * 
+ *  .visitor_id
+ * 
+ *  .accessTokenId  the access token jti can be used with makeRateLimiter() to blacklist / revoke early
  * @see {@link ./jwtAuth/middleware/verifyJwt.js}
  * @example
  * // Protect any "/secret/data" route:
@@ -71,10 +79,11 @@ import { protectRoute as protectRouteOriginal } from './jwtAuth/middleware/verif
  *   requireRefreshToken,
  *   protectRoute,
  *   async (req: Request, res: Response) => { /* handler…  }
+ * 
  * );
  */
-export { configuration } from './jwtAuth/config/configuration.js'
 export const protectRoute = protectRouteOriginal;
+export { configuration } from './jwtAuth/config/configuration.js'
 export { cookieOnly as acceptCookieOnly } from "./jwtAuth/middleware/postGuard.js";
 export { requireAccessToken } from "./jwtAuth/middleware/requireAccessToken.js";
 export { requireRefreshToken } from "./jwtAuth/middleware/requireRefreshToken.js";
