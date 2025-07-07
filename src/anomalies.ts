@@ -201,7 +201,7 @@ if (tokenResults.canary_id !== cookie) {
 
   const bypass =
   results.last_mfa_at &&
-  Date.now() - new Date(results.last_mfa_at).getTime() < 10 * 60 * 1000; 
+  Date.now() - new Date(results.last_mfa_at).getTime() < 1000 * 60 * 60 * 24 * 2; 
 
   if(results.totalValid >= 5 && !bypass) {
    log.info(`more than 5 active sessions`)   
