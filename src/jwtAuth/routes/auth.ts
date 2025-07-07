@@ -1,7 +1,7 @@
 import express, { Router } from "express";
 import { handleSignUp } from "../controllers/signUpController.js";
 import { contentType } from "../middleware/validateContentType.js";
-import { OAuthHandler } from "../controllers/googleOuath.js";
+import { OAuthHandler } from "../controllers/OAuth.js";
 import { handleLogin } from "../controllers/loginController.js";
 const router = Router();
 
