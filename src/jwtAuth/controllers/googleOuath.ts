@@ -43,7 +43,7 @@ export const OAuthHandler = async (req: Request, res: Response, next: NextFuncti
         return;
       }
 
-      log.info({body: req.body, cookies: req.cookies}, `Entered GoogleSignUp body`)
+      log.info({body: req.body, cookies: req.cookies}, `Entered OAth body`)
       const rawInfo = req.body.userInfo; 
       const result = await validateSchema(matchedProvider.provider.schema, rawInfo, req, log);
 
@@ -67,6 +67,17 @@ export const OAuthHandler = async (req: Request, res: Response, next: NextFuncti
 
         if (!(await guard(subLimiter, userSchema.sub, consecutiveForSub, 2, 'sub limiter', log, res))) return;
         if (!(await guard(compositeKeyLimiter, compositeKey, consecutiveForCompositeKey, 2, 'compositeKey', log, res))) return;
+
+        if (!userSchema || !userSchema.sub) {
+          log.error({Schema: userSchema, providerId: userSchema.sub},`Schema is not valid or provider id is undefined!'`);
+          res.status(500)
+          .json({
+            ok: false,
+            receivedAt: new Date().toISOString(),
+            error: "Schema is not valid or provider id is undefined!",
+            banned: false});
+          return;
+        };
 
         log.info(`Calling findUserByProvider with id=', ${userSchema.sub}`)
         const found = await findUserByProvider(providedName, userSchema.sub);

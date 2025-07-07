@@ -28,7 +28,7 @@ class Provider<Schema extends ZodType> implements ProviderConfig<Schema> {
   ) {}
 
   mapProfile(raw: z.infer<Schema>): StandardProfile {
-    const data = this.schema;
+    const data = raw;
     return {
       sub: (data as any).id as string,        
       email: (data as any).email,
@@ -79,5 +79,4 @@ function mapProvider<Schema extends ZodType>(config: ProviderConfig<Schema>) {
 export function getProviders(override?: ProviderConfig<ZodType>[]) {
       const raw = override ?? getConfiguration().providers ?? [];      
       return  raw.map((p) => mapProvider(p));
-
 }
