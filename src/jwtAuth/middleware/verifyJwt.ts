@@ -16,7 +16,7 @@ export const protectRoute = async (req: Request, res: Response, next: NextFuncti
  const canary = req.cookies.canary_id;
 const { blackList } = getLimiters();
   const log = getLogger().child({service: 'auth', branch: 'access token'})
-    log.info(`verifing access token...`);
+    log.info(`verifying access token...`);
 
     if (!token){
     log.warn(`access token don't provided or header malformed`)

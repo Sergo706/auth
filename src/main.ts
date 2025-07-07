@@ -120,7 +120,7 @@ export { consumeOrReject } from './jwtAuth/utils/limiters/utils/consumeOrReject.
 export { guard } from './jwtAuth/utils/limiters/utils/guard.js';
 export { resetLimiters } from './jwtAuth/utils/limiters/utils/resetLimiters.js';
 export { makeRateLimiter, unionLimiter } from './jwtAuth/utils/limiters/rateLimit.js';
-export { getLogger } from './jwtAuth/utils/logger.js'
+export { getLogger } from './jwtAuth/utils/logger.js';
 export { getGeoData, parseUA, settings , initBotDetector, loadUaPatterns, detectBots, ApiResponse, addBannedCountries, warmUp } from '@riavzon/botdetector'
 export { makeEmailTemplate, deleteTemplate, listTemplates } from './jwtAuth/utils/emailTemplateMaker.js'
 /**
