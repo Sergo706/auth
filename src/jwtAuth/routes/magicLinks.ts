@@ -4,6 +4,7 @@ import { verifyMFA } from "../middleware/verifyEmailMFA.js";
 import { contentType } from "../middleware/validateContentType.js";
 import { verifyNewPassword } from "../middleware/verifyPasswordReset.js";
 import { initPasswordReset } from "../controllers/initPasswordReset.js";
+import { detectBots } from "@riavzon/botdetector"; 
 
 const router = Router();
 
@@ -22,6 +23,7 @@ router
           }
         }
       }), 
+      detectBots,
     verifyMFA
   );
 
@@ -55,6 +57,7 @@ router
           }
         }
       }),   
+      detectBots,
     verifyNewPassword
   );
 
