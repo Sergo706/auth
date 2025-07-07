@@ -9,7 +9,7 @@ export type StandardProfile = {
   name?: string;
   given_name?: string;
   family_name?: string;
-  last_name: string;
+  last_name?: string;
   avatar?: string;
   locale?: string;
 };
@@ -30,14 +30,15 @@ class Provider<Schema extends ZodType> implements ProviderConfig<Schema> {
   mapProfile(raw: z.infer<Schema>): StandardProfile {
     const data = raw;
     return {
-      sub: (data as any).id as string,        
+      sub: (data as any).sub as string,        
       email: (data as any).email,
-      name: (data as any).name,
-      avatar: (data as any).picture,
+      email_verified: Boolean((data as any).email_verified),
+      name: (data as any).given_name, 
+      given_name: (data as any).given_name,  
       family_name: (data as any).family_name,
       last_name: (data as any).last_name,
-      locale: (data as any).locale,
-      email_verified: Boolean((data as any).email_verified),            
+      avatar: (data as any).picture ?? (data as any).avatar,
+      locale: (data as any).locale,          
     };
   }
 }
