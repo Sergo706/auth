@@ -19,7 +19,7 @@ export const rotateRefreshTokens = async (req: Request, res: Response) => {
         const { jwt } = getConfiguration();
         const rawRefreshToken = req.cookies.session;
         const canary_id = req.cookies.canary_id;
-        const log = getLogger().child({service: 'auth', branch: 'refresh tokens'})
+        const log = getLogger().child({service: 'auth', branch: 'refresh tokens', type: 'rotateRefreshTokens'})
         const { refreshTokenLimiterUnion, refreshTokenLimiter } = getLimiters();
         log.info(`Refreshing token...`)
 

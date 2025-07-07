@@ -21,7 +21,7 @@ export const rotateCredentials = async (req: Request, res: Response) => {
   const { refreshAccessTokenLimiter, refreshTokenLimiter } = getLimiters();
   const rawRefreshToken = req.cookies.session;
   const canary_id = req.cookies.canary_id;
-  const log = getLogger().child({service: 'auth', branch: 'strict auth'});
+  const log = getLogger().child({service: 'auth', branch: 'strict auth', type: 'rotateCredentials'});
 
 
   log.info(`Rotating user's credentials...`)

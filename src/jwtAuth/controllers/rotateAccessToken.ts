@@ -20,7 +20,7 @@ export const rotateAccessToken =  async (req: Request, res: Response) => {
 
         const rawRefreshToken = req.cookies.session;
         const canary_id = req.cookies.canary_id;
-        const log = getLogger().child({service: 'auth', branch: 'access token'})
+        const log = getLogger().child({service: 'auth', branch: 'access token', type: 'rotateAccessToken'})
         const { refreshAccessTokenLimiter, refreshTokenLimiter } = getLimiters();
         log.info('Rotating access token...')
 
