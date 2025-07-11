@@ -1,6 +1,10 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import pino from 'pino';
+import { fileURLToPath } from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const listCache = new Map<string, Set<string>>();
 /**
@@ -35,10 +39,7 @@ export async function isDisposable(addr: string, log: pino.Logger): Promise<bool
     return false;
   }
 
-  const listPath = path.join(
-    './',
-    'disposable_email_blocklist.conf'
-  );
+  const listPath = path.join(__dirname, 'disposable_email_blocklist.conf');
 
   let blocked: Set<string>;
   if (listCache.has(listPath)) {
