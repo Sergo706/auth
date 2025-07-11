@@ -53,7 +53,7 @@ if ("valid" in result) {
   if (!(await guard(uniLimiterComposite, compositeKey, consecutiveForCompositeKey, 2, 'compositeKey', log, res))) return;
   
   const isValidEmailDomain = await isValidDomain(email, log);
-  const realUserEmail = await isDisposable(email, log);
+  const UserEmailDisposable = await isDisposable(email, log);
   
   if (!isValidEmailDomain) {
     log.warn('Invalid email domain');
@@ -61,7 +61,7 @@ if ("valid" in result) {
     return; 
   }
   
-  if (!realUserEmail) {
+  if (UserEmailDisposable) {
     log.warn('Disposable email detected');
     res.status(400).json({error: 'This email type is not allowed. Please enter your real email address.'});
     return; 
