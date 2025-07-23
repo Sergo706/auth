@@ -8,7 +8,7 @@ import authRoutes from './jwtAuth/routes/auth.js';
  * @type {import('express').Router}
  * @see {@link ./routes/auth.js}
  * @example
- * // mounted under /signup, /login, and  /auth/OAth/:providerName
+ * // mounted under /signup, /login, and  /auth/OAuth/:providerName
  * app.use(authenticationRoutes);
  */
 export const authenticationRoutes: import('express').Router = authRoutes;
@@ -107,7 +107,7 @@ export { getProviders as configureOauthProviders }  from './jwtAuth/utils/newOau
 export { createOauthUser } from "./jwtAuth/models/createOauthUser.js";
 export { createUser } from "./jwtAuth/models/createUser.js";
 export { findUserByProvider as findUserByOauthProvider } from "./jwtAuth/models/findUserByProvider.js";
-export { generateAccessToken, verifyAccessToken} from "./accsessTokens.js"
+export { generateAccessToken, verifyAccessToken} from "./accessTokens.js"
 export { revokeRefreshToken,
          rotateRefreshToken,
          generateRefreshToken, 

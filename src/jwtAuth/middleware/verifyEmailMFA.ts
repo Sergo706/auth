@@ -4,7 +4,7 @@ import { ResultSetHeader, RowDataPacket } from "mysql2";
 import crypto from 'crypto';
 import { code } from '../models/zodSchema.js'
 import { generateRefreshToken, revokeRefreshToken, verifyRefreshToken } from '../../refreshTokens.js';
-import { generateAccessToken } from '../../accsessTokens.js';
+import { generateAccessToken } from '../../accessTokens.js';
 import { getConfiguration } from '../config/configuration.js';
 import { makeCookie } from '../utils/cookieGenerator.js';
 import { getLogger } from '../utils/logger.js';

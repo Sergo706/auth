@@ -103,7 +103,7 @@ return token;
 export function verifyTempJwtLink (token: string, purpose: string, subject: string, jti: string): 
 {valid: boolean, payload?: JwtPayload, errorType?: string} {
   const log = getLogger().child({service: 'auth', branch: 'tempLinks', type: 'signature'})
-log.info(`verifing link signature`)
+log.info(`verifying link signature`)
 const { magic_links } = getConfiguration(); 
 try {
     const check = jwt.verify(token, magic_links.jwt_secret_key!, {

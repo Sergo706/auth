@@ -8,7 +8,7 @@ import { getLogger } from "../utils/logger.js";
 import { makeConsecutiveCache } from "../utils/limiters/utils/consecutiveCache.js";
 import { guard } from "../utils/limiters/utils/guard.js";
 import { validateSchema } from "../utils/validateZodSchema.js";
-import { getLimiters } from "../utils/limiters/protectedEndpoints/ouathLimiters.js";
+import { getLimiters } from "../utils/limiters/protectedEndpoints/oauthLimiters.js";
 import { getProviders } from "../utils/newOauthProvider.js";
 
 const consecutiveForIp = makeConsecutiveCache<{countData:number}>(2000, 1000 * 60 * 60 );
@@ -43,7 +43,7 @@ export const OAuthHandler = async (req: Request, res: Response, next: NextFuncti
         return;
       }
 
-      log.info({body: req.body, cookies: req.cookies}, `Entered OAth body`)
+      log.info({body: req.body, cookies: req.cookies}, `Entered OAuth body`)
       const rawInfo = req.body.userInfo; 
       const result = await validateSchema(matchedProvider.provider.schema, rawInfo, req, log);
 
@@ -119,7 +119,7 @@ export const OAuthHandler = async (req: Request, res: Response, next: NextFuncti
             domain: jwt.refresh_tokens.domain,
             path: '/'
             })
-            log.info(`User created / logged in succesfuly`);
+            log.info(`User created / logged in successfully`);
             res.status(201).json({ 
               ok: true, 
               receivedAt: new Date().toISOString(),

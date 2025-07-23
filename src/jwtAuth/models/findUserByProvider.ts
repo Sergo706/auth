@@ -1,6 +1,6 @@
 import { ResultSetHeader } from "mysql2";
 import { getPool } from "../config/dbConnection.js";
-import { generateAccessToken } from "../../accsessTokens.js";
+import { generateAccessToken } from "../../accessTokens.js";
 import { generateRefreshToken, IssuedRefreshToken } from "../../refreshTokens.js";
 import { getConfiguration } from "../config/configuration.js";
 import { getLogger } from "../utils/logger.js";
