@@ -8,7 +8,7 @@ import { generateRefreshToken } from "../../refreshTokens.js";
 import { IssuedRefreshToken } from "../../refreshTokens.js";
 import { getConfiguration } from "../config/configuration.js";
 import { getLogger } from "../utils/logger.js";
-
+import crypto from 'crypto';
 
 
 /**
