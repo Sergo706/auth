@@ -8,7 +8,7 @@ import { getLogger } from "../utils/logger.js";
 import { RowDataPacket } from "mysql2";
 import { getLimiters, resetLimitersUni } from "../utils/limiters/protectedEndpoints/loginLimiter.js";
 import { generateRefreshToken } from "../../refreshTokens.js";
-import { generateAccessToken } from "../../accsessTokens.js";
+import { generateAccessToken } from "../../accessTokens.js";
 import { makeCookie } from "../utils/cookieGenerator.js";
 import { makeConsecutiveCache } from "../utils/limiters/utils/consecutiveCache.js";
 import { guard } from "../utils/limiters/utils/guard.js";
@@ -102,7 +102,7 @@ log.info(`Data parsed and sanitized, searching for user...`)
             path: '/'
             })
 
-            log.info({userId: results.id, visitorId: results.visitor_id}, `User logged in succesfuly`);
+            log.info({userId: results.id, visitorId: results.visitor_id}, `User logged in successfully`);
             res.status(200).json({ 
             ok: true, 
             receivedAt: new Date().toISOString(),

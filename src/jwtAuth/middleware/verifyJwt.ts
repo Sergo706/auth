@@ -1,10 +1,10 @@
 import { getLogger } from "../utils/logger.js";
-import { verifyAccessToken } from "../../accsessTokens.js";
+import { verifyAccessToken } from "../../accessTokens.js";
 import { Request, Response, NextFunction } from "express";
 import { strangeThings } from "../../anomalies.js";
 import { sendTempMfaLink } from "../utils/emailMFA.js";
 import { getLimiters } from '../utils/limiters/protectedEndpoints/tokensLimiters.js'
-import type { claims } from "../../accsessTokens.js";
+import type { claims } from "../../accessTokens.js";
 import { makeConsecutiveCache } from "../utils/limiters/utils/consecutiveCache.js";
 import { guard } from "../utils/limiters/utils/guard.js";
 
