@@ -57,7 +57,7 @@ return token;
  *
  * @param {string} token
  *   The JWT string to verify.
- * @param {import('./accsessTokens.js').claims} Payload
+ * @param {import('./accessTokens.js').claims} Payload
  *   The expected payload shape/schema for validation.
  *
  * @returns {{ valid: boolean; payload?: JwtPayload; errorType?: string }}
@@ -65,7 +65,7 @@ return token;
  *   or an error type if verification failed.
  *
  * @example
- * import { claims } from './accsessTokens.js';
+ * import { claims } from './accessTokens.js';
  *
  * const result = verifyAccessToken(token, claims);
  * if (result.valid) {
@@ -74,7 +74,7 @@ return token;
  *   console.error('Error verifying token:', result.errorType);
  * }
  *
- * @see {@link ./accsessTokens.js}
+ * @see {@link ./accessTokens.js}
  */
 export function verifyAccessToken(token: string, Payload: claims): {valid: boolean, payload?: JwtPayload, errorType?: string} {
 const log = getLogger().child({service: 'auth', branch: 'access token'})

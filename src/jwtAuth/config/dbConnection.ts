@@ -24,7 +24,7 @@ export function getPool(): PromisePool {
   return mainPool;
 }
 
-export function poolForLibary(): CallbackPool {
+export function poolForLibrary(): CallbackPool {
   if (limiterPool) return limiterPool;
 
   const { store } = getConfiguration();

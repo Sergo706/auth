@@ -36,8 +36,8 @@ export const handleLogout = async (req: Request, res: Response) => {
                     path: '/'
                 });
                 await refreshAccessTokenLimiter.block(hashedToken, 60 * 60 * 24 * 3);
-                log.info('Session deleted succesfuly, and user is logged out')
-                res.status(200).json({session: 'Session deleted succesfuly!', userID: result.userId})
+                log.info('Session deleted successfully, and user is logged out')
+                res.status(200).json({session: 'Session deleted successfully!', userID: result.userId})
                 return;
             }
         };

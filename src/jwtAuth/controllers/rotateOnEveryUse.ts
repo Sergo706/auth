@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { consumeAndVerifyRefreshToken, revokeRefreshToken, generateRefreshToken } from '../../refreshTokens.js';
 import { makeCookie } from '../utils/cookieGenerator.js';
-import { generateAccessToken } from '../../accsessTokens.js';
+import { generateAccessToken } from '../../accessTokens.js';
 import { strangeThings } from "../../anomalies.js";
 import { sendTempMfaLink } from '../utils/emailMFA.js';
 import { getLogger } from '../utils/logger.js';
@@ -103,7 +103,7 @@ export const rotateCredentials = async (req: Request, res: Response) => {
         res.status(401).json({ error: result.reason })
         return;
     };
-    log.info(`Verifing credentials succeeded, revoking...`)
+    log.info(`Verifying credentials succeeded, revoking...`)
    const revoke = await revokeRefreshToken(rawRefreshToken);
 
     if (!revoke.success) {
@@ -142,7 +142,7 @@ export const rotateCredentials = async (req: Request, res: Response) => {
     });
     await refreshTokenLimiter.block(hashedToken, 60 * 60 * 24 * 3);
     await refreshAccessTokenLimiter.block(compositeKey, 60 * 60 * 24 * 3);
-     log.info(`Refresh & access tokens rotated succesfuly`);
+     log.info(`Refresh & access tokens rotated successfully`);
      res.status(201).json({
       session:  'Refresh & access tokens rotated',
       accessToken: newAccess,

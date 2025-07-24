@@ -11,8 +11,8 @@ const consecutiveForIpMfa = makeConsecutiveCache< {countData:number} >(2000, 100
 const usageCountPost = makeConsecutiveCache<{count:number}>(1000, 1000 * 60 * 20);
 const usageCountGet = makeConsecutiveCache<{count:number}>(1000, 1000 * 60 * 20);
 
-const allowedPerSuccesfulGet = 5;
-const allowedPerSuccesfulPost = 1;
+const allowedPerSuccessfulGet = 5;
+const allowedPerSuccessfulPost = 1;
 
 export const linkMfaVerification = async (req: Request, res: Response, next: NextFunction) => {
 const log = getLogger().child({service: 'auth', branch: `tempLinks`, linkType: 'mfa'})
@@ -70,10 +70,10 @@ if (Number(req.params.visitor) !== results.payload.visitor) {
    if (req.method === 'GET') {
      const getEntry = (usageCountGet.get(req.link.jti!)?.count ?? 0) + 1;
      usageCountGet.set(req.link.jti!, { count: getEntry });
-     log.info({count: getEntry, out_of: allowedPerSuccesfulGet},'User hit a mfa link, with a get req.');
+     log.info({count: getEntry, out_of: allowedPerSuccessfulGet},'User hit a mfa link, with a get req.');
 
-      if (getEntry > allowedPerSuccesfulGet) {
-        log.warn({count: getEntry, out_of: allowedPerSuccesfulGet},'User hit an expired mfa link with a get method');
+      if (getEntry > allowedPerSuccessfulGet) {
+        log.warn({count: getEntry, out_of: allowedPerSuccessfulGet},'User hit an expired mfa link with a get method');
         res.status(400).json({error: 'This link can only be used once'})
         return;
       };
@@ -87,10 +87,10 @@ if (Number(req.params.visitor) !== results.payload.visitor) {
 
   const postEntry = (usageCountPost.get(req.link.jti!)?.count ?? 0) + 1;
   usageCountPost.set(req.link.jti!, { count: postEntry });
-  log.info({count: postEntry, out_of: allowedPerSuccesfulPost},'User hit an mfa link, with a post req.');
+  log.info({count: postEntry, out_of: allowedPerSuccessfulPost},'User hit an mfa link, with a post req.');
 
-   if (postEntry > allowedPerSuccesfulPost) {
-     log.warn({count: postEntry, out_of: allowedPerSuccesfulGet},'User hit an expired mfa link with a post method');
+   if (postEntry > allowedPerSuccessfulPost) {
+     log.warn({count: postEntry, out_of: allowedPerSuccessfulGet},'User hit an expired mfa link with a post method');
      res.status(400).json({error: 'This link can only be used once'})
      return;
    };
@@ -156,10 +156,10 @@ if (Number(req.params.visitor) !== results.payload.visitor) {
 
      const getEntry = (usageCountGet.get(req.link.jti!)?.count ?? 0) + 1;
      usageCountGet.set(req.link.jti!, { count: getEntry });
-     log.info({count: getEntry, out_of: allowedPerSuccesfulGet},'User hit a password reset link, with a get req.');
+     log.info({count: getEntry, out_of: allowedPerSuccessfulGet},'User hit a password reset link, with a get req.');
 
-      if (getEntry > allowedPerSuccesfulGet) {
-        log.warn({count: getEntry, out_of: allowedPerSuccesfulGet},'User hit an expired password link with a get method');
+      if (getEntry > allowedPerSuccessfulGet) {
+        log.warn({count: getEntry, out_of: allowedPerSuccessfulGet},'User hit an expired password link with a get method');
         res.status(400).json({error: 'This link can only be used once'})
         return;
       };
@@ -172,10 +172,10 @@ if (Number(req.params.visitor) !== results.payload.visitor) {
   }
   const postEntry = (usageCountPost.get(req.link.jti!)?.count ?? 0) + 1;
   usageCountPost.set(req.link.jti!, { count: postEntry });
-  log.info({count: postEntry, out_of: allowedPerSuccesfulPost},'User hit a password reset link, with a post req.');
+  log.info({count: postEntry, out_of: allowedPerSuccessfulPost},'User hit a password reset link, with a post req.');
 
-   if (postEntry > allowedPerSuccesfulPost) {
-     log.warn({count: postEntry, out_of: allowedPerSuccesfulPost},'User hit an expired password link with a post method');
+   if (postEntry > allowedPerSuccessfulPost) {
+     log.warn({count: postEntry, out_of: allowedPerSuccessfulPost},'User hit an expired password link with a post method');
      res.status(400).json({error: 'This link can only be used once'})
      return;
    };
