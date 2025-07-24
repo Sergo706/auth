@@ -269,7 +269,7 @@ if (info.affectedRows === 0) {
     
 } catch(err) {
     await conn.rollback();
-    strictAuth.error({err},'Error verifing the refresh token')
+    strictAuth.error({err},'Error verifying the refresh token')
     throw new Error('DB error verifying refresh token');
 }  finally {
     conn.release();
@@ -297,7 +297,7 @@ Promise<
   > {
     const log = getLogger().child({service: 'auth', branch: 'refresh tokens'})
 let hashedClientToken = clientToken;
-log.info('verifyRefreshToken entered, verifing token...')
+log.info('verifyRefreshToken entered, verifying token...')
 if (!hashed) {
     hashedClientToken = createHash('sha256').update(clientToken).digest('hex');
 }
@@ -365,7 +365,7 @@ const pool = getPool()
             }
         };
         
-    log.info({userId: results.user_id},'Verified token succesfuly')
+    log.info({userId: results.user_id},'Verified token successfully')
     return {
         valid: true,
         userId: results.user_id,
@@ -374,7 +374,7 @@ const pool = getPool()
     }
     
 } catch(err) {
-    log.error({err},'Error verifing the refresh token')
+    log.error({err},'Error verifying the refresh token')
     throw new Error('DB error verifying refresh token');
 }
 }

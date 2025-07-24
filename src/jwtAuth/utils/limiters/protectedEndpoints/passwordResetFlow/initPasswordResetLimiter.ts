@@ -1,4 +1,4 @@
-import { poolForLibary } from '../../../../config/dbConnection.js';
+import { poolForLibrary } from '../../../../config/dbConnection.js';
 import { BlockableUnion, makeRateLimiter, unionLimiter} from '../../rateLimit.js'
 import { getConfiguration } from '../../../../config/configuration.js';
 import { RateLimiterMemory, RateLimiterMySQL, RLWrapperBlackAndWhite } from 'rate-limiter-flexible';
@@ -16,7 +16,7 @@ let limiter: LimiterBundle | null;
 
 function buildLimiter(): LimiterBundle { 
   const { store, rate_limiters } = getConfiguration();
-  const pool = poolForLibary() as unknown as any;
+  const pool = poolForLibrary() as unknown as any;
   const limiterConfig = rate_limiters?.initPasswordResetLimiters?.unionLimiters;
 
   const limit = makeRateLimiter(true, false, {

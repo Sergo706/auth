@@ -18,7 +18,7 @@ const router = Router();
  * @type {import('express').Router}
  * @see {@link ./routes/auth.js}
  * @example
- * // mounted under /signup, /login, and  /auth/OAth/:providerName
+ * // mounted under /signup, /login, and  /auth/OAuth/:providerName
  * app.use(authenticationRoutes);
  */
 
@@ -67,7 +67,7 @@ handleLogin
 );
 
 router.post(
-  '/auth/OAth/:providerName',
+  '/auth/OAuth/:providerName',
   contentType('application/json'),
   express.json({ 
     limit: '4kb',

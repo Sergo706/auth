@@ -3,7 +3,7 @@ import { getPool } from "../config/dbConnection.js";
 import { sendLog } from "../utils/telegramLogger.js";
 import { User } from "../types/newUser.js";
 import { NewUser } from "./zodSignUpSchemas.js";
-import { generateAccessToken } from "../../accsessTokens.js";
+import { generateAccessToken } from "../../accessTokens.js";
 import { generateRefreshToken } from "../../refreshTokens.js";
 import { IssuedRefreshToken } from "../../refreshTokens.js";
 import { getConfiguration } from "../config/configuration.js";

@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { revokeRefreshToken, verifyRefreshToken } from "../../refreshTokens.js";
-import { generateAccessToken } from "../../accsessTokens.js";
+import { generateAccessToken } from "../../accessTokens.js";
 import { strangeThings } from "../../anomalies.js";
 import { sendTempMfaLink } from "../utils/emailMFA.js";
 import { getLogger } from "../utils/logger.js";
