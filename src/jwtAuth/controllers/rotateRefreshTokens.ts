@@ -36,7 +36,7 @@ export const rotateRefreshTokens = async (req: Request, res: Response) => {
       await strangeThings(rawRefreshToken, canary_id, req.ip!, req.get('User-Agent')!, false);
 
          if (!valid && reqMFA) {
-          log.info({token: rawRefreshToken,valid, reason, reqMFA, userId, visitorId},`mfa is triggered`)
+          log.info({token: '[REDACTED]',valid, reason, reqMFA, userId, visitorId},`mfa is triggered`)
         const mfa = await sendTempMfaLink(
           {
           userId: userId!,
@@ -44,17 +44,17 @@ export const rotateRefreshTokens = async (req: Request, res: Response) => {
           }, 
             rawRefreshToken)
             if (!mfa) { 
-            log.warn({token: rawRefreshToken,valid, reason, reqMFA, userId, visitorId},`mfa error 500`)
+            log.warn({token: '[REDACTED]',valid, reason, reqMFA, userId, visitorId},`mfa error 500`)
             res.status(500).json({ error: 'Could not send MFA code, try again later' });
             return;
             }
-            log.info({token: rawRefreshToken,valid, reason, reqMFA, userId, visitorId},`A login link has been sent to the user`)
+            log.info({token: '[REDACTED]',valid, reason, reqMFA, userId, visitorId},`A login link has been sent to the user`)
             res.status(202).json({ mfa: true, message: 'A login link has been sent to your email.' });
             return;
          }
 
          if (!valid && !reqMFA) {
-           log.info({token: rawRefreshToken,valid, reason, reqMFA, userId, visitorId},`Relogin is required`)
+           log.info({token: '[REDACTED]',valid, reason, reqMFA, userId, visitorId},`Relogin is required`)
            res.status(401).json({error: 'Relogin is required', reason: reason});
            return;
          }
