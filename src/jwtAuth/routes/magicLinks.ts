@@ -5,6 +5,7 @@ import { contentType } from "../middleware/validateContentType.js";
 import { verifyNewPassword } from "../middleware/verifyPasswordReset.js";
 import { initPasswordReset } from "../controllers/initPasswordReset.js";
 import { detectBots } from "@riavzon/botdetector"; 
+import { getLogger } from "../utils/logger.js";
 
 const router = Router();
 
@@ -18,7 +19,8 @@ router
         limit: '1kb',
         verify: (req, res, buf) => {
           if (!buf.toString()) {
-            console.log('EMPTY_BODY')
+            const log = getLogger().child({service: 'auth', branch: 'routes', type: 'Json checker'})
+            log.warn('EMPTY_BODY')
             throw new Error('403');
           }
         }
@@ -35,7 +37,8 @@ router
         limit: '1kb',
         verify: (req, res, buf) => {
           if (!buf.toString()) {
-            console.log('EMPTY_BODY')
+           const log = getLogger().child({service: 'auth', branch: 'routes', type: 'Json checker'})
+           log.warn('EMPTY_BODY')
             throw new Error('403');
           }
         }
@@ -52,7 +55,8 @@ router
         limit: '1kb',
         verify: (req, res, buf) => {
           if (!buf.toString()) {
-            console.log('EMPTY_BODY')
+          const log = getLogger().child({service: 'auth', branch: 'routes', type: 'Json checker'})
+          log.warn('EMPTY_BODY')
             throw new Error('403');
           }
         }

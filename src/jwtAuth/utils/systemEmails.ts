@@ -3,7 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import ejs from "ejs";
 import { getConfiguration } from '../config/configuration.js';
-
+import { getLogger } from './logger.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -72,6 +72,7 @@ export async function sendSystemEmail(
      userData: EmailData, 
      template: string,
     ): Promise<void> {
+    const log = getLogger().child({service: 'auth', branch: 'utils', type: 'sendSystemEmail'})
     let html: string;
     const toField = Array.isArray(recipients) ? recipients : [recipients];
     const { email } = getConfiguration();
@@ -84,7 +85,7 @@ export async function sendSystemEmail(
         const filePath = path.join(__dirname, '..', "emails", `${template}.ejs`)
         html = await ejs.renderFile(filePath, renderData)
    } catch(err) {
-         console.error(`Failed to render template '${template}.ejs':`, err);
+         log.error(`Failed to render template '${template}.ejs':`, err);
          throw err;
    }
 
@@ -96,10 +97,10 @@ export async function sendSystemEmail(
   });
 
   if (error) {
-    return console.error( error );
+    return log.error( error );
   }
 
-  console.log(" Email sent:", data);
+  log.info(" Email sent:", data);
 }
 
 
