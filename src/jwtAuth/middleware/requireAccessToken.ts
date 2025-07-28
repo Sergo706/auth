@@ -31,7 +31,6 @@ export const requireAccessToken = (req: Request, res: Response, next: NextFuncti
           return 
       }
        const token = authHeader.slice(7).trim();
-       console.log(token)
         if (!token) {
             log.warn('Access token missing')
             res.status(401).json({error: 'Access token missing'});

@@ -4,7 +4,7 @@ import { getPool } from "../config/dbConnection.js";
 import { RowDataPacket } from "mysql2";
 import crypto from 'crypto';
 import { getLogger } from "../utils/logger.js";
-
+import { getConfiguration } from "../config/configuration.js";
 
 /**
  * @description
@@ -35,6 +35,7 @@ export async function sendTempMfaLink(
 user: { userId: number; visitor: number },
 sessionToken: string,
 ): Promise<boolean> {
+const { jwt:  { refresh_tokens }  } = getConfiguration() 
 const jti = `${crypto.randomUUID()}${crypto.randomBytes(64).toString('hex')}`;
 const log = getLogger().child({service: 'auth', branch: 'mfa', visitorId: user.visitor})
   const tempToken = tempJwtLink(
@@ -47,7 +48,7 @@ const log = getLogger().child({service: 'auth', branch: 'mfa', visitorId: user.v
   );
   log.info(`Entered mfa, generating temp link...`)
   const path = "/auth/verify-mfa";
-  const url = `https://testing.com${path}/${user.visitor}?temp=${encodeURIComponent(tempToken)}`
+  const url = `${refresh_tokens.domain}${path}/${user.visitor}?temp=${encodeURIComponent(tempToken)}`
 
   log.info(`Generating mfa code...`)
   const randomCode = crypto.randomInt(1000000, 9999999).toString().padStart(7, '0');

@@ -1,6 +1,6 @@
 import sanitizeHtml from 'sanitize-html';
 import he from 'he'
-
+import { getLogger } from './logger.js';
 interface html {
   htmlFound: boolean;
     tags?: {
@@ -37,7 +37,7 @@ interface html {
  */
 export default function sanitizeInputString(vall: string): {vall :string, results: html} {
   let results: html = { htmlFound: false };
-
+  const log = getLogger().child({service: 'auth', branch: 'utils', type: 'sanitizeInputString'})
   let clean = vall
   .normalize('NFKC') 
   .replace(/[\uFEFF\u200B-\u200D\u202A-\u202E\uFF1C\uFF1E]/g, '')
@@ -63,13 +63,13 @@ export default function sanitizeInputString(vall: string): {vall :string, result
     let prev = clean;
       try {
         clean = decodeURIComponent(clean);
-        console.log('URI-decode success:', clean);
+        log.info('URI-decode success:', clean);
       } catch {
-        console.log('URI-decode failed, carrying on with:', clean);
+        log.info('URI-decode failed, carrying on with:', clean);
       }
       clean = he.decode(clean);
       
-      console.log(prev, `runned ${i++} times. prev: ${prev}  Now: ${clean}`);
+      log.info(prev, `runned ${i++} times. prev: ${prev}  Now: ${clean}`);
       if (clean === prev) break;
     }
     
@@ -124,6 +124,6 @@ export default function sanitizeInputString(vall: string): {vall :string, result
       .replace(/`/g,'&#x60;')
       .replace(/\$\{/g, '\\${')
       .trim();
-  console.log(`Final Results:  ${stripped}`)
+  log.info(`Final Results:  ${stripped}`)
   return { vall: stripped, results }
 }

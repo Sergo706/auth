@@ -3,6 +3,7 @@ import { handleSignUp } from "../controllers/signUpController.js";
 import { contentType } from "../middleware/validateContentType.js";
 import { OAuthHandler } from "../controllers/OAuth.js";
 import { handleLogin } from "../controllers/loginController.js";
+import { getLogger } from "../utils/logger.js";
 const router = Router();
 
 
@@ -30,7 +31,8 @@ router.post(
     limit: '1kb',
     verify: (req, res, buf) => {
       if (!buf.toString()) {
-        console.log('EMPTY_BODY')
+        const log = getLogger().child({service: 'auth', branch: 'routes', type: 'Json checker'})
+        log.warn('EMPTY_BODY')
         throw new Error('403');
       }
     }
@@ -53,7 +55,8 @@ router.post(
     limit: '1kb',
     verify: (req, res, buf) => {
       if (!buf.toString()) {
-        console.log('EMPTY_BODY')
+        const log = getLogger().child({service: 'auth', branch: 'routes', type: 'Json checker'})
+        log.warn('EMPTY_BODY')
         throw new Error('403');
       }
     }
@@ -73,7 +76,8 @@ router.post(
     limit: '4kb',
     verify: (req, res, buf) => {
       if (!buf.toString()) {
-        console.log('EMPTY_BODY')
+        const log = getLogger().child({service: 'auth', branch: 'routes', type: 'Json checker'})
+        log.warn('EMPTY_BODY')
         throw new Error('403');
       }
     }
@@ -84,8 +88,7 @@ router.post(
       res.status(400).json({error: `Cookie not provided`});
       return;
      };
-    const ip = req.ip
-    console.log(`Entering Route`)
+    const ip = req.ip;
     next()
   },
 
