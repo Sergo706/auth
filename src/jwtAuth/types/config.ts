@@ -27,6 +27,7 @@ export interface AuthConfig {
   magic_links: {
     jwt_secret_key: string;
     expiresIn?: number;
+    expiresInMs: number;
     domain: string;
     maxCacheEntries?: number;
   },
@@ -35,6 +36,7 @@ export interface AuthConfig {
      jwt_secret_key: string ;
      access_tokens: {
       expiresIn?: number;
+      expiresInMs: number;
       algorithm?: jwt.Algorithm | undefined;
       audience?: string,
       issuer?: string,
