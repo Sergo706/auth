@@ -19,7 +19,7 @@ const { magic_links } = getConfiguration();
 
  cache = new LRUCache<string, CacheEntry>({
    max: magic_links.maxCacheEntries ?? 500, 
-   ttl: magic_links.expiresIn ? magic_links.expiresIn : 15 * 60 * 1000
+   ttl: magic_links.expiresInMs ? magic_links.expiresInMs : 15 * 60 * 1000
  });
  return cache;
 }

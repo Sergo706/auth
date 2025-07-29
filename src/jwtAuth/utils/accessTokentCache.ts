@@ -18,7 +18,7 @@ const { access_tokens } = getConfiguration().jwt;
 
  cache = new LRUCache<string, TokenCacheEntry>({
    max: access_tokens.maxCacheEntries ?? 500, 
-   ttl: access_tokens.expiresIn ? access_tokens.expiresIn : 15 * 60 * 1000
+   ttl: access_tokens.expiresInMs ? access_tokens.expiresInMs : 15 * 60 * 1000
  });
  return cache;
 }
