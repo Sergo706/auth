@@ -97,7 +97,7 @@ const log = getLogger().child({service: 'auth', branch: 'access token'})
      algorithms: [access_tokens.algorithm ?? 'HS512'],
      audience: access_tokens.audience ?? refresh_tokens.domain,
      issuer: access_tokens.issuer ?? refresh_tokens.domain,
-     subject: cache.userId as unknown as string,
+     subject: access_tokens.subject ?? cache.userId.toString(),
      jwtid: cache.jti,
     }); 
     
