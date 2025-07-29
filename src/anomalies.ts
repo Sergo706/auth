@@ -160,7 +160,7 @@ if (!tokenResults.valid || rotated && tokenResults.usage_count > 0) {
 };
 
 if (tokenResults.canary_id !== cookie) { 
-  log.info(`canary cookies dosn't match. DB cookie: ${tokenResults.canary_id}, incoming cookie ${cookie}`)
+  log.info(`canary cookies doesn't match. DB cookie: ${tokenResults.canary_id}, incoming cookie ${cookie}`)
     return {
       valid: false,
       reason: 'new device',
