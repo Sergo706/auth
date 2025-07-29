@@ -79,7 +79,7 @@ if (!req.is('application/json')) {
 
  if (confirmedPassword !== password) {
         log.info(`Passwords didnt match.`)
-        res.status(400).json({error: `Password dosn't match`,  "banned": false })
+        res.status(400).json({error: `Password doesn't match`,  "banned": false })
         return;
  }
 const pool = getPool()

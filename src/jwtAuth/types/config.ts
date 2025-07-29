@@ -28,6 +28,7 @@ export interface AuthConfig {
     jwt_secret_key: string;
     expiresIn?: number;
     domain: string;
+    maxCacheEntries?: number;
   },
   providers?: ProviderConfig<ZodType>[];
    jwt: {
@@ -39,6 +40,8 @@ export interface AuthConfig {
       issuer?: string,
       subject?: string,
       jwtid?:   string,
+      maxCacheEntries?: number,
+      payload?: object;
      }
      refresh_tokens: {
        rotateOnEveryAccessExpiry: boolean;

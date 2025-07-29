@@ -12,9 +12,9 @@ import { Request } from "express";
  * @param {import('pino').Logger} log
  *   A Pino logger instance for recording detection and ban events.
  *
- * @returns {Promise<string>}
- *   Resolves with the sanitized message string after handling the XSS attempt.
- *
+ * @returns {Promise<void>}
+ *   Resolves when the XSS attempt has been logged and the visitor banned.
+ * 
  * @see {@link ./handleXSS.js}
  *
  * @example
@@ -22,7 +22,7 @@ import { Request } from "express";
  * const logger = pino();
  *
  * const clean = await handleXSS(req, '<script>alert(1)</script>', logger);
- * // `clean` now contains the sanitized version of the input
+ * 
  */
 export async function handleXSS(req: Request, message: string, log: any) {
     log.warn(` XSS attempt banning visitor...`)

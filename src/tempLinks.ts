@@ -1,7 +1,7 @@
 import  jwt , { JwtPayload } from "jsonwebtoken";
 import { getLogger } from "./jwtAuth/utils/logger.js";
 import { getConfiguration } from "./jwtAuth/config/configuration.js";
-
+import { magicLinksCache } from "./jwtAuth/utils/magicLinksCache.js";
 
 const { TokenExpiredError, JsonWebTokenError } = jwt;
 
@@ -9,7 +9,7 @@ export interface LinkTokenPayload {
   visitor: number;
   subject: string;
   purpose: "PASSWORD_RESET" | "MFA";
-  jti?: string;
+  jti: string;
 }
 
 
@@ -43,6 +43,7 @@ export interface LinkTokenPayload {
 export function tempJwtLink (payload: LinkTokenPayload): string {
 const { magic_links } = getConfiguration(); 
 const log = getLogger().child({service: 'auth', branch: 'tempLinks', type: 'signature'})
+
 log.info({payload},`Generating link signature...`)
 const { jti, ...safePayload } = payload;
 
@@ -51,9 +52,10 @@ const token = jwt.sign(safePayload, magic_links.jwt_secret_key, {
    expiresIn: magic_links.expiresIn ?? '20m',
    subject: payload.subject,
    issuer: payload.purpose,
-   audience:   `https://${magic_links.domain}`,
+   audience:   `${magic_links.domain}`,
    jwtid: jti
 })
+magicLinksCache().set(token, { jti: payload.jti, visitor: payload.visitor, purpose: payload.purpose, subject: payload.subject, valid: true })
 log.info({payload},`Generated link signature`)
 return token;
 }
@@ -100,18 +102,28 @@ return token;
  *
  * @see {@link ./tempJwtLink.js}
  */
-export function verifyTempJwtLink (token: string, purpose: string, subject: string, jti: string): 
+export function verifyTempJwtLink (token: string): 
 {valid: boolean, payload?: JwtPayload, errorType?: string} {
   const log = getLogger().child({service: 'auth', branch: 'tempLinks', type: 'signature'})
 log.info(`verifying link signature`)
 const { magic_links } = getConfiguration(); 
+
+
+  const cache = magicLinksCache().get(token);
+
+  if (!cache || !cache.valid) {
+      log.warn('InvalidPayloadType')
+      log.warn(`verifyTempJwtLink returned on missing cache/invalid cache`)
+      return { valid: false, errorType: "InvalidPayloadType" };
+   }
+   
 try {
     const check = jwt.verify(token, magic_links.jwt_secret_key!, {
          algorithms: ['HS512'],
-         issuer: purpose,
-         subject: subject,
-         audience:   `https://${magic_links.domain}`,
-         jwtid: jti
+         issuer: cache.purpose,
+         subject: cache.subject,
+         audience:   `${magic_links.domain}`,
+         jwtid: cache.jti
     })
     log.info({check},`verified signature`)
 
@@ -120,6 +132,12 @@ try {
       log.warn(`InvalidPayloadType`)
          return { valid: false, errorType: "InvalidPayloadType" };
    }
+
+    if (cache.visitor !== check.visitor)  {
+      log.error(`verifyTempJwtLink: invalid visitor id`)
+      return { valid: false, errorType: "Invalid visitor id" };
+    }
+
    return {valid: true, payload: check };
   
 } catch (err) {
@@ -129,6 +147,7 @@ try {
   } 
     if (err instanceof TokenExpiredError) {
     log.error({err}, `JWT expired at ${err.expiredAt}`)
+    magicLinksCache().delete(token);
     return {valid: false, errorType: `TokenExpiredError`};
   }
     if (err instanceof JsonWebTokenError) {

@@ -1,5 +1,5 @@
-import type { AccessTokenPayload } from '../services/jwtAuth/accessTokens.js';
-import { LinkTokenPayload } from '../services/jwtAuth/tempLinks.js';
+import type { AccessTokenPayload } from '../../accessTokens.ts';
+import { LinkTokenPayload } from '../../jwtAuth/tempLinks.js';
 declare global {
   namespace Express {
     export interface Request {

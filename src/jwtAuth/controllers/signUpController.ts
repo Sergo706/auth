@@ -69,7 +69,14 @@ if ("valid" in result) {
 
   if (!(await guard(emailLimiter, email, consecutiveForEmail, 2, 'email', log, res))) return;
 
-  const hashedPassword = await hashPassword(password, log)
+let hashedPassword: string;
+try { 
+  hashedPassword = await hashPassword(password, log)
+} catch(err) {
+    log.fatal({ err }, 'Password hashing failed')
+    res.status(500).json({ ok: false, receivedAt: new Date().toISOString(), error: 'server error', banned: false })
+    return
+}
 
   const done = {
       Name: Name,

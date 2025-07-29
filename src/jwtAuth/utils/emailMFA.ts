@@ -74,6 +74,7 @@ const log = getLogger().child({service: 'auth', branch: 'mfa', visitorId: user.v
     if (exits.length > 0) {
       log.info(`Valid MFA code found for user ${user.userId}: ${exits[0].code_hash}`)
       await conn.commit();
+      conn.release();
       return true;
     };
 
