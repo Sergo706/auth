@@ -4,7 +4,6 @@ import { Request, Response, NextFunction } from "express";
 import { strangeThings } from "../../anomalies.js";
 import { sendTempMfaLink } from "../utils/emailMFA.js";
 import { getLimiters } from '../utils/limiters/protectedEndpoints/tokensLimiters.js'
-import type { claims } from "../../accessTokens.js";
 import { makeConsecutiveCache } from "../utils/limiters/utils/consecutiveCache.js";
 import { guard } from "../utils/limiters/utils/guard.js";
 
@@ -26,15 +25,11 @@ const { blackList } = getLimiters();
     
     if (!session || !canary) {
     log.warn('Refresh cookies missing');
-     res.status(401).json({ error: 'Relogin required' });
+     res.status(401).json({ error: 'Login required' });
      return;
   }
-
-    const signature = token.split(".");
-    const claimsJson = Buffer.from(signature[1], 'base64url').toString('utf-8');
-    const claims = JSON.parse(claimsJson) as claims;
     
-    const result = verifyAccessToken(token, claims);
+    const result = verifyAccessToken(token);
    
    if (!result.valid || !result.payload) {
     log.warn({error: result.errorType},`access token verification failed`)
@@ -83,6 +78,7 @@ const { blackList } = getLimiters();
       userId: result.payload.sub,         
       visitor_id: result.payload.visitor,
       accessTokenId: result.payload.jti,  
+      roles: result.payload.roles
     };
  next();
 }   

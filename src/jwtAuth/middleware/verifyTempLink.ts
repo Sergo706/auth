@@ -5,7 +5,7 @@ import { getUniLimiter, resetLimitersUni } from "../utils/limiters/protectedEndp
 import { guard } from "../utils/limiters/utils/guard.js";
 import { makeConsecutiveCache } from "../utils/limiters/utils/consecutiveCache.js";
 import { getLimiters } from "../utils/limiters/protectedEndpoints/tempPostRoutesLimiter.js";
-
+import { magicLinksCache } from "../utils/magicLinksCache.js";
 const consecutiveForIpPassword = makeConsecutiveCache< {countData:number} >(2000, 1000 * 60 * 30);
 const consecutiveForIpMfa = makeConsecutiveCache< {countData:number} >(2000, 1000 * 60 * 30);
 const usageCountPost = makeConsecutiveCache<{count:number}>(1000, 1000 * 60 * 20);
@@ -16,8 +16,14 @@ const allowedPerSuccessfulPost = 1;
 
 export const linkMfaVerification = async (req: Request, res: Response, next: NextFunction) => {
 const log = getLogger().child({service: 'auth', branch: `tempLinks`, linkType: 'mfa'})
-const token = String(req.query.temp);
 const { usedJtiLimiter } = getLimiters();
+const token = req.query.temp;
+
+if (typeof token !== 'string') {
+    log.warn('invalid token type');
+    res.status(400).json({error: 'invalid token type'});
+    return;
+}
 
 log.info({ method: req.method }, 'Verifying link...')
 
@@ -29,11 +35,8 @@ if (!token) {
     res.status(400).json({error: 'Link not provided'});
     return;
 }
-  const signature = token.split(".");
-  const claimsJson = Buffer.from(signature[1], 'base64url').toString('utf-8');
-  const claims = JSON.parse(claimsJson);
 
-const results = verifyTempJwtLink(token, 'MFA', 'MAGIC_LINK_MFA_CHECKS', claims.jti);
+const results = verifyTempJwtLink(token);
 
 if (!results.valid || !results.payload) {
     log.warn({details: results.errorType},'Link is not valid or expired');
@@ -63,6 +66,7 @@ if (Number(req.params.visitor) !== results.payload.visitor) {
     const isUsed = await usedJtiLimiter.get(req.link.jti!);
     if (isUsed !== null &&  isUsed.consumedPoints > 0 && isUsed.remainingPoints === 0) {
       log.warn({userDetail: req.link},'User tried to use a temp link again');
+      magicLinksCache().delete(token);
       res.status(400).json({ error: 'Link is not valid or expired' });
       return 
     }
@@ -101,8 +105,15 @@ if (Number(req.params.visitor) !== results.payload.visitor) {
 
 export const linkPasswordVerification = async (req: Request, res: Response, next: NextFunction) => {
 const log = getLogger().child({service: 'auth', branch: `tempLinks`, linkType: 'password-reset'})
-const token = String(req.query.temp);
 const { usedJtiLimiter } = getLimiters();
+const token = req.query.temp;
+
+if (typeof token !== 'string') {
+    log.warn('invalid token type');
+    res.status(400).json({error: 'invalid token type'});
+    return;
+}
+
 log.info('Verifying link...')
 
 
@@ -113,11 +124,8 @@ if (!token) {
     res.status(400).json({error: 'Link not provided'});
     return;
 }
-  const signature = token.split(".");
-  const claimsJson = Buffer.from(signature[1], 'base64url').toString('utf-8');
-  const claims = JSON.parse(claimsJson);
 
-const results = verifyTempJwtLink(token, 'PASSWORD_RESET', 'MAGIC_LINK_Restart', claims.jti);
+const results = verifyTempJwtLink(token);
 
 
 if (!results.valid || !results.payload) {
@@ -148,6 +156,7 @@ if (Number(req.params.visitor) !== results.payload.visitor) {
     const isUsed = await usedJtiLimiter.get(req.link.jti!);
     if (isUsed !== null &&  isUsed.consumedPoints > 0 && isUsed.remainingPoints === 0) {
       log.warn({userDetail: req.link},'User tried to use a temp link again');
+      magicLinksCache().delete(token);
       res.status(400).json({ error: 'Link is not valid or expired' });
       return 
     }
@@ -170,6 +179,7 @@ if (Number(req.params.visitor) !== results.payload.visitor) {
      res.status(200).json({link: 'Password Reset'});
     return;  
   }
+
   const postEntry = (usageCountPost.get(req.link.jti!)?.count ?? 0) + 1;
   usageCountPost.set(req.link.jti!, { count: postEntry });
   log.info({count: postEntry, out_of: allowedPerSuccessfulPost},'User hit a password reset link, with a post req.');

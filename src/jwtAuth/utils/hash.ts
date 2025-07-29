@@ -29,18 +29,19 @@ export async function hashPassword(passwords: string, log: pino.Logger) {
   const { password } = getConfiguration();
   log.info('Hashing password...')
   try {
-    return await argon2.hash(passwords, {
+    const hashed = await argon2.hash(passwords, {
       hashLength: password.hashLength ?? 50,
       timeCost: password.timeCost ?? 4, 
       memoryCost: password.memoryCost ?? 2 ** 18,                   
       secret: Buffer.from(password.pepper),
     })
-
+    log.info('Password hashed successfully')
+    return hashed;
   } catch (err) {
     log.fatal({err},'Password hashing failed')
     sendLog('Hash failed\n', `Failed to create a hashed password.\n Error: ${err}`)
+    throw err;
   }
-  log.info('Password hashed successfully')
 }
 /**
  * @description

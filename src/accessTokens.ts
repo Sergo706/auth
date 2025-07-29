@@ -1,17 +1,16 @@
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import { getLogger } from './jwtAuth/utils/logger.js';
 import { getConfiguration } from './jwtAuth/config/configuration.js';
+import { tokenCache } from './jwtAuth/utils/accessTokentCache.js';
 
 const { TokenExpiredError, JsonWebTokenError } = jwt;
-export interface claims {
-  sub: string,
-  visitor: number,
-  jti: string
-}
 
-
-
-
+interface AccessTokenPayload {
+    id: number,
+    visitor_id: number,
+    jti: string,
+    role?: string[]
+  }
 /**
  * @description
  * Generate a short-lived access token.
@@ -31,22 +30,26 @@ export interface claims {
  * const user = { id: 1, visitor_id: 12, jti: uuid() };
  * const token = generateAccessToken(user);
  */
-export function generateAccessToken(user: {id: number, visitor_id: number, jti: string}): string {
+export function generateAccessToken(user: AccessTokenPayload): string {
   const { jwt: { jwt_secret_key, access_tokens, refresh_tokens } } = getConfiguration();
-   const log = getLogger().child({service: 'auth', branch: 'access token'})
-const payload = {
-  visitor: user.visitor_id,
-}
+  const log = getLogger().child({service: 'auth', branch: 'access token'})
 
-const token = jwt.sign(payload, jwt_secret_key, { 
-algorithm: access_tokens.algorithm ?? 'HS512',
-expiresIn: access_tokens.expiresIn ?? '15m',
-audience: access_tokens.audience ?? refresh_tokens.domain,
-issuer:   access_tokens.issuer ?? refresh_tokens.domain,
-subject: access_tokens.subject ?? user.id.toString(),
-jwtid:   access_tokens.jwtid ?? user.jti,
-})
-
+  const payload = {
+    visitor: user.visitor_id,
+    ...access_tokens.payload,
+    roles: user.role ?? []
+  }
+  
+  const token = jwt.sign(payload, jwt_secret_key, { 
+    algorithm: access_tokens.algorithm ?? 'HS512',
+    expiresIn: access_tokens.expiresIn ?? '15m',
+    audience: access_tokens.audience ?? refresh_tokens.domain,
+    issuer:   access_tokens.issuer ?? refresh_tokens.domain,
+    subject: access_tokens.subject ?? user.id.toString(),
+    jwtid:   access_tokens.jwtid ?? user.jti,
+  })
+  
+tokenCache().set(token, { jti: user.jti, visitorId: user.visitor_id, userId: user.id,  roles: user.role ?? [], valid: true })
 log.info({user},'Generated new access token')
 return token;
 };
@@ -76,17 +79,26 @@ return token;
  *
  * @see {@link ./accessTokens.js}
  */
-export function verifyAccessToken(token: string, Payload: claims): {valid: boolean, payload?: JwtPayload, errorType?: string} {
+export function verifyAccessToken(token: string): {valid: boolean, payload?: JwtPayload, errorType?: string} {
 const log = getLogger().child({service: 'auth', branch: 'access token'})
-log.info('Verifying access token...')
+  log.info('Verifying access token...')
   const { jwt: { jwt_secret_key, access_tokens, refresh_tokens } } = getConfiguration();
+
+  const cache = tokenCache().get(token);
+
+  if (!cache || !cache.valid) {
+      log.warn('InvalidPayloadType')
+      log.warn(`Verify access token returned on missing cache/invalid cache`)
+      return { valid: false, errorType: "InvalidPayloadType" };
+   }
+
   try {
    const check = jwt.verify(token, jwt_secret_key, {
      algorithms: [access_tokens.algorithm ?? 'HS512'],
      audience: access_tokens.audience ?? refresh_tokens.domain,
      issuer: access_tokens.issuer ?? refresh_tokens.domain,
-     subject: Payload.sub,
-     jwtid: Payload.jti,
+     subject: cache.userId as unknown as string,
+     jwtid: cache.jti,
     }); 
     
     if (typeof check === "string") { 
@@ -94,11 +106,38 @@ log.info('Verifying access token...')
       return { valid: false, errorType: "InvalidPayloadType" };
     }
     
-    if (Payload.visitor !== check.visitor)  {
+    if (cache.visitorId !== check.visitor)  {
       log.error(`Jwt error: invalid visitor id`)
       return { valid: false, errorType: "Invalid visitor id" };
     }
-    
+
+    const provided = check.roles as string[];
+    const requiredRoles = cache.roles; 
+
+    if (provided && requiredRoles && requiredRoles.length > 0) {
+      if (
+        !Array.isArray(provided) ||
+        !Array.isArray(requiredRoles) ||
+        !provided.every((r: any) => typeof r === 'string') ||
+        !requiredRoles.every((r: any) => typeof r === 'string')
+        ) {
+            log.error('Malformed roles claim', { roles: provided });
+           return { valid: false, errorType: 'MalformedPayload' };
+        }
+        const missing = requiredRoles.filter(r => !provided.includes(r));
+
+        if (missing.length > 0) {
+          log.error('Roles mismatch', { required: requiredRoles, provided: provided, missing });
+          return { valid: false, errorType: 'InvalidRoles' };
+        }
+        const extras = provided.filter(r => !requiredRoles.includes(r));
+        if (extras.length > 0) {
+          log.error('Unexpected roles', { extras });
+          return { valid: false, errorType: 'InvalidRoles' };
+        }
+    }
+  
+
     log.info({check},`access token verified:`)
     return {valid: true, payload: check };
 
@@ -109,7 +148,8 @@ log.info('Verifying access token...')
   } 
     if (err instanceof TokenExpiredError) {
       log.error({err},`JWT expired at ${err.expiredAt}`)
-    return {valid: false, errorType: `TokenExpiredError`};
+      tokenCache().delete(token);
+      return {valid: false, errorType: `TokenExpiredError`};
   }
     if (err instanceof JsonWebTokenError) {
      log.error({err},`JWT error`)

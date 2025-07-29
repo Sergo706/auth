@@ -13,9 +13,10 @@ let cfg: AuthConfig | undefined;
  * @see {@link ./jwtAuth/types/config.js}
  */
 export function configuration(config: AuthConfig): void {
-if (!config.store || !config.telegram || !config.jwt || !config.email || !config.password || !config.logLevel ||!config.magic_links)          
+if (!config.store || !config.telegram || !config.jwt || !config.email || !config.password || !config.logLevel ||!config.magic_links) {         
      throw new Error('AuthConfig: Please configure the library properly');
-     cfg = Object.freeze(config);   
+}
+     cfg = Object.freeze(config);        
 }
 
 
