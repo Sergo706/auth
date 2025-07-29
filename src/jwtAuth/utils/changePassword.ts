@@ -31,7 +31,7 @@ export async function sendTempPasswordResetLink(
 email: string,
 ):Promise<{valid: boolean; error?: string}>{
 const log = getLogger().child({service: 'auth', branch: 'password-reset'})
-const { jwt:  { refresh_tokens }  } = getConfiguration()
+const { magic_links  } = getConfiguration()
 log.info('Searching for user email...')
 const pool = getPool()
  try { 
@@ -58,7 +58,7 @@ const payload: LinkTokenPayload = {
 
   const tempToken = tempJwtLink(payload);
   const path = "/auth/reset-password";
-  const url = `${refresh_tokens.domain}${path}/${visitor_id}?temp=${encodeURIComponent(tempToken)}`
+  const url = `${magic_links.domain}${path}/${visitor_id}?temp=${encodeURIComponent(tempToken)}`
 
   await resetPasswordEmail(name, user_email, url)
   log.info({userId: id},'An email for password reset was send to user')
