@@ -226,7 +226,7 @@ if (tokenResults.canary_id !== cookie) {
   };
 
 
-  const isInRange = ipRangeCheck(tokenResults.ip_address, ipAddress);
+  const isInRange = ipRangeCheck(ipAddress, tokenResults.ip_address);
     if (!isInRange) { 
       log.info(`Ip does not match`)   
     return {
