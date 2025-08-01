@@ -16,6 +16,7 @@ interface RefreshRow {
   visitor_id:          number;
   last_mfa_at:         Date;
   canary_id:           string;
+  userAgent:           string;
   ip_address:          string;
   country:             string;
   city:                string;
@@ -110,6 +111,7 @@ SELECT
             visitors.city,
             visitors.district,
             visitors.canary_id,
+            visitors.user_agent AS userAgent,
             visitors.lat,
             visitors.lon,
             visitors.timezone,
@@ -226,7 +228,7 @@ if (tokenResults.canary_id !== cookie) {
   };
 
 
-  const isInRange = ipRangeCheck(ipAddress, tokenResults.ip_address);
+  const isInRange = ipRangeCheck(ipAddress, tokenResults.ip_address,);
     if (!isInRange) { 
       log.info(`Ip does not match`)   
     return {
@@ -253,7 +255,7 @@ if (tokenResults.canary_id !== cookie) {
 
 const [incomingGeo] = await Promise.all([ getGeoData(ipAddress) ]);
 const incomingParsedUA = parseUA(ua);
-
+const userAgent = ua;
     if (incomingGeo.proxy || incomingGeo.hosting) {
       log.info(`Proxy Or hosting detected`)  
         const proxyAllowed    = !!tokenResults.proxy_allowed; 
@@ -279,7 +281,7 @@ const incomingParsedUA = parseUA(ua);
     }
 }
     const { proxy, hosting, ...restOfGeo} = incomingGeo;
-    const incomingReq = Object.assign(incomingParsedUA, restOfGeo);
+    const incomingReq = Object.assign(incomingParsedUA, restOfGeo, userAgent);
 
 for (const [reqKey, reqValue] of Object.entries(incomingReq)) {
   if ((reqKey in tokenResults)) {
@@ -292,7 +294,7 @@ for (const [reqKey, reqValue] of Object.entries(incomingReq)) {
     reqValue !== 'unknown' &&
     userValue !== 'unknown';
     if (notNull && reqValue !== userValue) {
-      log.info({user_value: userValue, reqValue: reqValue}, `Loop detected an missmatch`)  
+      log.info({user_value: userValue, reqValue: reqValue}, `Loop detected an mismatch`)  
         return {
           valid: false,
           reason: 'Loop detected',
