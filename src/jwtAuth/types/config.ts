@@ -28,6 +28,10 @@ export interface AuthConfig {
     jwt_secret_key: string;
     expiresIn?: number;
     expiresInMs?: number;
+    /** 
+    * Full domain name, including the protocol
+    * @example https://example.com.
+    */
     domain: string;
     maxCacheEntries?: number;
   },
@@ -46,17 +50,37 @@ export interface AuthConfig {
       payload?: object;
      }
      refresh_tokens: {
+      /** 
+       * When true, every attempt to get a new access token when expired, will verify, and invalidate the refresh token, 
+       * and produce fresh access and refresh token.
+       */
        rotateOnEveryAccessExpiry: boolean;
+      /** 
+       * Time in ms for the token to be considered valid.
+       */
        refresh_ttl: number;
+      /** 
+       * Your domain
+       * @example example.com.
+       */
        domain: string;
+      /** 
+       * The maximum allowed active and valid refresh tokens (sessions) for a user.
+       */
        MAX_SESSION_LIFE: number;
+       maxAllowedSessionsPerUser: number;
+       /** 
+       * Bypass MFA for the specified period of time in ml,
+       * if maxAllowedSessionsPerUser is exceeded for a certain user, and if a user.
+       *
+       */
+       byPassAnomaliesFor: number;
      }
    },
   email: {
       resend_key: string;
       email: string;
-    },
-
+    }
     rate_limiters?: {
         linkVerificationLimiter?: {
             unionLimiter: {

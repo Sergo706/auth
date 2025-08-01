@@ -1,24 +1,35 @@
 import z, { ZodType } from "zod/v4";
 import { getConfiguration } from "../config/configuration.js";
 
+export const StandardProfileSchema = z.object({
+  sub: z.string(),
+  email: z.email().optional(),
+  email_verified: z.boolean().optional(),
+  name: z.string().optional(),
+  given_name: z.string().optional(),
+  family_name: z.string().optional(),
+  last_name: z.string().optional(),
+  avatar: z.url({protocol: /^https$/, hostname: z.regexes.domain, normalize: true}).optional(),
+  locale: z.string().optional(),
+});
 
-export type StandardProfile = {
-  sub: string;
-  email?: string;
-  email_verified?: boolean;
-  name?: string;
-  given_name?: string;
-  family_name?: string;
-  last_name?: string;
-  avatar?: string;
-  locale?: string;
-};
+export type StandardProfile = z.infer<typeof StandardProfileSchema>;
 
 export interface ProviderConfig<Schema extends ZodType> {
   name: string;
   schema: Schema;
   mapProfile(raw: z.infer<Schema>): StandardProfile;
 }
+
+interface ProviderInput<Schema extends ZodType = ZodType> {
+  name: string;
+  schema: Schema;
+};
+
+interface OAuthProvider<Schema extends ZodType = ZodType> {
+  provider: Provider<Schema>;
+  mapProfile: (raw: z.infer<Schema>) => StandardProfile;
+};
 
 
 class Provider<Schema extends ZodType> implements ProviderConfig<Schema> {
@@ -44,7 +55,7 @@ class Provider<Schema extends ZodType> implements ProviderConfig<Schema> {
 }
 
 
-function mapProvider<Schema extends ZodType>(config: ProviderConfig<Schema>) {
+function mapProvider<Schema extends ZodType>(config: ProviderInput<Schema>): OAuthProvider<Schema> {
   const provider = new Provider<Schema>(config.name, config.schema)
   return {
     provider,
@@ -59,10 +70,10 @@ function mapProvider<Schema extends ZodType>(config: ProviderConfig<Schema>) {
  * If `newProviders` is provided, those configs are registered first.
  *
  * @function configureOauthProviders
- * @param {import('../models/provider').ProviderConfig|import('../models/provider').ProviderConfig[]} [newProviders]
- *   A single provider config or an array of provider configs to register
+ * @param {ProviderInput[]} [newProviders]
+ *   An array of provider configs to register [name, ZodSchema]
  *   before returning the full list.
- * @returns {import('../models/provider').OAuthProvider[]}
+ * @returns {OAuthProvider[]}
  *   An array of instantiated OAuthProvider objects, including any newly registered ones.
  * @see {@link ./newOauthProvider.js}
  * @example
@@ -77,7 +88,7 @@ function mapProvider<Schema extends ZodType>(config: ProviderConfig<Schema>) {
  * import { googleConfig, facebookConfig } from './oauthConfigs';
  * const allProviders = configureOauthProviders([googleConfig, facebookConfig]);
  */
-export function getProviders(override?: ProviderConfig<ZodType>[]) {
-      const raw = override ?? getConfiguration().providers ?? [];      
+export function getProviders(newProviders?: ProviderInput<ZodType>[]): OAuthProvider<ZodType>[] {
+      const raw = newProviders ?? getConfiguration().providers ?? [];      
       return  raw.map((p) => mapProvider(p));
-}
+} 
