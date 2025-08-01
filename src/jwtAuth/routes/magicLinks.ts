@@ -6,6 +6,7 @@ import { verifyNewPassword } from "../middleware/verifyPasswordReset.js";
 import { initPasswordReset } from "../controllers/initPasswordReset.js";
 import { detectBots } from "@riavzon/botdetector"; 
 import { getLogger } from "../utils/logger.js";
+import { getFingerPrint } from "../middleware/fingerPrint.js";
 
 const router = Router();
 
@@ -26,6 +27,7 @@ router
         }
       }), 
       detectBots,
+    getFingerPrint,
     verifyMFA
   );
 

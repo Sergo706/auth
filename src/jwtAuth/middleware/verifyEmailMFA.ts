@@ -12,7 +12,7 @@ import { validateSchema } from '../utils/validateZodSchema.js';
 import { guard } from "../utils/limiters/utils/guard.js";
 import { getLimiters, resetLimitersUni } from "../utils/limiters/protectedEndpoints/tempPostRoutesLimiter.js";
 import { makeConsecutiveCache } from "../utils/limiters/utils/consecutiveCache.js"
-
+import { updateVisitors } from '@riavzon/botdetector';
 
 const consecutiveForSlowDown = makeConsecutiveCache< {countData:number} >(2000, 1000 * 60 * 10);
 export const consecutiveForjti = makeConsecutiveCache< {countData:number} >(2000, 1000 * 60 * 20);
@@ -52,6 +52,7 @@ export async function verifyMFA (req: Request, res: Response, next: NextFunction
   const log = getLogger().child({service: 'auth', branch: 'mfa', visitorId: req.newVisitorId ?? req.link.visitor})
   const { uniLimiter, ipLimit, usedJtiLimiter  } = getLimiters();
   const { jwt } = getConfiguration();
+  const fingerprints = req.fingerPrint;
   log.info(`Verifying mfa code...`)
 
  if (!req.is('application/json')) {
@@ -159,6 +160,36 @@ const currentVisitorId = req.newVisitorId || req.link.visitor;
   consecutiveForjti.delete(req.link.jti!);
   consecutiveForsubmittedHash.delete(submittedHash!);
   await resetLimitersUni(req.ip!);
+  
+  const updateFingerPrint = await updateVisitors({
+      userAgent: fingerprints.userAgent,
+      ipAddress: fingerprints.ipAddress,
+      country: fingerprints.country,
+      region: fingerprints.region,
+      regionName: fingerprints.regionName,
+      city: fingerprints.city,
+      district: fingerprints.district,
+      lat: fingerprints.lat,
+      lon: fingerprints.lon,
+      timezone: fingerprints.timezone,
+      currency: fingerprints.currency,
+      isp: fingerprints.isp,
+      org: fingerprints.org,
+      as: fingerprints.as,
+      device_type: fingerprints.device,
+      browser: fingerprints.browser,
+      proxy: fingerprints.proxy,
+      hosting: fingerprints.hosting,
+      deviceVendor: fingerprints.deviceVendor,
+      deviceModel: fingerprints.deviceModel,
+      browserType: fingerprints.browserType,
+      browserVersion: fingerprints.browserVersion,
+      os: fingerprints.os
+    }, req.cookies.canary_id, currentVisitorId);
+  
+    if (!updateFingerPrint.success) {
+       log.error({error: updateFingerPrint.reason},`Failed to update fingerprints, false positives may occur.`);
+    }
 
  log.info(`updated users and visitors, generating tokens...`)
   const token = rows[0].token;
