@@ -20,11 +20,9 @@ export function configuration(config: Configuration): void {
     cfg = Object.freeze(sch);        
   } catch(err) {
     if (err instanceof z.ZodError) {
-      const errors: Record<string,string> = {}
           err.issues.forEach(issue => {
           const key = issue.path[0] as string
-          errors[`${key} Error`] = issue.message
-          throw new Error(`Configuration: The provided configuration is not valid ${errors}`,);
+          throw new Error(`Configuration: The provided configuration is not valid ${key} Error - ${issue.message}`);
     })
     } else {
       throw new Error(`Configuration: Please configure the library properly ${err}`);
