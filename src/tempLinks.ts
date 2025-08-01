@@ -1,4 +1,4 @@
-import  jwt , { JwtPayload } from "jsonwebtoken";
+import  jwt , { JwtPayload, SignOptions } from "jsonwebtoken";
 import { getLogger } from "./jwtAuth/utils/logger.js";
 import { getConfiguration } from "./jwtAuth/config/configuration.js";
 import { magicLinksCache } from "./jwtAuth/utils/magicLinksCache.js";
@@ -49,7 +49,7 @@ const { jti, ...safePayload } = payload;
 
 const token = jwt.sign(safePayload, magic_links.jwt_secret_key, {
    algorithm:  'HS512',
-   expiresIn: magic_links.expiresIn ?? '20m',
+   expiresIn: magic_links.expiresIn as SignOptions["expiresIn"] ?? '20m',
    subject: payload.subject,
    issuer: payload.purpose,
    audience:   `${magic_links.domain}`,
