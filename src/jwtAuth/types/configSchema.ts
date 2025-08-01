@@ -72,7 +72,7 @@ magic_links: z.object({
       subject: z.string().optional(),
       jwtid:   z.string().optional(),
       maxCacheEntries: z.number().optional(),
-      payload: z.object().optional()
+      payload: z.record(z.string(), z.unknown()).optional(),
     }),
     refresh_tokens: z.object({
         /** 
