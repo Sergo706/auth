@@ -44,7 +44,7 @@ export const configurationSchema = z.strictObject({
     }),
 magic_links: z.object({
     jwt_secret_key: z.string(),
-    expiresIn: z.string().optional(),
+    expiresIn: z.union([z.string(), z.number()]),
     expiresInMs: z.number().optional(),
     /** 
     * Full domain name, including the protocol
