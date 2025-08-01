@@ -1,6 +1,6 @@
 export interface FingerPrint {
-    ipAddress:   string,
     userAgent:    string,
+    ipAddress:   string,
     country:      string | undefined,
     countryCode:  string | undefined,
     region:       string | undefined,

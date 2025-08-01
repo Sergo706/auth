@@ -28,8 +28,8 @@ export async function getFingerPrint(req: Request, res: Response, next: NextFunc
     const geoInfo = await getGeoData(req.ip);
     
     req.fingerPrint = /** @type {FingerPrint} */ {
-      ip_address: ipAddress,
       userAgent: req.get('User-Agent'),
+      ip_address: ipAddress,
       ...geoInfo,
       ...userAgent
     }
