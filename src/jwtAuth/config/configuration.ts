@@ -1,6 +1,8 @@
-import { AuthConfig } from "../types/config.js";
+import type { Configuration }  from "../types/configSchema.js";
+import { configurationSchema } from "../types/configSchema.js";
+import z from "zod";
 
-let cfg: AuthConfig | undefined;
+let cfg: Configuration | undefined;
 
 // // @ts-check
 // main routes and middlewares// The ones that make the lib usable, the "Default"
@@ -10,21 +12,32 @@ let cfg: AuthConfig | undefined;
  * Contains the core configuration to make the library usable.
  *  
  * @module jwtAuth/config
- * @see {@link ./jwtAuth/types/config.js}
+ * @see {@link ./jwtAuth/types/configSchema.js}
  */
-export function configuration(config: AuthConfig): void {
-if (!config.store || !config.telegram || !config.jwt || !config.email || !config.password || !config.logLevel ||!config.magic_links) {         
-     throw new Error('AuthConfig: Please configure the library properly');
-}
-     cfg = Object.freeze(config);        
+export function configuration(config: Configuration): void {
+  try {
+    const sch = configurationSchema.parse(config);
+    cfg = Object.freeze(sch);        
+  } catch(err) {
+    if (err instanceof z.ZodError) {
+      const errors: Record<string,string> = {}
+          err.issues.forEach(issue => {
+          const key = issue.path[0] as string
+          errors[`${key} Error`] = issue.message
+          throw new Error(`Configuration: The provided configuration is not valid ${errors}`,);
+    })
+    } else {
+      throw new Error(`Configuration: Please configure the library properly ${err}`);
+   }
+  }
 }
 
 
-export function getConfiguration(): AuthConfig {
+export function getConfiguration(): Configuration {
   if (!cfg) {
     console.trace("Premature getConfiguration() call");
-    throw new Error(`…must be called once…
-      Auth System: configuration() must be called once in app start-up`
+    throw new Error(`##### Must be called once #####
+      Auth System: configuration() must be called once in top level app start-up`
     );
   }
   return cfg;

@@ -5,6 +5,7 @@ import ipRangeCheck from 'ip-range-check'
 import { revokeRefreshToken } from "./refreshTokens.js";
 import { createHash } from "crypto";
 import { getLogger } from "./jwtAuth/utils/logger.js";
+import { getConfiguration } from "./jwtAuth/config/configuration.js";
 
 
 interface RefreshRow {
@@ -149,7 +150,7 @@ SELECT
   }
 
 const tokenResults = rows[0] as RefreshRow;
-
+const { refresh_tokens } = getConfiguration().jwt;
 
 if (!tokenResults.valid || rotated && tokenResults.usage_count > 0) { 
      await revokeRefreshToken(token)
@@ -203,13 +204,13 @@ if (tokenResults.canary_id !== cookie) {
 
   const bypass =
   results.last_mfa_at &&
-  Date.now() - new Date(results.last_mfa_at).getTime() < 1000 * 60 * 60 * 24 * 2; 
+  Date.now() - new Date(results.last_mfa_at).getTime() < refresh_tokens.byPassAnomaliesFor; 
 
-  if(results.totalValid >= 5 && !bypass) {
-   log.info(`more than 5 active sessions`)   
+  if(results.totalValid >= refresh_tokens.maxAllowedSessionsPerUser && !bypass) {
+   log.info(`more than ${refresh_tokens.maxAllowedSessionsPerUser} active sessions`)   
     return {
       valid: false,
-      reason: 'more than 5 active sessions',
+      reason: `more than ${refresh_tokens.maxAllowedSessionsPerUser} active sessions`,
       reqMFA: true,
       userId: tokenResults.user_id,
       visitorId: tokenResults.visitor_id
