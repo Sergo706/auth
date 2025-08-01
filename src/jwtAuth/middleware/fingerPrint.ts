@@ -29,7 +29,7 @@ export async function getFingerPrint(req: Request, res: Response, next: NextFunc
     
     req.fingerPrint = /** @type {FingerPrint} */ {
       userAgent: req.get('User-Agent'),
-      ip_address: ipAddress,
+      ipAddress,
       ...geoInfo,
       ...userAgent
     }
