@@ -17,3 +17,7 @@ dist/
 package-lock.json
 *.tsbuildinfo
 riavzon-jwtauth-1.0.0.tgz
+docs/
+.vitepress/dist
+.vitepress/cache
+.vitepress/markdown-examples.md

@@ -1,0 +1,15 @@
+{ 
+  "readme": "./README.md",
+  "entryPoints": ["src/main.ts"]  ,
+  "out": "./docs",
+  "tsconfig": "tsconfig.json",
+  "hideGenerator": true, 
+  "includeVersion": true,
+  "name": "jwtAuth",
+  "plugin": ["typedoc-plugin-markdown"],
+  "logLevel": "Verbose",
+ "lightHighlightTheme": "github-light",
+  "darkHighlightTheme": "github-dark",
+  "theme": "markdown",
+  "entryPointStrategy": "expand",
+}
