@@ -64,7 +64,7 @@ magic_links: z.object({
  jwt: z.object({
     jwt_secret_key: z.string(),
     access_tokens: z.object({
-      expiresIn: z.number().optional(),
+      expiresIn: z.union([z.string(), z.number()]).optional(),
       expiresInMs: z.number().optional(),
       algorithm: z.enum(["HS256", "HS384", "HS512", "RS256", "RS384",  "RS512", "ES256", "ES384", "ES512", "PS256" ,"PS384" , "PS512" ]).optional(),
       audience: z.string().optional(),
