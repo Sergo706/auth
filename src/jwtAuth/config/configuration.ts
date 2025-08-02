@@ -23,9 +23,10 @@ export function configuration(config: Configuration): void {
     const details = err.issues.map(issue => {
         const path     = issue.path.length ? issue.path.join(".") : "(root)";
         const received = JSON.stringify(issue.input);
-        return `• Path: ${path}\n  Message: ${issue.message}\n  Received: ${received}\n`;
+        const code = issue.code
+        return `• Path: ${path}\n  Message: ${issue.message}\n  Received: ${received}\n Code: ${code}\n`;
       }).join("\n");
-      
+
       throw new Error(`Configuration validation failed with ${err.issues.length} error(s):\n${details}`);
 
     } else {
