@@ -338,7 +338,7 @@ const pool = getPool()
                   AND valid   = 0
                   AND user_id IS NOT NULL 
                 LIMIT 1`, [hashedClientToken, results.user_id]);
-                log.warn({userId: results.user_id},'Usage of revoked token detcted, token deleted')
+                log.warn({userId: results.user_id},'Usage of revoked token detected, token deleted')
             return {
                 valid: false,
                 reason: "Token has been revoked"

@@ -20,7 +20,11 @@
   "scripts": {
     "build": "tsc -p tsconfig.json && cp -R src/jwtAuth/emails dist/jwtAuth && cp src/global.d.ts dist/global.d.ts && cp src/jwtAuth/utils/disposable_email_blocklist.conf dist/jwtAuth/utils",
     "prepare": "npm run build",
-    "prepack": "npm run build"
+    "docs:start": "typedoc --options ./typedoc.json && vitepress dev",
+    "prepack": "npm run build",
+    "docs:dev": "vitepress dev",
+    "docs:build": "vitepress build",
+    "docs:preview": "vitepress preview"
   },
   "dependencies": {
     "@riavzon/botdetector": "git+ssh://git@github.com:Sergo706/botDetector.git#main",
@@ -51,6 +55,9 @@
     "zod": "^4.0.14"
   },
   "devDependencies": {
-    "@types/node": "^24.0.13"
+    "@types/node": "^24.0.13",
+    "typedoc": "^0.28.9",
+    "typedoc-plugin-markdown": "^4.8.0",
+    "vitepress": "^1.6.3"
   }
 }
