@@ -27,7 +27,7 @@ export function configuration(config: Configuration): void {
         return `• Path: ${path}\n  Message: ${issue.message}\n  Received: ${received}\n Code: ${code}\n`;
       }).join("\n");
        const pretty = z.prettifyError(err)
-      throw new Error(`Configuration validation failed with ${err.issues.length} error(s):\n${details} + Pretty: ${pretty}`);
+      throw new Error(`Configuration validation failed with ${err.issues.length} error(s):\n${details}\n Pretty Print: ${pretty}\n`);
 
     } else {
       throw new Error(`Configuration: Please configure the library properly ${err}`);
