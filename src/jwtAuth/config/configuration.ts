@@ -20,11 +20,14 @@ export function configuration(config: Configuration): void {
     cfg = Object.freeze(sch);        
   } catch(err) {
     if (err instanceof z.ZodError) {
-          err.issues.forEach(issue => {
-          const key = issue.path[0] as string
-          throw new Error(`Configuration: The provided configuration is not valid. 
-          ${key} Error - ${issue.message} Part: ${err.name} Input: ${issue.input} Type: ${err.type} issues: ${err.issues}`);
-    })
+    const details = err.issues.map(issue => {
+        const path     = issue.path.length ? issue.path.join(".") : "(root)";
+        const received = JSON.stringify(issue.input);
+        return `• Path: ${path}\n  Message: ${issue.message}\n  Received: ${received}\n`;
+      }).join("\n");
+      
+      throw new Error(`Configuration validation failed with ${err.issues.length} error(s):\n${details}`);
+
     } else {
       throw new Error(`Configuration: Please configure the library properly ${err}`);
    }
