@@ -1,4 +1,4 @@
-import jwt, { JwtPayload } from 'jsonwebtoken';
+import jwt, { JwtPayload, SignOptions } from 'jsonwebtoken';
 import { getLogger } from './jwtAuth/utils/logger.js';
 import { getConfiguration } from './jwtAuth/config/configuration.js';
 import { tokenCache } from './jwtAuth/utils/accessTokentCache.js';
@@ -42,7 +42,7 @@ export function generateAccessToken(user: AccessTokenPayload): string {
   
   const token = jwt.sign(payload, jwt_secret_key, { 
     algorithm: access_tokens.algorithm ?? 'HS512',
-    expiresIn: access_tokens.expiresIn ?? '15m',
+    expiresIn: access_tokens.expiresIn as SignOptions["expiresIn"] ?? '15m',
     audience: access_tokens.audience ?? refresh_tokens.domain,
     issuer:   access_tokens.issuer ?? refresh_tokens.domain,
     subject: access_tokens.subject ?? user.id.toString(),
