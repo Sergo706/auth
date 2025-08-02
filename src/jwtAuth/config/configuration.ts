@@ -22,7 +22,8 @@ export function configuration(config: Configuration): void {
     if (err instanceof z.ZodError) {
           err.issues.forEach(issue => {
           const key = issue.path[0] as string
-          throw new Error(`Configuration: The provided configuration is not valid ${key} Error - ${issue.message}`);
+          throw new Error(`Configuration: The provided configuration is not valid. 
+          ${key} Error - ${issue.message} Part: ${err.name} Input: ${issue.input} Type: ${err.type} issues: ${err.issues}`);
     })
     } else {
       throw new Error(`Configuration: Please configure the library properly ${err}`);
