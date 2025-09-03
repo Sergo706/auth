@@ -22,6 +22,7 @@
     "prepare": "npm run build",
     "docs:start": "typedoc --options ./typedoc.json && vitepress dev",
     "prepack": "npm run build",
+    "test": "vitest",
     "docs:dev": "vitepress dev",
     "docs:build": "vitepress build",
     "docs:preview": "vitepress preview"
@@ -58,6 +59,7 @@
     "@types/node": "^24.0.13",
     "typedoc": "^0.28.9",
     "typedoc-plugin-markdown": "^4.8.0",
-    "vitepress": "^1.6.3"
+    "vitepress": "^1.6.3",
+    "vitest": "^3.2.4"
   }
 }

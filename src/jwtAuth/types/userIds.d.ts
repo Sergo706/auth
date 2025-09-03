@@ -3,7 +3,12 @@ import { LinkTokenPayload } from '../../jwtAuth/tempLinks.js';
 declare global {
   namespace Express {
     export interface Request {
-      user?: AccessTokenPayload;
+      user?: {
+              userId: string | undefined,         
+              visitor_id: string,
+              accessTokenId: string | undefined,  
+              roles: string[]
+      };
       link: {     
       visitor: number,  
       subject: string,
