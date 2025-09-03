@@ -7,7 +7,7 @@ declare global {
               userId: string | undefined,         
               visitor_id: string,
               accessTokenId: string | undefined,  
-              roles: string[]
+              roles?: string[]
       };
       link: {     
       visitor: number,  
