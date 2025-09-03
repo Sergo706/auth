@@ -5,7 +5,7 @@ import { tokenCache } from './jwtAuth/utils/accessTokentCache.js';
 
 const { TokenExpiredError, JsonWebTokenError } = jwt;
 
-interface AccessTokenPayload {
+export interface AccessTokenPayload {
     id: number,
     visitor_id: number,
     jti: string,
