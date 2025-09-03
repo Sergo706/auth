@@ -78,7 +78,7 @@ const { blackList } = getLimiters();
       userId: result.payload.sub,         
       visitor_id: result.payload.visitor,
       accessTokenId: result.payload.jti,  
-      roles: result.payload.roles
+      roles: result.payload.roles ?? []
     };
  next();
 }   
