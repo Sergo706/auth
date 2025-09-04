@@ -85,7 +85,7 @@ export async function sendSystemEmail(
         const filePath = path.join(__dirname, '..', "emails", `${template}.ejs`)
         html = await ejs.renderFile(filePath, renderData)
    } catch(err) {
-         log.error(`Failed to render template '${template}.ejs':`, err);
+         log.error({err},`Failed to render template '${template}.ejs'`);
          throw err;
    }
 
@@ -97,10 +97,10 @@ export async function sendSystemEmail(
   });
 
   if (error) {
-    return log.error( error );
+    return log.error( {error} );
   }
 
-  log.info(" Email sent:", data);
+  log.info( {data}, " Email sent");
 }
 
 
