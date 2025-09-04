@@ -121,18 +121,18 @@ const log = getLogger().child({service: 'auth', branch: 'access token'})
         !provided.every((r: any) => typeof r === 'string') ||
         !requiredRoles.every((r: any) => typeof r === 'string')
         ) {
-            log.error('Malformed roles claim', { roles: provided });
+            log.error({ roles: provided }, 'Malformed roles claim');
            return { valid: false, errorType: 'MalformedPayload' };
         }
         const missing = requiredRoles.filter(r => !provided.includes(r));
 
         if (missing.length > 0) {
-          log.error('Roles mismatch', { required: requiredRoles, provided: provided, missing });
+          log.error( { required: requiredRoles, provided: provided, missing }, 'Roles mismatch');
           return { valid: false, errorType: 'InvalidRoles' };
         }
         const extras = provided.filter(r => !requiredRoles.includes(r));
         if (extras.length > 0) {
-          log.error('Unexpected roles', { extras });
+          log.error({ extras }, 'Unexpected roles');
           return { valid: false, errorType: 'InvalidRoles' };
         }
     }

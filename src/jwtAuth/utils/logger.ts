@@ -1,4 +1,4 @@
-import pinoNS from 'pino';
+import pinoNS, { Logger } from 'pino';
 import { existsSync, mkdirSync } from 'fs';
 import path from 'path';
 import { getConfiguration } from '../config/configuration.js';
@@ -60,7 +60,7 @@ let logger: pinoNS.Logger;
  * log.info('loggin user out...')
  * @see {@link https://github.com/pinojs/pino}
  */
-export function getLogger() {
+export function getLogger(): Logger {
   if (logger) return logger;       
   const { logLevel } = getConfiguration();
   logger = (pinoNS as any)(
