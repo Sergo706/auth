@@ -63,13 +63,13 @@ export default function sanitizeInputString(vall: string): {vall :string, result
     let prev = clean;
       try {
         clean = decodeURIComponent(clean);
-        log.info('URI-decode success:', clean);
+        log.info({clean}, 'URI-decode success');
       } catch {
-        log.info('URI-decode failed, carrying on with:', clean);
+        log.info({clean},'URI-decode failed, carrying on' );
       }
       clean = he.decode(clean);
       
-      log.info(prev, `runned ${i++} times. prev: ${prev}  Now: ${clean}`);
+      log.info({prev}, `runned ${i++} times. prev: ${prev}  Now: ${clean}`);
       if (clean === prev) break;
     }
     
@@ -124,6 +124,6 @@ export default function sanitizeInputString(vall: string): {vall :string, result
       .replace(/`/g,'&#x60;')
       .replace(/\$\{/g, '\\${')
       .trim();
-  log.info(`Final Results:  ${stripped}`)
+  log.info({stripped}, `Final Results`)
   return { vall: stripped, results }
 }
