@@ -1,7 +1,7 @@
 import { LRUCache } from "lru-cache";
 import { getConfiguration } from "../config/configuration.js";
 
-interface TokenCacheEntry {
+export interface TokenCacheEntry {
     jti: string,
     visitorId: number,
     userId: number,
