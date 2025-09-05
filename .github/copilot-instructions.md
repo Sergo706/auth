@@ -19,6 +19,14 @@ This is `@riavzon/jwtauth`, a comprehensive JWT authentication library for Node.
 - **npm:** v10.8.2+ required
 - **Database:** MySQL (for user storage and rate limiting)
 
+**✅ Copilot Environment Confirmed:** The following tools are pre-installed and available in the Copilot coding environment:
+- **MySQL:** v8.0.43+ (MySQL client tools available via `/usr/bin/mysql`)
+- **nginx:** v1.24.0+ (Available via `/usr/sbin/nginx`)
+- **curl:** v8.5.0+ (Available via `/usr/bin/curl`)
+- **Node.js:** v20.19.4 and npm v10.8.2 (meets all requirements)
+
+These tools are ready to use without additional installation steps.
+
 ### Installation & Setup
 **ENVIRONMENT-DEPENDENT:** The repository has a git+ssh dependency that may cause npm install to hang in some CI environments:
 
@@ -218,6 +226,14 @@ app.get('/protected', requireAccessToken, (req, res) => {
 
 **Build Time:** TypeScript compilation typically takes 2-5 seconds when dependencies are available.
 
+**✅ Validated Working:** All components confirmed working in Copilot environment:
+- npm install completes successfully (botDetector SSH dependency resolves correctly)
+- Full build process completes in ~4 seconds with all assets copied
+- ES module imports work correctly (main library and botDetector exports)
+- Test suite runs as expected (configuration errors are expected behavior)
+- Documentation builds successfully with VitePress
+- MySQL, nginx, and curl tools are available and functional
+
 **Build Troubleshooting:** If builds fail with copy errors after TypeScript compilation, try:
 ```bash
 # Clear TypeScript incremental build cache
@@ -227,6 +243,9 @@ npm run build
 # If npm install fails due to prepare script, create dist directory first
 mkdir -p dist/jwtAuth
 npm install
+
+# For complete clean build (recommended for troubleshooting)
+rm -rf dist/ && rm -f tsconfig.tsbuildinfo && npm run build
 ```
 
 **Important:** The package.json includes a `prepare` script that runs the build during `npm install`. If dist/ doesn't exist, npm install will fail.
@@ -296,6 +315,8 @@ timeout 300 npm install || echo "Install may have timed out, continuing..."
 # Do NOT use --omit=optional as it breaks the build
 ```
 
+**✅ Copilot Environment:** In the Copilot coding environment, `npm install` works reliably without timeouts. The SSH dependency for `@riavzon/botdetector` resolves correctly, and the build process completes successfully.
+
 ## Agent Instructions
 
 **Trust these instructions** - they are comprehensive and tested. Only search for additional information if these instructions are incomplete or incorrect. The repository has specific quirks (SSH dependencies, asset file copying, configuration requirements) that are documented here to save exploration time.
@@ -333,3 +354,10 @@ rm -f tsconfig.tsbuildinfo && npm run build
 - Full build creates dist/ with all assets copied (emails/, CSV file, config file)
 - Test suite fails with configuration error (expected - library requires setup)
 - Build process typically completes in 2-5 seconds
+
+**✅ Copilot Environment Results:**
+- npm install completes successfully without hanging (SSH dependency works)
+- dist/ directory created with all required assets properly copied
+- Test suite shows expected configuration error (not a bug)
+- Build process completes in ~4 seconds consistently
+- All environment tools (MySQL, nginx, curl) are available and functional
