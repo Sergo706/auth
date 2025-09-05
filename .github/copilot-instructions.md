@@ -20,19 +20,19 @@ This is `@riavzon/jwtauth`, a comprehensive JWT authentication library for Node.
 - **Database:** MySQL (for user storage and rate limiting)
 
 ### Installation & Setup
-**CRITICAL:** The repository has a git+ssh dependency that may cause npm install to hang in CI environments:
+**ENVIRONMENT-DEPENDENT:** The repository has a git+ssh dependency that may cause npm install to hang in some CI environments:
 
 ```bash
-# Standard installation (may hang on git+ssh dependency)
+# Standard installation (usually works)
 npm install
 
-# If npm install hangs (common issue), try:
-npm install --omit=optional
-# OR force timeout and continue
+# If npm install hangs (environment-specific issue), try:
 timeout 300 npm install || echo "Install may have timed out, check node_modules"
 ```
 
-**Common Issue:** The `@riavzon/botdetector` dependency uses `git+ssh://git@github.com:Sergo706/botDetector.git#main` which requires SSH access and may hang in sandboxed environments. This is a known issue when working with the repository.
+**Common Issue:** The `@riavzon/botdetector` dependency uses `git+ssh://git@github.com:Sergo706/botDetector.git#main` which requires SSH access and may hang in sandboxed environments. This is environment-dependent - many environments work fine.
+
+**Important:** Do NOT use `npm install --omit=optional` as this excludes required TypeScript dependencies and will cause build failures.
 
 ### Core Build Commands
 
@@ -83,9 +83,10 @@ npm run test
 ```
 
 **Test Environment Notes:**
-- Uses Vitest v3.2.4 as test runner (no explicit config file - uses defaults)
+- Uses Vitest v3.2.4 as test runner (no explicit config file - uses Vitest defaults)
 - Tests are minimal - single test file: `tests/jwts.test.ts` (JWT token generation/verification)
 - No database setup required for basic tests
+- **Configuration Required:** Tests fail without library configuration (expected behavior - not a bug)
 - **Dependency Issue:** Tests may fail without `npm install` due to missing imports
 
 ### Documentation
@@ -129,10 +130,14 @@ src/
 ```
 
 ### Key Configuration Files
-- **`tsconfig.json`:** TypeScript compilation (ES2020, NodeNext modules)
+- **`tsconfig.json`:** TypeScript compilation (ES2020, NodeNext modules, incremental compilation enabled)
 - **`package.json`:** Build scripts and dependencies
 - **`typedoc.json`:** Documentation generation
 - **`.vitepress/config.ts`:** Documentation site configuration
+
+### Linting & Code Quality
+- **No root-level linting configuration** - no ESLint, Prettier, or other linting tools configured at project level
+- Code quality is managed through TypeScript strict mode and manual review
 
 ### Database Dependencies
 The library requires two MySQL connection pools:
@@ -211,7 +216,20 @@ app.get('/protected', requireAccessToken, (req, res) => {
 4. **Missing configuration** - library throws runtime errors if `configuration()` not called
 5. **Module resolution errors** - ensure ES2020+ target and NodeNext module resolution in tsconfig.json
 
-**Build Time:** TypeScript compilation typically takes 30-60 seconds when dependencies are available.
+**Build Time:** TypeScript compilation typically takes 2-5 seconds when dependencies are available.
+
+**Build Troubleshooting:** If builds fail with copy errors after TypeScript compilation, try:
+```bash
+# Clear TypeScript incremental build cache
+rm -f tsconfig.tsbuildinfo
+npm run build
+
+# If npm install fails due to prepare script, create dist directory first
+mkdir -p dist/jwtAuth
+npm install
+```
+
+**Important:** The package.json includes a `prepare` script that runs the build during `npm install`. If dist/ doesn't exist, npm install will fail.
 
 ## File Structure Reference
 
@@ -269,10 +287,13 @@ The repository includes a comprehensive setup workflow (`.github/copilot-setup-s
 ### Local Development Environment
 For local development without CI setup:
 ```bash
-# Skip SSH dependency if needed
-npm install --omit=optional
-# Or use timeout
+# Standard installation (usually works)
+npm install
+
+# If npm install hangs due to SSH dependency (environment-specific)
 timeout 300 npm install || echo "Install may have timed out, continuing..."
+
+# Do NOT use --omit=optional as it breaks the build
 ```
 
 ## Agent Instructions
@@ -296,17 +317,19 @@ After building, these files MUST exist:
 **Quick Verification Workflow:**
 ```bash
 # Verify repository state
-npm install --omit=optional  # May timeout - this is expected
-npx tsc --noEmit src/main.ts  # Check for basic TypeScript errors (will fail without deps)
-npm run build                 # Full build (requires dependencies)
-npm run test                  # Run test suite (single test file)
+npm install                   # May timeout on some environments due to SSH dependency
+npm run build                 # Full build (requires dependencies, ~2-5 seconds)
+npm run test                  # Run test suite (will fail due to missing configuration - expected)
 ls dist/jwtAuth/emails/       # Verify email templates copied
 ls dist/jwtAuth/models/       # Verify useragent.csv copied
 ls dist/jwtAuth/utils/        # Verify email blocklist copied
+
+# If build fails with copy errors:
+rm -f tsconfig.tsbuildinfo && npm run build
 ```
 
 **Expected Results:**
-- npm install may hang on botdetector dependency
-- TypeScript compilation will fail without dependencies (206 errors across 65 files)
+- npm install may hang on botdetector dependency (environment-dependent)
 - Full build creates dist/ with all assets copied (emails/, CSV file, config file)
-- Single test file (jwts.test.ts) should pass if dependencies available
+- Test suite fails with configuration error (expected - library requires setup)
+- Build process typically completes in 2-5 seconds
