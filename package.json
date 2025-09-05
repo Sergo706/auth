@@ -1,7 +1,7 @@
 {
   "name": "@riavzon/jwtauth",
   "version": "1.0.0",
-  "description": "",
+  "description": "This project provides a collection of Express middleware and utilities for building an authentication system using JSON Web Tokens (JWTs). It ships as a TypeScript library and exposes routes and helpers for common tasks such as sign up, login, OAuth flows, magic links and token rotation.",
   "license": "ISC",
   "author": "",
   "type": "module",
@@ -28,7 +28,7 @@
     "docs:preview": "vitepress preview"
   },
   "dependencies": {
-    "@riavzon/botdetector": "git+ssh://git@github.com:Sergo706/botDetector.git#main",
+    "@riavzon/botdetector": "git+ssh://git@github.com/Sergo706/botDetector.git#main",
     "@types/cookie-parser": "^1.4.8",
     "@types/date-fns": "^2.5.3",
     "@types/ejs": "^3.1.5",
@@ -61,5 +61,9 @@
     "typedoc-plugin-markdown": "^4.8.0",
     "vitepress": "^1.6.3",
     "vitest": "^3.2.4"
-  }
+  },
+  "directories": {
+    "test": "tests"
+  },
+  "keywords": []
 }
