@@ -9,7 +9,7 @@ This is `@riavzon/jwtauth`, a comprehensive JWT authentication library for Node.
 - **Runtime:** Node.js 20+ 
 - **Framework:** Express.js
 - **Package Type:** ES Module library
-- **Size:** Medium (200+ TypeScript files)
+- **Size:** Medium (71 TypeScript files)
 - **Dependencies:** 20+ core dependencies including Express, MySQL2, Zod, JWT, rate limiting, email, Telegram bot support
 
 ## Build & Development Commands
@@ -54,14 +54,15 @@ npm run docs:start
 
 ### Build Process Details
 
-The `build` script does four critical steps:
+The `build` script does five critical steps:
 ```bash
 npm run build
 # Equivalent to:
 # tsc -p tsconfig.json && 
 # cp -R src/jwtAuth/emails dist/jwtAuth && 
 # cp src/global.d.ts dist/global.d.ts && 
-# cp src/jwtAuth/utils/disposable_email_blocklist.conf dist/jwtAuth/utils
+# cp src/jwtAuth/utils/disposable_email_blocklist.conf dist/jwtAuth/utils &&
+# cp src/jwtAuth/models/useragent.csv dist/jwtAuth/models
 ```
 
 **Key Points:**
@@ -69,7 +70,8 @@ npm run build
 - Email templates must be copied (EJS files)
 - Global type definitions copied
 - Email blocklist configuration file copied
-- **Always copy assets after compilation** - the library will not work without email templates
+- User agent CSV data file copied
+- **Always copy assets after compilation** - the library will not work without email templates and data files
 
 ### Testing
 ```bash
@@ -82,7 +84,7 @@ npm run test
 
 **Test Environment Notes:**
 - Uses Vitest v3.2.4 as test runner (no explicit config file - uses defaults)
-- Tests are minimal - mainly JWT token generation/verification 
+- Tests are minimal - single test file: `tests/jwts.test.ts` (JWT token generation/verification)
 - No database setup required for basic tests
 - **Dependency Issue:** Tests may fail without `npm install` due to missing imports
 
@@ -191,10 +193,19 @@ app.get('/protected', requireAccessToken, (req, res) => {
 
 ### GitHub Workflows
 - **Dependabot:** Weekly dependency updates (`.github/dependabot.yml`)
-- **No CI workflows present** - manual validation required
+- **Copilot Setup:** GitHub Actions workflow (`.github/copilot-setup-steps.yml`) with:
+  - MySQL 8.4 database service setup
+  - SSH key handling for botdetector dependency (`BOTDETECTOR_DEPLOY_KEY` secret required)
+  - Node.js 20 setup with npm caching
+  - Complete build and test pipeline
+- **Manual validation required** for most changes
 
 ### Common Build Failures
-1. **Missing email templates** - ensure `cp -R src/jwtAuth/emails dist/jwtAuth` runs after TypeScript compilation
+1. **Missing assets after compilation** - ensure all asset copying runs after TypeScript compilation:
+   - `cp -R src/jwtAuth/emails dist/jwtAuth` (email templates)
+   - `cp src/global.d.ts dist/global.d.ts` (type definitions)
+   - `cp src/jwtAuth/utils/disposable_email_blocklist.conf dist/jwtAuth/utils` (email blocklist)
+   - `cp src/jwtAuth/models/useragent.csv dist/jwtAuth/models` (user agent data)
 2. **SSH dependency timeout** - `@riavzon/botdetector` dependency may hang npm install indefinitely in CI environments
 3. **TypeScript compilation errors** - requires dependencies to be installed first (`npm install`)
 4. **Missing configuration** - library throws runtime errors if `configuration()` not called
@@ -233,30 +244,69 @@ app.get('/protected', requireAccessToken, (req, res) => {
 - **Database models:** `src/jwtAuth/models/`
 - **Email templates:** `src/jwtAuth/emails/system.ejs`
 - **Rate limiting:** `src/jwtAuth/utils/limiters/`
+- **Asset files:** `src/jwtAuth/utils/disposable_email_blocklist.conf`, `src/jwtAuth/models/useragent.csv`
+
+## CI/CD & Environment Setup
+
+### GitHub Actions Workflow
+The repository includes a comprehensive setup workflow (`.github/copilot-setup-steps.yml`) that:
+
+**Services:**
+- **MySQL 8.4:** Database service on port 3306 with health checks
+- **Nginx 1.27:** Web server on port 8080 for testing
+
+**Setup Steps:**
+1. **Node.js 20 environment** with npm cache
+2. **SSH agent setup** for botdetector dependency (requires `BOTDETECTOR_DEPLOY_KEY` secret)
+3. **MySQL client tools** installation
+4. **Database health check** with 60-second timeout
+5. **Dependencies installation** (`npm install`)
+6. **Build process** (`npm run build`)
+
+**Required Secrets:**
+- `BOTDETECTOR_DEPLOY_KEY`: SSH private key for accessing the botdetector repository
+
+### Local Development Environment
+For local development without CI setup:
+```bash
+# Skip SSH dependency if needed
+npm install --omit=optional
+# Or use timeout
+timeout 300 npm install || echo "Install may have timed out, continuing..."
+```
 
 ## Agent Instructions
 
-**Trust these instructions** - they are comprehensive and tested. Only search for additional information if these instructions are incomplete or incorrect. The repository has specific quirks (SSH dependencies, email template copying, configuration requirements) that are documented here to save exploration time.
+**Trust these instructions** - they are comprehensive and tested. Only search for additional information if these instructions are incomplete or incorrect. The repository has specific quirks (SSH dependencies, asset file copying, configuration requirements) that are documented here to save exploration time.
 
 **When making changes:**
 1. **Always run `npm run build`** after code modifications
-2. **Test with `npm run test`** before committing
-3. **Ensure email templates are present** in dist/ after build
+2. **Test with `npm run test`** before committing (requires dependencies)
+3. **Ensure all asset files are present** in dist/ after build
 4. **Be aware of the SSH dependency** when running npm install
 5. **Configure the library properly** when testing functionality
+
+**Asset Files Verification:**
+After building, these files MUST exist:
+- `dist/jwtAuth/emails/system.ejs` (email template)
+- `dist/jwtAuth/models/useragent.csv` (user agent data)
+- `dist/jwtAuth/utils/disposable_email_blocklist.conf` (email blocklist)
+- `dist/global.d.ts` (global type definitions)
 
 **Quick Verification Workflow:**
 ```bash
 # Verify repository state
 npm install --omit=optional  # May timeout - this is expected
-npx tsc --noEmit src/main.ts  # Check for basic TypeScript errors
+npx tsc --noEmit src/main.ts  # Check for basic TypeScript errors (will fail without deps)
 npm run build                 # Full build (requires dependencies)
-npm run test                  # Run test suite
+npm run test                  # Run test suite (single test file)
 ls dist/jwtAuth/emails/       # Verify email templates copied
+ls dist/jwtAuth/models/       # Verify useragent.csv copied
+ls dist/jwtAuth/utils/        # Verify email blocklist copied
 ```
 
 **Expected Results:**
 - npm install may hang on botdetector dependency
-- TypeScript compilation will fail without dependencies
-- Full build creates dist/ with all assets copied
-- Single test file should pass if dependencies available
+- TypeScript compilation will fail without dependencies (206 errors across 65 files)
+- Full build creates dist/ with all assets copied (emails/, CSV file, config file)
+- Single test file (jwts.test.ts) should pass if dependencies available
