@@ -61,9 +61,10 @@ jobs:
 
       - name: Beacon
         run: echo "::notice title=Copilot Setup::I ran on $(date -Iseconds)"
-        
+
       - name: Install dependencies
         run: npm install
       
       - name: Build
         run: npm run build
+
