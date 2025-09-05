@@ -92,6 +92,40 @@ Utility tests for core token functionality:
 - ✅ **Cryptographic Strength**: Tests token randomness and uniqueness
 - ✅ **Hash Consistency**: Tests hash function reliability
 
+### 4. `security.test.ts` - Security and Edge Case Tests
+Comprehensive security and edge case testing:
+
+#### Token Security Vulnerabilities
+- ✅ **Null/Undefined Handling**: Tests graceful handling of invalid inputs
+- ✅ **Timing Attack Prevention**: Validates constant-time comparison principles
+- ✅ **Entropy Verification**: Tests token generation entropy
+- ✅ **Large Input Handling**: Tests behavior with very large inputs
+- ✅ **Special Character Handling**: Tests injection attempt resistance
+
+#### JWT Edge Cases
+- ✅ **Malformed Base64**: Tests handling of invalid base64url encoding
+- ✅ **Extremely Long Tokens**: Tests behavior with oversized JWT tokens
+
+#### Database Security
+- ✅ **SQL Injection Prevention**: Tests token data against SQL injection
+- ✅ **Edge Value Handling**: Tests boundary values for user/visitor IDs
+
+#### Concurrency and Race Conditions
+- ✅ **Concurrent Token Generation**: Tests thread-safe token generation
+- ✅ **Concurrent Hash Operations**: Tests parallel hash computations
+
+#### Memory and Performance
+- ✅ **Cache Overflow**: Tests token cache overflow scenarios
+- ✅ **Memory Pressure**: Tests behavior under memory constraints
+
+#### Date and Time Edge Cases
+- ✅ **Edge Date Calculations**: Tests boundary date scenarios
+- ✅ **Timezone/DST Handling**: Tests daylight saving time transitions
+
+#### Error Boundaries
+- ✅ **Resource Exhaustion**: Tests graceful degradation under load
+- ✅ **Input Validation**: Tests parameter boundary validation
+
 ## Test Features
 
 ### Mocking Strategy
@@ -122,9 +156,16 @@ npm test
 npx vitest tests/jwts.test.ts
 npx vitest tests/refreshTokens.test.ts
 npx vitest tests/tokenUtils.test.ts
+npx vitest tests/security.test.ts
 
 # Run with coverage
 npx vitest --coverage
+
+# Run tests in watch mode
+npm run test:watch
+
+# Validate test structure (without running tests)
+npm run test:validate
 ```
 
 ## Test Dependencies

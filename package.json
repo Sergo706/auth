@@ -23,6 +23,10 @@
     "docs:start": "typedoc --options ./typedoc.json && vitepress dev",
     "prepack": "npm run build",
     "test": "vitest",
+    "test:watch": "vitest --watch",
+    "test:coverage": "vitest --coverage",
+    "test:ui": "vitest --ui",
+    "test:validate": "node validate-tests.mjs",
     "docs:dev": "vitepress dev",
     "docs:build": "vitepress build",
     "docs:preview": "vitepress preview"
