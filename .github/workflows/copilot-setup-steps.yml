@@ -40,10 +40,16 @@ jobs:
           cache: npm
 
 
-      - name: Start ssh-agent & load deploy key
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.BOTDETECTOR_DEPLOY_KEY }}
+      - name: Setup SSH for private dep
+        env:
+          DEPLOY_KEY: ${{ secrets.BOTDETECTOR_DEPLOY_KEY }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+          eval "$(ssh-agent -s)"
+          ssh-add ~/.ssh/id_ed25519
 
       - name: Trust github.com host key
         run: |
