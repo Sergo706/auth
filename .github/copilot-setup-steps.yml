@@ -1,0 +1,66 @@
+name: Copilot Setup Steps
+
+on:
+  workflow_dispatch:
+  push:
+    paths: [.github/workflows/copilot-setup-steps.yml]
+  pull_request:
+    paths: [.github/workflows/copilot-setup-steps.yml]
+
+jobs:
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    environment: copilot
+
+    services:
+      mysql: 
+        image: mysql:8.4   
+        env:
+          MYSQL_DATABASE: app_db
+          MYSQL_ROOT_PASSWORD: TEST_DB_PASSWORD
+        ports: [ "3306:3306" ] 
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -p${MYSQL_ROOT_PASSWORD}"
+          --health-interval=10s --health-timeout=5s --health-retries=10
+
+      nginx:
+        image: nginx:1.27-alpine
+        ports: [ "8080:80" ]    
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+
+      - name: Start ssh-agent & load deploy key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.BOTDETECTOR_DEPLOY_KEY }}
+
+      - name: Trust github.com host key
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+
+      - name: Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mysql-client curl
+
+      - name: Wait for MySQL
+        run: |
+          for i in {1..60}; do mysqladmin ping -h 127.0.0.1 -p1234 && break; sleep 2; done   
+
+      - name: Install dependencies
+        run: npm install
+      
+      - name: Build
+        run: npm run build
