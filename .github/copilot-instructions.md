@@ -223,7 +223,13 @@ app.get('/protected', requireAccessToken, (req, res) => {
 # Clear TypeScript incremental build cache
 rm -f tsconfig.tsbuildinfo
 npm run build
+
+# If npm install fails due to prepare script, create dist directory first
+mkdir -p dist/jwtAuth
+npm install
 ```
+
+**Important:** The package.json includes a `prepare` script that runs the build during `npm install`. If dist/ doesn't exist, npm install will fail.
 
 ## File Structure Reference
 
