@@ -19,11 +19,9 @@ describe('Edge Cases and Error Handling', () => {
 
     const tokens = await Promise.all(promises);
 
-    // All tokens should be unique
     const uniqueTokens = new Set(tokens);
     expect(uniqueTokens.size).toBe(tokens.length);
 
-    // All tokens should verify correctly
     tokens.forEach(token => {
       const result = verifyAccessToken(token);
       expect(result.valid).toBe(true);
@@ -85,21 +83,17 @@ describe('Edge Cases and Error Handling', () => {
       jti: crypto.randomUUID()
     };
 
-    // Generate token
     const token = generateAccessToken(user);
     
-    // Verify it's valid
     let result = verifyAccessToken(token);
     expect(result.valid).toBe(true);
 
-    // Manually invalidate the cache entry
     const cache = tokenCache();
     const cacheEntry = cache.get(token);
     if (cacheEntry) {
       cache.set(token, { ...cacheEntry, valid: false });
     }
 
-    // Verify it's now invalid
     result = verifyAccessToken(token);
     expect(result.valid).toBe(false);
     expect(result.errorType).toBe('InvalidPayloadType');
@@ -122,7 +116,6 @@ describe('Edge Cases and Error Handling', () => {
   });
 
   test('should verify cache TTL behavior exists', () => {
-    // Test that cache has TTL configuration
     const cache = tokenCache();
     expect(cache.max).toBeGreaterThan(0);
     expect(cache.ttl).toBeGreaterThan(0);

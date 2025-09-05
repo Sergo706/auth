@@ -1,14 +1,14 @@
-import { beforeAll, afterAll, beforeEach, vi } from 'vitest';
+import { beforeAll, afterAll, beforeEach, vi, afterEach } from 'vitest';
 import mysql from 'mysql2/promise';
 import mysql2 from 'mysql2';
 import { configuration } from '../../src/jwtAuth/config/configuration.js';
 import './mocks/refreshTokens.js';
+import { tokenCache } from '../../src/jwtAuth/utils/accessTokentCache.js';
 
 export let promisePool: mysql.Pool;
 export let callbackPool: mysql2.Pool;
 
 beforeAll(async () => {
-  // Create MySQL connection pools
   promisePool = mysql.createPool({
     host: '127.0.0.1',
     port: 3306,
@@ -31,7 +31,6 @@ beforeAll(async () => {
     queueLimit: 0,
   });
 
-  // Configure the library with minimal required config
   configuration({
     store: {
       main: promisePool,
@@ -75,7 +74,6 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  // Clean up pools
   if (promisePool) {
     await promisePool.end();
   }
@@ -85,6 +83,26 @@ afterAll(async () => {
 });
 
 beforeEach(() => {
-  // Reset mocks before each test
+  vi.useFakeTimers().setSystemTime(new Date(1_700_000_000_000));
   vi.clearAllMocks();
+});
+
+
+afterEach(() => {
+  vi.useRealTimers();
+  vi.restoreAllMocks();
+});
+
+
+beforeEach(() => {
+  const cache = tokenCache();
+  if (typeof (cache as any).clear === 'function') {
+    (cache as any).clear();
+  } else {
+    if (typeof (cache as any).keys === 'function') {
+      for (const k of (cache as any).keys()) {
+        (cache as any).delete(k);
+      }
+    }
+  }
 });

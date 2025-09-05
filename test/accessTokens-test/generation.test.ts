@@ -15,10 +15,8 @@ describe('generateAccessToken', () => {
 
     const token = generateAccessToken(user);
 
-    // Verify token structure
     expect(token).toMatch(/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/);
 
-    // Decode and verify payload
     const decoded = jwt.decode(token, { complete: true }) as any;
     expect(decoded).toBeTruthy();
     expect(decoded.payload.visitor).toBe(user.visitor_id);
@@ -67,7 +65,7 @@ describe('generateAccessToken', () => {
     const user2: AccessTokenPayload = {
       id: 123,
       visitor_id: 456,
-      jti: crypto.randomUUID() // Different JTI
+      jti: crypto.randomUUID() 
     };
 
     const token1 = generateAccessToken(user1);
@@ -79,7 +77,7 @@ describe('generateAccessToken', () => {
   test('should handle edge case user IDs', () => {
     const users = [
       { id: 0, visitor_id: 0, jti: crypto.randomUUID() },
-      { id: 2147483647, visitor_id: 2147483647, jti: crypto.randomUUID() }, // Max int32
+      { id: 2147483647, visitor_id: 2147483647, jti: crypto.randomUUID() }, 
       { id: 1, visitor_id: 999999999, jti: crypto.randomUUID() }
     ];
 

@@ -24,7 +24,6 @@ describe('verifyAccessToken', () => {
   });
 
   test('should reject token not in cache', () => {
-    // Create a token manually without going through generateAccessToken
     const payload = {
       visitor: 456,
       roles: []
@@ -52,14 +51,13 @@ describe('verifyAccessToken', () => {
       jti: crypto.randomUUID()
     };
 
-    // Create an expired token that was never cached
     const expiredPayload = {
       visitor: user.visitor_id,
       roles: []
     };
     const expiredToken = jwt.sign(expiredPayload, 'test-jwt-secret-key-32-chars-long', {
       algorithm: 'HS512',
-      expiresIn: '-1s', // Already expired
+      expiresIn: '-1s', 
       subject: user.id.toString(),
       jwtid: user.jti,
       audience: 'example.com',
@@ -68,7 +66,6 @@ describe('verifyAccessToken', () => {
 
     const result = verifyAccessToken(expiredToken);
 
-    // Cache-first design: tokens not in cache are rejected before JWT verification
     expect(result.valid).toBe(false);
     expect(result.errorType).toBe('InvalidPayloadType');
   });
@@ -91,15 +88,12 @@ describe('verifyAccessToken', () => {
   });
 
   test('should reject token with invalid signature', () => {
-    // Cache-first design: manually created tokens won't be in cache
-    // This is a security feature that prevents JWT verification of potentially malicious tokens
     const user: AccessTokenPayload = {
       id: 123,
       visitor_id: 456,
       jti: crypto.randomUUID()
     };
 
-    // Create a token with invalid signature (not in cache)
     const tamperedPayload = {
       visitor: user.visitor_id,
       roles: []
@@ -115,7 +109,6 @@ describe('verifyAccessToken', () => {
 
     const result = verifyAccessToken(tokenWithInvalidSig);
 
-    // Cache-first design: tokens not in cache are rejected before JWT verification
     expect(result.valid).toBe(false);
     expect(result.errorType).toBe('InvalidPayloadType');
   });
@@ -132,7 +125,7 @@ describe('verifyAccessToken', () => {
 
     // Create token with different visitor_id (not in cache)
     const tamperedPayload = {
-      visitor: 999, // Different visitor ID
+      visitor: 999,
       roles: []
     };
     const tamperedToken = jwt.sign(tamperedPayload, 'test-jwt-secret-key-32-chars-long', {
@@ -146,7 +139,6 @@ describe('verifyAccessToken', () => {
 
     const result = verifyAccessToken(tamperedToken);
 
-    // Cache-first design: tokens not in cache are rejected before JWT verification
     expect(result.valid).toBe(false);
     expect(result.errorType).toBe('InvalidPayloadType');
   });
@@ -174,13 +166,9 @@ describe('verifyAccessToken', () => {
       role: ['admin']
     };
 
-    // Cache-first design: manually created tokens won't be in cache
-    // This tests the security feature that prevents verification of potentially malicious tokens
-
-    // Create token with malformed roles but not in cache
     const malformedPayload = {
       visitor: user.visitor_id,
-      roles: 'not_an_array' // Should be array
+      roles: 'not_an_array'
     };
     const malformedToken = jwt.sign(malformedPayload, 'test-jwt-secret-key-32-chars-long', {
       algorithm: 'HS512',
@@ -193,7 +181,6 @@ describe('verifyAccessToken', () => {
 
     const result = verifyAccessToken(malformedToken);
 
-    // Cache-first design: tokens not in cache are rejected before JWT verification
     expect(result.valid).toBe(false);
     expect(result.errorType).toBe('InvalidPayloadType');
   });
@@ -206,14 +193,11 @@ describe('verifyAccessToken', () => {
       role: ['admin', 'user']
     };
 
-    // Cache-first design: manually created tokens won't be in cache
-    // This tests the security feature that prevents verification of potentially malicious tokens
-
-    // Create token with fewer roles than required but not in cache
     const insufficientPayload = {
       visitor: user.visitor_id,
-      roles: ['user'] // Missing 'admin' role
+      roles: ['user'] 
     };
+
     const insufficientToken = jwt.sign(insufficientPayload, 'test-jwt-secret-key-32-chars-long', {
       algorithm: 'HS512',
       expiresIn: '15m',
@@ -225,7 +209,6 @@ describe('verifyAccessToken', () => {
 
     const result = verifyAccessToken(insufficientToken);
 
-    // Cache-first design: tokens not in cache are rejected before JWT verification
     expect(result.valid).toBe(false);
     expect(result.errorType).toBe('InvalidPayloadType');
   });
@@ -238,13 +221,10 @@ describe('verifyAccessToken', () => {
       role: ['user']
     };
 
-    // Cache-first design: manually created tokens won't be in cache
-    // This tests the security feature that prevents verification of potentially malicious tokens
 
-    // Create token with extra roles but not in cache
     const extraPayload = {
       visitor: user.visitor_id,
-      roles: ['user', 'admin', 'superuser'] // Extra roles
+      roles: ['user', 'admin', 'superuser'] 
     };
     const extraToken = jwt.sign(extraPayload, 'test-jwt-secret-key-32-chars-long', {
       algorithm: 'HS512',
@@ -257,7 +237,7 @@ describe('verifyAccessToken', () => {
 
     const result = verifyAccessToken(extraToken);
 
-    // Cache-first design: tokens not in cache are rejected before JWT verification
+ 
     expect(result.valid).toBe(false);
     expect(result.errorType).toBe('InvalidPayloadType');
   });
