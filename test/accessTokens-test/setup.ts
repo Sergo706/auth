@@ -2,7 +2,6 @@ import { beforeAll, afterAll, beforeEach, vi, afterEach } from 'vitest';
 import mysql from 'mysql2/promise';
 import mysql2 from 'mysql2';
 import { configuration } from '../../src/jwtAuth/config/configuration.js';
-import './mocks/refreshTokens.js';
 import { tokenCache } from '../../src/jwtAuth/utils/accessTokentCache.js';
 
 export let promisePool: mysql.Pool;

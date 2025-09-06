@@ -15,14 +15,11 @@ describe('JWT Verification Branch Coverage', () => {
       jti: crypto.randomUUID()
     };
 
-    // Generate valid token with cache entry
     const token = generateAccessToken(user);
     
-    // Verify the token is in cache and valid
     let result = verifyAccessToken(token);
     expect(result.valid).toBe(true);
 
-    // Now create a token with same structure but wrong signature, and manually add to cache
     const payload = {
       visitor: user.visitor_id,
       roles: []
@@ -36,7 +33,6 @@ describe('JWT Verification Branch Coverage', () => {
       jwtid: user.jti
     });
 
-    // Manually add the malicious token to cache to bypass cache check
     const cache = tokenCache();
     cache.set(maliciousToken, { 
       jti: user.jti, 
@@ -46,7 +42,6 @@ describe('JWT Verification Branch Coverage', () => {
       valid: true 
     });
 
-    // Now verification should reach jwt.verify and catch invalid signature
     result = verifyAccessToken(maliciousToken);
     expect(result.valid).toBe(false);
     expect(result.errorType).toBe('invalid signature');
@@ -59,10 +54,8 @@ describe('JWT Verification Branch Coverage', () => {
       jti: crypto.randomUUID()
     };
 
-    // Create a malformed token that will pass cache but fail JWT verification
     const malformedToken = 'eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.malformed.signature';
 
-    // Manually add to cache to bypass cache check
     const cache = tokenCache();
     cache.set(malformedToken, { 
       jti: user.jti, 
@@ -72,10 +65,8 @@ describe('JWT Verification Branch Coverage', () => {
       valid: true 
     });
 
-    // Now verification should reach jwt.verify and catch malformed JWT
     const result = verifyAccessToken(malformedToken);
     expect(result.valid).toBe(false);
-    // The malformed token triggers unexpected error path
     expect(result.errorType).toBe('Unexpected error type');
   });
 
@@ -86,10 +77,8 @@ describe('JWT Verification Branch Coverage', () => {
       jti: crypto.randomUUID()
     };
 
-    // Create an invalid token format
     const invalidToken = 'not.a.valid.jwt.token';
 
-    // Manually add to cache to bypass cache check
     const cache = tokenCache();
     cache.set(invalidToken, { 
       jti: user.jti, 
@@ -99,10 +88,8 @@ describe('JWT Verification Branch Coverage', () => {
       valid: true 
     });
 
-    // Now verification should reach jwt.verify and catch invalid token
     const result = verifyAccessToken(invalidToken);
     expect(result.valid).toBe(false);
-    // This specific format triggers jwt malformed rather than invalid token
     expect(result.errorType).toBe('jwt malformed');
   });
 
@@ -113,10 +100,8 @@ describe('JWT Verification Branch Coverage', () => {
       jti: crypto.randomUUID()
     };
 
-    // Create a token that looks valid but has invalid structure
-    const invalidToken = 'eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9..'; // Empty payload
+    const invalidToken = 'eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9..';
 
-    // Manually add to cache to bypass cache check
     const cache = tokenCache();
     cache.set(invalidToken, { 
       jti: user.jti, 
@@ -126,7 +111,6 @@ describe('JWT Verification Branch Coverage', () => {
       valid: true 
     });
 
-    // Now verification should reach jwt.verify and catch invalid token
     const result = verifyAccessToken(invalidToken);
     expect(result.valid).toBe(false);
     expect(result.errorType).toBe('invalid token');
@@ -141,7 +125,6 @@ describe('JWT Verification Branch Coverage', () => {
 
     const config = getConfiguration();
     
-    // Create token with wrong audience
     const payload = {
       visitor: user.visitor_id,
       roles: []
@@ -149,13 +132,12 @@ describe('JWT Verification Branch Coverage', () => {
     const tokenWithWrongAudience = jwt.sign(payload, config.jwt.jwt_secret_key, {
       algorithm: 'HS512',
       expiresIn: '15m',
-      audience: 'wrong-audience.com', // Different from expected
+      audience: 'wrong-audience.com',
       issuer: 'example.com',
       subject: user.id.toString(),
       jwtid: user.jti
     });
 
-    // Manually add to cache to bypass cache check
     const cache = tokenCache();
     cache.set(tokenWithWrongAudience, { 
       jti: user.jti, 
@@ -165,7 +147,6 @@ describe('JWT Verification Branch Coverage', () => {
       valid: true 
     });
 
-    // Now verification should reach jwt.verify and catch audience mismatch
     const result = verifyAccessToken(tokenWithWrongAudience);
     expect(result.valid).toBe(false);
     expect(result.errorType).toBe('JsonWebTokenError');
@@ -180,7 +161,6 @@ describe('JWT Verification Branch Coverage', () => {
 
     const config = getConfiguration();
     
-    // Create token with wrong issuer
     const payload = {
       visitor: user.visitor_id,
       roles: []
@@ -189,12 +169,11 @@ describe('JWT Verification Branch Coverage', () => {
       algorithm: 'HS512',
       expiresIn: '15m',
       audience: 'example.com',
-      issuer: 'wrong-issuer.com', // Different from expected
+      issuer: 'wrong-issuer.com',
       subject: user.id.toString(),
       jwtid: user.jti
     });
 
-    // Manually add to cache to bypass cache check
     const cache = tokenCache();
     cache.set(tokenWithWrongIssuer, { 
       jti: user.jti, 
@@ -204,7 +183,6 @@ describe('JWT Verification Branch Coverage', () => {
       valid: true 
     });
 
-    // Now verification should reach jwt.verify and catch issuer mismatch
     const result = verifyAccessToken(tokenWithWrongIssuer);
     expect(result.valid).toBe(false);
     expect(result.errorType).toBe('JsonWebTokenError');
@@ -219,7 +197,6 @@ describe('JWT Verification Branch Coverage', () => {
 
     const config = getConfiguration();
     
-    // Create token with wrong subject
     const payload = {
       visitor: user.visitor_id,
       roles: []
@@ -229,11 +206,10 @@ describe('JWT Verification Branch Coverage', () => {
       expiresIn: '15m',
       audience: 'example.com',
       issuer: 'example.com',
-      subject: '999', // Different from expected user.id
+      subject: '999',
       jwtid: user.jti
     });
 
-    // Manually add to cache to bypass cache check
     const cache = tokenCache();
     cache.set(tokenWithWrongSubject, { 
       jti: user.jti, 
@@ -243,7 +219,6 @@ describe('JWT Verification Branch Coverage', () => {
       valid: true 
     });
 
-    // Now verification should reach jwt.verify and catch subject mismatch
     const result = verifyAccessToken(tokenWithWrongSubject);
     expect(result.valid).toBe(false);
     expect(result.errorType).toBe('JsonWebTokenError');
@@ -258,7 +233,6 @@ describe('JWT Verification Branch Coverage', () => {
 
     const config = getConfiguration();
     
-    // Create token with wrong jwtid
     const payload = {
       visitor: user.visitor_id,
       roles: []
@@ -269,10 +243,9 @@ describe('JWT Verification Branch Coverage', () => {
       audience: 'example.com',
       issuer: 'example.com',
       subject: user.id.toString(),
-      jwtid: 'wrong-jti' // Different from expected
+      jwtid: 'wrong-jti' 
     });
 
-    // Manually add to cache to bypass cache check
     const cache = tokenCache();
     cache.set(tokenWithWrongJwtid, { 
       jti: user.jti, 
@@ -282,7 +255,6 @@ describe('JWT Verification Branch Coverage', () => {
       valid: true 
     });
 
-    // Now verification should reach jwt.verify and catch jwtid mismatch
     const result = verifyAccessToken(tokenWithWrongJwtid);
     expect(result.valid).toBe(false);
     expect(result.errorType).toBe('JsonWebTokenError');
@@ -297,9 +269,8 @@ describe('JWT Verification Branch Coverage', () => {
 
     const config = getConfiguration();
     
-    // Create token with wrong visitor id in payload
     const payload = {
-      visitor: 999, // Different from cached visitor_id
+      visitor: 999,
       roles: []
     };
     const tokenWithWrongVisitor = jwt.sign(payload, config.jwt.jwt_secret_key, {
@@ -311,17 +282,15 @@ describe('JWT Verification Branch Coverage', () => {
       jwtid: user.jti
     });
 
-    // Manually add to cache to bypass cache check
     const cache = tokenCache();
     cache.set(tokenWithWrongVisitor, { 
       jti: user.jti, 
-      visitorId: user.visitor_id, // Different from token payload
+      visitorId: user.visitor_id, 
       userId: user.id, 
       roles: [], 
       valid: true 
     });
 
-    // Now verification should reach jwt.verify and catch visitor mismatch
     const result = verifyAccessToken(tokenWithWrongVisitor);
     expect(result.valid).toBe(false);
     expect(result.errorType).toBe('Invalid visitor id');
@@ -336,10 +305,9 @@ describe('JWT Verification Branch Coverage', () => {
 
     const config = getConfiguration();
     
-    // Create token with malformed roles
     const payload = {
       visitor: user.visitor_id,
-      roles: 'not-an-array' // Should be array
+      roles: 'not-an-array' 
     };
     const tokenWithMalformedRoles = jwt.sign(payload, config.jwt.jwt_secret_key, {
       algorithm: 'HS512',
@@ -350,17 +318,15 @@ describe('JWT Verification Branch Coverage', () => {
       jwtid: user.jti
     });
 
-    // Manually add to cache with expected roles
     const cache = tokenCache();
     cache.set(tokenWithMalformedRoles, { 
       jti: user.jti, 
       visitorId: user.visitor_id, 
       userId: user.id, 
-      roles: ['admin'], // Cache expects admin role
+      roles: ['admin'],
       valid: true 
     });
 
-    // Now verification should reach jwt.verify and catch malformed roles
     const result = verifyAccessToken(tokenWithMalformedRoles);
     expect(result.valid).toBe(false);
     expect(result.errorType).toBe('MalformedPayload');
@@ -375,10 +341,9 @@ describe('JWT Verification Branch Coverage', () => {
 
     const config = getConfiguration();
     
-    // Create token with insufficient roles
     const payload = {
       visitor: user.visitor_id,
-      roles: ['user'] // Missing admin role
+      roles: ['user']
     };
     const tokenWithMissingRoles = jwt.sign(payload, config.jwt.jwt_secret_key, {
       algorithm: 'HS512',
@@ -389,17 +354,15 @@ describe('JWT Verification Branch Coverage', () => {
       jwtid: user.jti
     });
 
-    // Manually add to cache with more required roles
     const cache = tokenCache();
     cache.set(tokenWithMissingRoles, { 
       jti: user.jti, 
       visitorId: user.visitor_id, 
       userId: user.id, 
-      roles: ['admin', 'user'], // Cache expects both admin and user roles
+      roles: ['admin', 'user'],
       valid: true 
     });
 
-    // Now verification should reach jwt.verify and catch missing roles
     const result = verifyAccessToken(tokenWithMissingRoles);
     expect(result.valid).toBe(false);
     expect(result.errorType).toBe('InvalidRoles');
@@ -414,10 +377,9 @@ describe('JWT Verification Branch Coverage', () => {
 
     const config = getConfiguration();
     
-    // Create token with extra roles
     const payload = {
       visitor: user.visitor_id,
-      roles: ['user', 'admin', 'superuser'] // Extra superuser role
+      roles: ['user', 'admin', 'superuser']
     };
     const tokenWithExtraRoles = jwt.sign(payload, config.jwt.jwt_secret_key, {
       algorithm: 'HS512',
@@ -428,17 +390,15 @@ describe('JWT Verification Branch Coverage', () => {
       jwtid: user.jti
     });
 
-    // Manually add to cache with fewer required roles
     const cache = tokenCache();
     cache.set(tokenWithExtraRoles, { 
       jti: user.jti, 
       visitorId: user.visitor_id, 
       userId: user.id, 
-      roles: ['user'], // Cache only expects user role
+      roles: ['user'],
       valid: true 
     });
 
-    // Now verification should reach jwt.verify and catch extra roles
     const result = verifyAccessToken(tokenWithExtraRoles);
     expect(result.valid).toBe(false);
     expect(result.errorType).toBe('InvalidRoles');
