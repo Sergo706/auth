@@ -203,7 +203,7 @@ describe('Replay Attacks and Bot Detection - Comprehensive Security Testing', ()
       const ttl = 24 * 60 * 60 * 1000;
 
       // Generate initial refresh token
-      const token1 = await generateRefreshToken(ttl, userId, visitorId);
+      const token1 = await generateRefreshToken(ttl, userId);
       
       // Verify it's valid
       const verify1 = await verifyRefreshToken(token1.raw);
@@ -230,7 +230,7 @@ describe('Replay Attacks and Bot Detection - Comprehensive Security Testing', ()
       const { userId, visitorId } = await setupTestUser(4004, 4004);
       const ttl = 24 * 60 * 60 * 1000;
 
-      const token = await generateRefreshToken(ttl, userId, visitorId);
+      const token = await generateRefreshToken(ttl, userId);
       
       // Rapidly verify the same token multiple times
       const verifications = await Promise.all(
@@ -256,7 +256,7 @@ describe('Replay Attacks and Bot Detection - Comprehensive Security Testing', ()
       const { userId, visitorId } = await setupTestUser(4005, 4005);
       const ttl = 24 * 60 * 60 * 1000;
 
-      const token = await generateRefreshToken(ttl, userId, visitorId);
+      const token = await generateRefreshToken(ttl, userId);
       
       // Attempt multiple concurrent rotations (race condition)
       const rotations = await Promise.allSettled(
@@ -447,7 +447,7 @@ describe('Replay Attacks and Bot Detection - Comprehensive Security Testing', ()
       // Generate many tokens rapidly (enumeration attempt)
       const tokens = [];
       for (let i = 0; i < 20; i++) {
-        const token = await generateRefreshToken(24 * 60 * 60 * 1000, userId, visitorId);
+        const token = await generateRefreshToken(24 * 60 * 60 * 1000, userId);
         tokens.push(token);
       }
 
@@ -566,7 +566,7 @@ describe('Replay Attacks and Bot Detection - Comprehensive Security Testing', ()
       const { userId, visitorId } = await setupTestUser(4014, 4014);
 
       // Generate initial token
-      const token = await generateRefreshToken(24 * 60 * 60 * 1000, userId, visitorId);
+      const token = await generateRefreshToken(24 * 60 * 60 * 1000, userId);
 
       // Rapid verification attempts
       const rapidVerifications = await Promise.all(
@@ -595,7 +595,7 @@ describe('Replay Attacks and Bot Detection - Comprehensive Security Testing', ()
       const tokens = [];
       for (let i = 0; i < 10; i++) {
         try {
-          const token = await generateRefreshToken(24 * 60 * 60 * 1000, userId, visitorId);
+          const token = await generateRefreshToken(24 * 60 * 60 * 1000, userId);
           tokens.push(token);
         } catch (error) {
           // Some tokens might be rejected due to limits
@@ -620,7 +620,7 @@ describe('Replay Attacks and Bot Detection - Comprehensive Security Testing', ()
 
       // Setup all attack users
       await Promise.all(
-        attackUsers.map(({ userId, visitorId }) => setupTestUser(userId, visitorId))
+        attackUsers.map(({ userId, visitorId }) => setupTestUser(userId))
       );
 
       // Each user attempts rapid token generation
@@ -629,7 +629,7 @@ describe('Replay Attacks and Bot Detection - Comprehensive Security Testing', ()
           const tokens = [];
           for (let i = 0; i < 5; i++) {
             try {
-              const token = await generateRefreshToken(24 * 60 * 60 * 1000, userId, visitorId);
+              const token = await generateRefreshToken(24 * 60 * 60 * 1000, userId);
               tokens.push(token);
             } catch (error) {
               // Some might fail
@@ -658,7 +658,7 @@ describe('Replay Attacks and Bot Detection - Comprehensive Security Testing', ()
       const { userId, visitorId, canaryId } = await setupTestUser(4016, 4016);
 
       // Generate and verify tokens (normal activity)
-      const token = await generateRefreshToken(24 * 60 * 60 * 1000, userId, visitorId);
+      const token = await generateRefreshToken(24 * 60 * 60 * 1000, userId);
       await verifyRefreshToken(token.raw);
 
       // Rotate token (security event)
@@ -695,7 +695,7 @@ describe('Replay Attacks and Bot Detection - Comprehensive Security Testing', ()
       const initialState = initialRows[0];
 
       // Perform operations
-      const token = await generateRefreshToken(24 * 60 * 60 * 1000, userId, visitorId);
+      const token = await generateRefreshToken(24 * 60 * 60 * 1000, userId);
       await verifyRefreshToken(token.raw);
 
       // Update visitor activity
@@ -730,7 +730,7 @@ describe('Replay Attacks and Bot Detection - Comprehensive Security Testing', ()
       // Generate many security events
       for (let i = 0; i < 50; i++) {
         try {
-          const token = await generateRefreshToken(100, userId, visitorId); // Short TTL
+          const token = await generateRefreshToken(100, userId); // Short TTL
           await verifyRefreshToken(token.raw);
           // Let tokens expire quickly
           await new Promise(resolve => setTimeout(resolve, 1));
@@ -740,7 +740,7 @@ describe('Replay Attacks and Bot Detection - Comprehensive Security Testing', ()
       }
 
       // System should still be responsive
-      const finalToken = await generateRefreshToken(24 * 60 * 60 * 1000, userId, visitorId);
+      const finalToken = await generateRefreshToken(24 * 60 * 60 * 1000, userId);
       const verification = await verifyRefreshToken(finalToken.raw);
       expect(verification.valid).toBe(true);
 

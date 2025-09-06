@@ -130,7 +130,7 @@ describe('Refresh Token Rotation - Comprehensive Testing', () => {
       const { userId, visitorId } = await setupTestUser(2001, 2001);
       const ttl = 24 * 60 * 60 * 1000; // 24 hours
 
-      const token = await generateRefreshToken(ttl, userId, visitorId);
+      const token = await generateRefreshToken(ttl, userId);
 
       expect(token).toHaveProperty('raw');
       expect(token).toHaveProperty('hashedToken');
@@ -144,7 +144,7 @@ describe('Refresh Token Rotation - Comprehensive Testing', () => {
     test('should handle zero TTL', async () => {
       const { userId, visitorId } = await setupTestUser(2002, 2002);
       
-      const token = await generateRefreshToken(0, userId, visitorId);
+      const token = await generateRefreshToken(0, userId);
       
       expect(token.expiresAt.getTime()).toBeLessThanOrEqual(Date.now());
     });
@@ -152,7 +152,7 @@ describe('Refresh Token Rotation - Comprehensive Testing', () => {
     test('should handle negative TTL', async () => {
       const { userId, visitorId } = await setupTestUser(2003, 2003);
       
-      const token = await generateRefreshToken(-1000, userId, visitorId);
+      const token = await generateRefreshToken(-1000, userId);
       
       expect(token.expiresAt.getTime()).toBeLessThan(Date.now());
     });
@@ -161,7 +161,7 @@ describe('Refresh Token Rotation - Comprehensive Testing', () => {
       const { userId, visitorId } = await setupTestUser(2004, 2004);
       const maxTtl = Number.MAX_SAFE_INTEGER;
       
-      const token = await generateRefreshToken(maxTtl, userId, visitorId);
+      const token = await generateRefreshToken(maxTtl, userId);
       
       expect(token.expiresAt.getTime()).toBeGreaterThan(Date.now());
     });
@@ -172,7 +172,7 @@ describe('Refresh Token Rotation - Comprehensive Testing', () => {
 
       // Generate multiple tokens concurrently
       const promises = Array.from({ length: 10 }, () =>
-        generateRefreshToken(ttl, userId, visitorId)
+        generateRefreshToken(ttl, userId)
       );
 
       const tokens = await Promise.all(promises);
@@ -190,7 +190,7 @@ describe('Refresh Token Rotation - Comprehensive Testing', () => {
       const { userId, visitorId } = await setupTestUser(2006, 2006);
       const ttl = 24 * 60 * 60 * 1000;
 
-      const token = await generateRefreshToken(ttl, userId, visitorId);
+      const token = await generateRefreshToken(ttl, userId);
       const result = await verifyRefreshToken(token.raw);
 
       expect(result).toEqual({
@@ -215,7 +215,7 @@ describe('Refresh Token Rotation - Comprehensive Testing', () => {
       const { userId, visitorId } = await setupTestUser(2007, 2007);
       
       // Generate token with very short TTL
-      const token = await generateRefreshToken(1, userId, visitorId); // 1ms TTL
+      const token = await generateRefreshToken(1, userId); // 1ms TTL
       
       // Wait for token to expire
       await new Promise(resolve => setTimeout(resolve, 10));
@@ -230,7 +230,7 @@ describe('Refresh Token Rotation - Comprehensive Testing', () => {
       const { userId, visitorId } = await setupTestUser(2008, 2008);
       const ttl = 24 * 60 * 60 * 1000;
 
-      const token = await generateRefreshToken(ttl, userId, visitorId);
+      const token = await generateRefreshToken(ttl, userId);
       
       // Revoke the token
       await revokeRefreshToken(token.raw);
@@ -267,7 +267,7 @@ describe('Refresh Token Rotation - Comprehensive Testing', () => {
       const ttl = 24 * 60 * 60 * 1000;
 
       // Generate initial token
-      const initialToken = await generateRefreshToken(ttl, userId, visitorId);
+      const initialToken = await generateRefreshToken(ttl, userId);
       
       // Rotate the token
       const result = await rotateRefreshToken(ttl, userId, initialToken.raw);
@@ -295,7 +295,7 @@ describe('Refresh Token Rotation - Comprehensive Testing', () => {
       const { userId, visitorId } = await setupTestUser(2011, 2011);
       
       // Generate expired token
-      const expiredToken = await generateRefreshToken(1, userId, visitorId);
+      const expiredToken = await generateRefreshToken(1, userId);
       await new Promise(resolve => setTimeout(resolve, 10)); // Wait for expiration
       
       const result = await rotateRefreshToken(24 * 60 * 60 * 1000, userId, expiredToken.raw);
@@ -307,7 +307,7 @@ describe('Refresh Token Rotation - Comprehensive Testing', () => {
       const { userId, visitorId } = await setupTestUser(2012, 2012);
       const ttl = 24 * 60 * 60 * 1000;
 
-      const token = await generateRefreshToken(ttl, userId, visitorId);
+      const token = await generateRefreshToken(ttl, userId);
       await revokeRefreshToken(token.raw);
       
       const result = await rotateRefreshToken(ttl, userId, token.raw);
@@ -319,7 +319,7 @@ describe('Refresh Token Rotation - Comprehensive Testing', () => {
       const { userId, visitorId } = await setupTestUser(2013, 2013);
       const ttl = 24 * 60 * 60 * 1000;
 
-      const token = await generateRefreshToken(ttl, userId, visitorId);
+      const token = await generateRefreshToken(ttl, userId);
       
       // Try to rotate using hashed token
       const result = await rotateRefreshToken(ttl, userId, token.hashedToken, true);
@@ -332,7 +332,7 @@ describe('Refresh Token Rotation - Comprehensive Testing', () => {
       const { userId, visitorId } = await setupTestUser(2014, 2014);
       const ttl = 24 * 60 * 60 * 1000;
 
-      const token = await generateRefreshToken(ttl, userId, visitorId);
+      const token = await generateRefreshToken(ttl, userId);
       
       // Attempt multiple concurrent rotations
       const promises = Array.from({ length: 5 }, () =>
@@ -352,7 +352,7 @@ describe('Refresh Token Rotation - Comprehensive Testing', () => {
       const { userId, visitorId } = await setupTestUser(2015, 2015);
       const ttl = 24 * 60 * 60 * 1000;
 
-      const token = await generateRefreshToken(ttl, userId, visitorId);
+      const token = await generateRefreshToken(ttl, userId);
       
       await expect(revokeRefreshToken(token.raw)).resolves.not.toThrow();
       
@@ -372,7 +372,7 @@ describe('Refresh Token Rotation - Comprehensive Testing', () => {
       const { userId, visitorId } = await setupTestUser(2016, 2016);
       const ttl = 24 * 60 * 60 * 1000;
 
-      const token = await generateRefreshToken(ttl, userId, visitorId);
+      const token = await generateRefreshToken(ttl, userId);
       
       // Revoke twice
       await revokeRefreshToken(token.raw);
@@ -402,7 +402,7 @@ describe('Refresh Token Rotation - Comprehensive Testing', () => {
       // Generate maximum allowed sessions
       const tokens = [];
       for (let i = 0; i < maxSessions + 2; i++) {
-        const token = await generateRefreshToken(ttl, userId, visitorId);
+        const token = await generateRefreshToken(ttl, userId);
         tokens.push(token);
       }
 
@@ -420,7 +420,7 @@ describe('Refresh Token Rotation - Comprehensive Testing', () => {
       const ttl = 24 * 60 * 60 * 1000;
 
       // Create initial session
-      const token1 = await generateRefreshToken(ttl, userId, visitorId);
+      const token1 = await generateRefreshToken(ttl, userId);
       expect((await verifyRefreshToken(token1.raw)).valid).toBe(true);
 
       // Rotate token
@@ -446,9 +446,9 @@ describe('Refresh Token Rotation - Comprehensive Testing', () => {
       for (const userId of boundaryUserIds) {
         try {
           const visitorId = userId > 0 ? userId : 1;
-          await setupTestUser(userId, visitorId);
+          await setupTestUser(userId);
           
-          const token = await generateRefreshToken(24 * 60 * 60 * 1000, userId, visitorId);
+          const token = await generateRefreshToken(24 * 60 * 60 * 1000, userId);
           expect(token).toHaveProperty('raw');
           
           const verification = await verifyRefreshToken(token.raw);
@@ -464,7 +464,7 @@ describe('Refresh Token Rotation - Comprehensive Testing', () => {
       const { userId, visitorId } = await setupTestUser(2019, 2019);
       
       // Generate token
-      const token = await generateRefreshToken(24 * 60 * 60 * 1000, userId, visitorId);
+      const token = await generateRefreshToken(24 * 60 * 60 * 1000, userId);
       
       // Try to manually insert duplicate token (should fail due to UNIQUE constraint)
       try {
@@ -486,7 +486,7 @@ describe('Refresh Token Rotation - Comprehensive Testing', () => {
       const { userId, visitorId } = await setupTestUser(2020, 2020);
       const ttl = 24 * 60 * 60 * 1000;
 
-      const token = await generateRefreshToken(ttl, userId, visitorId);
+      const token = await generateRefreshToken(ttl, userId);
       
       // Simulate race condition with immediate concurrent operations
       const operations = [
@@ -515,7 +515,7 @@ describe('Refresh Token Rotation - Comprehensive Testing', () => {
       
       // Generate many tokens rapidly
       const tokenPromises = Array.from({ length: 50 }, () =>
-        generateRefreshToken(ttl, userId, visitorId)
+        generateRefreshToken(ttl, userId)
       );
 
       const tokens = await Promise.all(tokenPromises);
@@ -536,7 +536,7 @@ describe('Refresh Token Rotation - Comprehensive Testing', () => {
 
       // Generate initial tokens
       const initialTokens = await Promise.all(
-        Array.from({ length: 10 }, () => generateRefreshToken(ttl, userId, visitorId))
+        Array.from({ length: 10 }, () => generateRefreshToken(ttl, userId))
       );
 
       // Mixed operations
@@ -559,7 +559,7 @@ describe('Refresh Token Rotation - Comprehensive Testing', () => {
       
       // New generations
       operations.push(...Array.from({ length: 5 }, () => 
-        generateRefreshToken(ttl, userId, visitorId)
+        generateRefreshToken(ttl, userId)
       ));
 
       const results = await Promise.allSettled(operations);
