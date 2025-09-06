@@ -64,15 +64,6 @@ export async function setupTestDatabase() {
     email: {
       resend_key: 'test-resend-key',
       email: 'test@example.com'
-    },
-    mfa: {
-      companyName: 'Test Company',
-      secretKey: 'JBSWY3DPEHPK3PXP',
-      codeLength: 6,
-      ttlInMinutes: 5
-    },
-    frontend: {
-      base_url: 'https://test.example.com'
     }
   });
 }
@@ -87,26 +78,58 @@ export async function teardownTestDatabase() {
 }
 
 export async function setupTestUser(userId: number, visitorId: number) {
-  await promisePool.execute(
-    `INSERT IGNORE INTO users (id, email, password, is_verified, visitor_id) VALUES (?, ?, ?, ?, ?)`,
-    [userId, `test${userId}@example.com`, 'hashed_password', 1, visitorId]
-  );
+  try {
+    await promisePool.execute(
+      `INSERT IGNORE INTO users (id, email, password, is_verified, visitor_id) VALUES (?, ?, ?, ?, ?)`,
+      [userId, `test${userId}@example.com`, 'hashed_password', 1, visitorId]
+    );
+  } catch (error: any) {
+    if (error.code !== 'ER_NO_SUCH_TABLE') {
+      console.warn('Error setting up user:', error.message);
+    }
+  }
   
-  await promisePool.execute(
-    `INSERT IGNORE INTO visitors (id, ip_address, user_agent, fingerprint, created_at) VALUES (?, ?, ?, ?, NOW())`,
-    [visitorId, '192.168.1.1', 'Test-Agent/1.0', 'test-fingerprint', ]
-  );
+  try {
+    await promisePool.execute(
+      `INSERT IGNORE INTO visitors (id, ip_address, user_agent, fingerprint, created_at) VALUES (?, ?, ?, ?, NOW())`,
+      [visitorId, '192.168.1.1', 'Test-Agent/1.0', 'test-fingerprint']
+    );
+  } catch (error: any) {
+    if (error.code !== 'ER_NO_SUCH_TABLE') {
+      console.warn('Error setting up visitor:', error.message);
+    }
+  }
 }
 
 export async function cleanupTestData(userId: number, visitorId: number) {
   // Clean up in reverse order due to foreign key constraints
-  await promisePool.execute(`DELETE FROM refresh_tokens WHERE user_id = ?`, [userId]);
-  await promisePool.execute(`DELETE FROM user_sessions WHERE user_id = ?`, [userId]);
-  await promisePool.execute(`DELETE FROM mfa_codes WHERE user_id = ?`, [userId]);
-  await promisePool.execute(`DELETE FROM temp_links WHERE user_id = ?`, [userId]);
-  await promisePool.execute(`DELETE FROM anomalies WHERE user_id = ?`, [userId]);
-  await promisePool.execute(`DELETE FROM users WHERE id = ?`, [userId]);
-  await promisePool.execute(`DELETE FROM visitors WHERE id = ?`, [visitorId]);
+  // Handle missing tables gracefully
+  const tables = [
+    'refresh_tokens',
+    'user_sessions', 
+    'mfa_codes',
+    'temp_links',
+    'anomalies',
+    'users',
+    'visitors'
+  ];
+  
+  for (const table of tables) {
+    try {
+      if (table === 'users' || table === 'visitors') {
+        const idField = table === 'visitors' ? 'id' : 'id';
+        const id = table === 'visitors' ? visitorId : userId;
+        await promisePool.execute(`DELETE FROM ${table} WHERE ${idField} = ?`, [id]);
+      } else {
+        await promisePool.execute(`DELETE FROM ${table} WHERE user_id = ?`, [userId]);
+      }
+    } catch (error: any) {
+      // Ignore table not found errors
+      if (error.code !== 'ER_NO_SUCH_TABLE') {
+        console.warn(`Error cleaning up table ${table}:`, error.message);
+      }
+    }
+  }
 }
 
 // Mock bot detector for controlled testing
