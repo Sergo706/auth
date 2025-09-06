@@ -9,7 +9,6 @@ import './setup.js';
 
 describe('Error Paths and Unexpected Scenarios', () => {
   test('should handle non-integer user IDs gracefully', () => {
-    // Test with string that could be converted to number
     const userWithStringId: any = {
       id: '123',
       visitor_id: 456,
@@ -24,7 +23,6 @@ describe('Error Paths and Unexpected Scenarios', () => {
   });
 
   test('should handle non-integer visitor IDs gracefully', () => {
-    // Test with string that could be converted to number
     const userWithStringVisitorId: any = {
       id: 123,
       visitor_id: '456',
@@ -55,8 +53,8 @@ describe('Error Paths and Unexpected Scenarios', () => {
 
   test('should handle very large IDs (near overflow)', () => {
     const userWithLargeId: AccessTokenPayload = {
-      id: 2147483647, // Max 32-bit signed integer
-      visitor_id: 9007199254740991, // Max safe integer in JavaScript
+      id: 2147483647, 
+      visitor_id: 9007199254740991, 
       jti: crypto.randomUUID()
     };
 
@@ -108,7 +106,6 @@ describe('Error Paths and Unexpected Scenarios', () => {
     const config = getConfiguration();
     const cache = tokenCache();
     
-    // Create a valid JWT
     const payload = {
       visitor: user.visitor_id,
       roles: []
@@ -122,7 +119,6 @@ describe('Error Paths and Unexpected Scenarios', () => {
       jwtid: user.jti
     });
 
-    // Add to cache to pass cache check
     cache.set(token, { 
       jti: user.jti, 
       visitorId: user.visitor_id, 
@@ -131,7 +127,6 @@ describe('Error Paths and Unexpected Scenarios', () => {
       valid: true 
     });
 
-    // Mock jwt.verify to throw an unexpected error type
     const originalVerify = jwt.verify;
     const mockError = { unexpected: true, message: 'Unknown error' };
     
@@ -144,7 +139,6 @@ describe('Error Paths and Unexpected Scenarios', () => {
       expect(result.valid).toBe(false);
       expect(result.errorType).toBe('Unexpected error type');
     } finally {
-      // Restore original function
       vi.mocked(jwt.verify).mockRestore();
     }
   });
@@ -156,7 +150,6 @@ describe('Error Paths and Unexpected Scenarios', () => {
       jti: crypto.randomUUID()
     };
 
-    // Create token without signature (just header.payload.)
     const header = Buffer.from(JSON.stringify({alg: 'HS512', typ: 'JWT'})).toString('base64url');
     const payload = Buffer.from(JSON.stringify({
       visitor: user.visitor_id,
@@ -167,9 +160,9 @@ describe('Error Paths and Unexpected Scenarios', () => {
       jti: user.jti
     })).toString('base64url');
     
-    const tokenWithoutSignature = `${header}.${payload}.`; // Missing signature
+    const tokenWithoutSignature = `${header}.${payload}.`; 
 
-    // Manually add to cache to bypass cache check
+ 
     const cache = tokenCache();
     cache.set(tokenWithoutSignature, { 
       jti: user.jti, 
@@ -179,7 +172,6 @@ describe('Error Paths and Unexpected Scenarios', () => {
       valid: true 
     });
 
-    // Now verification should reach jwt.verify and catch missing signature
     const result = verifyAccessToken(tokenWithoutSignature);
     expect(result.valid).toBe(false);
     expect(result.errorType).toBe('jwt signature is required');
@@ -194,11 +186,10 @@ describe('Error Paths and Unexpected Scenarios', () => {
 
     const config = getConfiguration();
     
-    // Create payload with very large data
     const largePayload = {
       visitor: user.visitor_id,
-      roles: Array.from({ length: 1000 }, (_, i) => `role${i}`), // 1000 roles
-      customData: 'x'.repeat(10000) // 10KB of data
+      roles: Array.from({ length: 1000 }, (_, i) => `role${i}`),
+      customData: 'x'.repeat(10000) 
     };
 
     const largeToken = jwt.sign(largePayload, config.jwt.jwt_secret_key, {
@@ -210,7 +201,7 @@ describe('Error Paths and Unexpected Scenarios', () => {
       jwtid: user.jti
     });
 
-    // Add to cache
+
     const cache = tokenCache();
     cache.set(largeToken, { 
       jti: user.jti, 
@@ -220,7 +211,6 @@ describe('Error Paths and Unexpected Scenarios', () => {
       valid: true 
     });
 
-    // Should handle large tokens
     const result = verifyAccessToken(largeToken);
     expect(result.valid).toBe(true);
     expect(result.payload?.roles).toHaveLength(1000);
@@ -235,11 +225,11 @@ describe('Error Paths and Unexpected Scenarios', () => {
 
     const config = getConfiguration();
     
-    // Create payload with null/undefined values
+
     const payloadWithNulls = {
       visitor: user.visitor_id,
-      roles: null, // null instead of array
-      customField: undefined // undefined value
+      roles: null, 
+      customField: undefined 
     };
 
     const tokenWithNulls = jwt.sign(payloadWithNulls, config.jwt.jwt_secret_key, {
@@ -251,19 +241,17 @@ describe('Error Paths and Unexpected Scenarios', () => {
       jwtid: user.jti
     });
 
-    // Add to cache with expected roles
     const cache = tokenCache();
     cache.set(tokenWithNulls, { 
       jti: user.jti, 
       visitorId: user.visitor_id, 
       userId: user.id, 
-      roles: [], // Cache expects empty array, but token has null
+      roles: [],
       valid: true 
     });
 
-    // When roles is null and cache expects empty array, validation passes (no roles required)
     const result = verifyAccessToken(tokenWithNulls);
-    expect(result.valid).toBe(true); // This actually passes because null roles with empty cache roles is valid
+    expect(result.valid).toBe(true); 
   });
 
   test('should handle malformed roles and trigger MalformedPayload error', () => {
@@ -275,10 +263,9 @@ describe('Error Paths and Unexpected Scenarios', () => {
 
     const config = getConfiguration();
     
-    // Create payload with malformed roles
     const payloadWithMalformedRoles = {
       visitor: user.visitor_id,
-      roles: 'not-an-array' // String instead of array
+      roles: 'not-an-array'
     };
 
     const tokenWithMalformedRoles = jwt.sign(payloadWithMalformedRoles, config.jwt.jwt_secret_key, {
@@ -290,17 +277,15 @@ describe('Error Paths and Unexpected Scenarios', () => {
       jwtid: user.jti
     });
 
-    // Add to cache with required roles
     const cache = tokenCache();
     cache.set(tokenWithMalformedRoles, { 
       jti: user.jti, 
       visitorId: user.visitor_id, 
       userId: user.id, 
-      roles: ['admin'], // Cache expects admin role
+      roles: ['admin'],
       valid: true 
     });
 
-    // Should handle malformed roles as MalformedPayload
     const result = verifyAccessToken(tokenWithMalformedRoles);
     expect(result.valid).toBe(false);
     expect(result.errorType).toBe('MalformedPayload');
@@ -313,7 +298,6 @@ describe('Error Paths and Unexpected Scenarios', () => {
       jti: crypto.randomUUID()
     };
 
-    // Create a token with 'none' algorithm (security vulnerability attempt)
     const header = Buffer.from(JSON.stringify({alg: 'none', typ: 'JWT'})).toString('base64url');
     const payload = Buffer.from(JSON.stringify({
       visitor: user.visitor_id,
@@ -324,7 +308,7 @@ describe('Error Paths and Unexpected Scenarios', () => {
       jti: user.jti
     })).toString('base64url');
     
-    const noneAlgToken = `${header}.${payload}.`; // No signature with 'none' algorithm
+    const noneAlgToken = `${header}.${payload}.`;
 
     // Manually add to cache to bypass cache check
     const cache = tokenCache();
@@ -336,7 +320,6 @@ describe('Error Paths and Unexpected Scenarios', () => {
       valid: true 
     });
 
-    // Should reject 'none' algorithm - this triggers jwt signature required
     const result = verifyAccessToken(noneAlgToken);
     expect(result.valid).toBe(false);
     expect(result.errorType).toBe('jwt signature is required');
@@ -349,9 +332,6 @@ describe('Error Paths and Unexpected Scenarios', () => {
       jti: crypto.randomUUID()
     };
 
-    // Note: JWT.sign will throw if payload has circular references,
-    // but we can test the aftermath by manually creating such scenarios
-    // This tests the robustness of the verification logic
 
     const token = generateAccessToken(user);
     
@@ -364,20 +344,19 @@ describe('Error Paths and Unexpected Scenarios', () => {
       roles: [], 
       valid: true 
     };
-    circularObj.self = circularObj; // Create circular reference
+    circularObj.self = circularObj; 
 
     cache.set(token, circularObj);
 
-    // Should handle circular references gracefully
     const result = verifyAccessToken(token);
-    expect(result.valid).toBe(true); // The verification logic should still work
+    expect(result.valid).toBe(true);
   });
 
   test('should handle extremely short JTI values', () => {
     const userWithShortJti: AccessTokenPayload = {
       id: 123,
       visitor_id: 456,
-      jti: 'x' // Very short JTI
+      jti: 'x'
     };
 
     const token = generateAccessToken(userWithShortJti);
@@ -391,7 +370,7 @@ describe('Error Paths and Unexpected Scenarios', () => {
     const userWithLongJti: AccessTokenPayload = {
       id: 123,
       visitor_id: 456,
-      jti: 'x'.repeat(1000) // Very long JTI
+      jti: 'x'.repeat(1000)
     };
 
     const token = generateAccessToken(userWithLongJti);

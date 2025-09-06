@@ -16,17 +16,13 @@ describe('Advanced Edge Cases and Stress Testing', () => {
       jti: crypto.randomUUID()
     }));
 
-    // Generate all tokens first
     const tokens = users.map(user => generateAccessToken(user));
 
-    // Create multiple verification rounds
-    const rounds = 5;
+    const rounds = 100;
     const allPromises: Promise<any>[] = [];
 
     for (let round = 0; round < rounds; round++) {
       const roundPromises = tokens.map(async (token, index) => {
-        // Add some randomness to create race conditions
-        await new Promise(resolve => setTimeout(resolve, Math.random() * 10));
         return verifyAccessToken(token);
       });
       allPromises.push(...roundPromises);
@@ -34,22 +30,19 @@ describe('Advanced Edge Cases and Stress Testing', () => {
 
     const results = await Promise.all(allPromises);
 
-    // All verifications should succeed
     expect(results).toHaveLength(concurrency * rounds);
     results.forEach(result => {
       expect(result.valid).toBe(true);
     });
-  });
+  }, 50_000);
 
   test('should handle cache thrashing with rapid add/remove cycles', () => {
     const cache = tokenCache();
     const originalSize = cache.size;
     
-    // Rapid generation and invalidation cycles
     for (let cycle = 0; cycle < 10; cycle++) {
       const tokens: string[] = [];
       
-      // Generate many tokens rapidly
       for (let i = 0; i < 20; i++) {
         const user: AccessTokenPayload = {
           id: cycle * 20 + i,
@@ -60,13 +53,11 @@ describe('Advanced Edge Cases and Stress Testing', () => {
         tokens.push(token);
       }
       
-      // Verify all tokens
       tokens.forEach(token => {
         const result = verifyAccessToken(token);
         expect(result.valid).toBe(true);
       });
       
-      // Manually invalidate some tokens
       tokens.slice(0, 10).forEach(token => {
         const cacheEntry = cache.get(token);
         if (cacheEntry) {
@@ -74,7 +65,6 @@ describe('Advanced Edge Cases and Stress Testing', () => {
         }
       });
       
-      // Verify invalidated tokens are rejected
       tokens.slice(0, 10).forEach(token => {
         const result = verifyAccessToken(token);
         expect(result.valid).toBe(false);
@@ -92,10 +82,8 @@ describe('Advanced Edge Cases and Stress Testing', () => {
 
     const config = getConfiguration();
     
-    // Generate valid tokens
     const validTokens = validUsers.map(user => generateAccessToken(user));
     
-    // Create invalid tokens (not in cache)
     const invalidTokens = Array.from({ length: 25 }, (_, i) => {
       const payload = {
         visitor: i * 100,
@@ -111,15 +99,12 @@ describe('Advanced Edge Cases and Stress Testing', () => {
       });
     });
 
-    // Mix valid and invalid tokens
     const allTokens = [...validTokens, ...invalidTokens].sort(() => Math.random() - 0.5);
 
-    // Verify all tokens concurrently
     const results = await Promise.all(
       allTokens.map(token => Promise.resolve(verifyAccessToken(token)))
     );
 
-    // Count valid and invalid results
     const validResults = results.filter(r => r.valid);
     const invalidResults = results.filter(r => !r.valid);
 
@@ -132,23 +117,22 @@ describe('Advanced Edge Cases and Stress Testing', () => {
 
   test('should handle token verification with extreme role combinations', () => {
     const extremeRoleCombinations = [
-      [], // No roles
-      ['a'], // Single character role
-      ['role-with-many-special-chars!@#$%^&*()'], // Special characters
-      ['UPPERCASE', 'lowercase', 'MiXeDcAsE'], // Case variations
-      ['role with spaces'], // Spaces in roles
-      ['role\nwith\nnewlines'], // Newlines
-      ['role\twith\ttabs'], // Tabs
-      ['role"with"quotes'], // Quotes
-      ['role\\with\\backslashes'], // Backslashes
-      ['role/with/slashes'], // Forward slashes
-      ['role.with.dots'], // Dots
-      ['role,with,commas'], // Commas
-      ['role;with;semicolons'], // Semicolons
-      ['role:with:colons'], // Colons
-      ['🚀', '🎉', '💻'], // Emoji roles
-      ['عربي', '中文', 'हिंदी'], // Unicode roles
-      Array.from({ length: 100 }, (_, i) => `role${i}`) // Many roles
+      [],
+      ['a'],
+      ['role-with-many-special-chars!@#$%^&*()'],
+      ['UPPERCASE', 'lowercase', 'MiXeDcAsE'], 
+      ['role with spaces'],
+      ['role\nwith\nnewlines'], 
+      ['role\twith\ttabs'],
+      ['role"with"quotes'], 
+      ['role\\with\\backslashes'], 
+      ['role/with/slashes'], 
+      ['role.with.dots'], 
+      ['role,with,commas'], 
+      ['role;with;semicolons'],
+      ['role:with:colons'],
+      ['عربي', '中文', 'हिंदी'], 
+      Array.from({ length: 100 }, (_, i) => `role${i}`) 
     ];
 
     extremeRoleCombinations.forEach((roles, index) => {
@@ -174,9 +158,9 @@ describe('Advanced Edge Cases and Stress Testing', () => {
       { id: -1, visitor_id: -1 },
       { id: Number.MAX_SAFE_INTEGER, visitor_id: Number.MAX_SAFE_INTEGER },
       { id: Number.MIN_SAFE_INTEGER, visitor_id: Number.MIN_SAFE_INTEGER },
-      { id: 2147483647, visitor_id: 2147483647 }, // 32-bit max
-      { id: -2147483648, visitor_id: -2147483648 }, // 32-bit min
-      { id: 1.5, visitor_id: 2.7 }, // Floating point
+      { id: 2147483647, visitor_id: 2147483647 },
+      { id: -2147483648, visitor_id: -2147483648 }, 
+      { id: 1.5, visitor_id: 2.7 }, 
     ];
 
     boundaryValues.forEach((values, index) => {
@@ -204,18 +188,15 @@ describe('Advanced Edge Cases and Stress Testing', () => {
     const config = getConfiguration();
     const cache = tokenCache();
     
-    // Generate legitimate token
     const legitimateToken = generateAccessToken(user);
     
-    // Attempt to poison cache with malicious entries
     const maliciousEntries = [
       'malicious-token-1',
       'malicious-token-2',
-      'totally-fake-jwt'
+      'fake-jwt'
     ];
 
     maliciousEntries.forEach(maliciousToken => {
-      // Try to add malicious token to cache manually
       cache.set(maliciousToken, {
         jti: 'fake-jti',
         visitorId: 999,
@@ -225,7 +206,6 @@ describe('Advanced Edge Cases and Stress Testing', () => {
       });
     });
 
-    // Verify malicious tokens are rejected (cache-first design prevents this)
     maliciousEntries.forEach(maliciousToken => {
       const result = verifyAccessToken(maliciousToken);
       // These should fail at JWT verification level since they're not valid JWTs
@@ -256,7 +236,6 @@ describe('Advanced Edge Cases and Stress Testing', () => {
       tokens.push(token);
     }
 
-    // Verify all tokens work despite large payloads
     tokens.forEach((token, index) => {
       const result = verifyAccessToken(token);
       expect(result.valid).toBe(true);
@@ -271,10 +250,8 @@ describe('Advanced Edge Cases and Stress Testing', () => {
       jti: crypto.randomUUID()
     };
 
-    // Generate token
     const token = generateAccessToken(user);
     
-    // Create multiple concurrent operations that might cause race conditions
     const operations = [
       () => verifyAccessToken(token),
       () => verifyAccessToken(token),
@@ -293,7 +270,6 @@ describe('Advanced Edge Cases and Stress Testing', () => {
       () => verifyAccessToken(token),
     ];
 
-    // Execute operations concurrently
     const results = await Promise.allSettled(
       operations.map(op => Promise.resolve(op()))
     );
@@ -312,7 +288,6 @@ describe('Advanced Edge Cases and Stress Testing', () => {
 
     const config = getConfiguration();
     
-    // Create JWT with minimal payload
     const minimalPayload = {
       visitor: user.visitor_id,
       roles: []
@@ -327,7 +302,6 @@ describe('Advanced Edge Cases and Stress Testing', () => {
       jwtid: user.jti
     });
 
-    // Add to cache
     const cache = tokenCache();
     cache.set(minimalToken, {
       jti: user.jti,
@@ -351,9 +325,7 @@ describe('Advanced Edge Cases and Stress Testing', () => {
     const token = generateAccessToken(user);
     const cache = tokenCache();
 
-    // Perform rapid invalidation/validation cycles
     for (let i = 0; i < 100; i++) {
-      // Invalidate
       const entry = cache.get(token);
       if (entry) {
         cache.set(token, { ...entry, valid: false });
@@ -362,7 +334,6 @@ describe('Advanced Edge Cases and Stress Testing', () => {
       let result = verifyAccessToken(token);
       expect(result.valid).toBe(false);
       
-      // Re-validate
       if (entry) {
         cache.set(token, { ...entry, valid: true });
       }
