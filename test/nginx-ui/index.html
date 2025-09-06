@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JWT Auth Testing Interface</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button.danger {
+            background-color: #dc3545;
+        }
+        button.danger:hover {
+            background-color: #c82333;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        .section {
+            margin-bottom: 40px;
+            padding: 20px;
+            border: 1px solid #eee;
+            border-radius: 6px;
+        }
+        .section h2 {
+            margin-top: 0;
+            color: #495057;
+        }
+        .attack-warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 JWT Auth Library - Security Testing Interface</h1>
+        
+        <div class="section">
+            <h2>👤 User Authentication</h2>
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" value="test@example.com" placeholder="Enter email address">
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" value="TestPassword123!" placeholder="Enter password">
+            </div>
+            <div class="form-group">
+                <label for="userAgent">User Agent:</label>
+                <input type="text" id="userAgent" placeholder="Will be auto-detected">
+            </div>
+            <button onclick="login()">🔑 Login</button>
+            <button onclick="signup()">📝 Sign Up</button>
+            <button onclick="logout()">🚪 Logout</button>
+        </div>
+
+        <div class="section">
+            <h2>🎯 Security Testing</h2>
+            <div class="attack-warning">
+                ⚠️ <strong>Warning:</strong> These tests are for security validation only. Use responsibly.
+            </div>
+            
+            <div class="form-group">
+                <label for="xssPayload">XSS Payload Testing:</label>
+                <textarea id="xssPayload" rows="3" placeholder="Enter XSS payload to test">&lt;script&gt;alert('XSS Test')&lt;/script&gt;</textarea>
+            </div>
+            <button onclick="testXSS()" class="danger">🚨 Test XSS Protection</button>
+            
+            <div class="form-group">
+                <label for="botUserAgent">Bot Detection Testing:</label>
+                <select id="botUserAgent">
+                    <option value="">Select Bot User Agent</option>
+                    <option value="Googlebot/2.1 (+http://www.google.com/bot.html)">Googlebot</option>
+                    <option value="Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)">Bingbot</option>
+                    <option value="python-requests/2.25.1">Python Requests</option>
+                    <option value="curl/7.68.0">cURL</option>
+                    <option value="AttackBot/1.0">Custom Attack Bot</option>
+                </select>
+            </div>
+            <button onclick="testBotDetection()" class="danger">🤖 Test Bot Detection</button>
+            
+            <button onclick="testReplayAttack()" class="danger">🔄 Test Replay Attack</button>
+            <button onclick="testAnomalies()" class="danger">🔍 Test Anomaly Detection</button>
+        </div>
+
+        <div class="section">
+            <h2>🔐 Token Management</h2>
+            <div class="form-group">
+                <label for="refreshToken">Refresh Token:</label>
+                <textarea id="refreshToken" rows="2" placeholder="Current refresh token (auto-populated after login)"></textarea>
+            </div>
+            <button onclick="rotateToken()">🔄 Rotate Token</button>
+            <button onclick="verifyToken()">✅ Verify Token</button>
+            <button onclick="revokeToken()" class="danger">❌ Revoke Token</button>
+        </div>
+
+        <div class="section">
+            <h2>🛡️ MFA Testing</h2>
+            <div class="form-group">
+                <label for="mfaCode">MFA Code:</label>
+                <input type="text" id="mfaCode" placeholder="Enter 7-digit MFA code" maxlength="7">
+            </div>
+            <button onclick="requestMFA()">📨 Request MFA Code</button>
+            <button onclick="verifyMFA()">🔐 Verify MFA Code</button>
+        </div>
+
+        <div class="section">
+            <h2>🧪 Advanced Testing</h2>
+            <div class="form-group">
+                <label for="customPayload">Custom Payload:</label>
+                <textarea id="customPayload" rows="4" placeholder="Enter custom test payload"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="testCount">Number of Requests:</label>
+                <input type="number" id="testCount" value="10" min="1" max="1000">
+            </div>
+            <button onclick="stressTest()">⚡ Stress Test</button>
+            <button onclick="timingAttack()">⏱️ Timing Attack Test</button>
+            <button onclick="bruteForce()" class="danger">💥 Brute Force Test</button>
+        </div>
+
+        <div id="results"></div>
+    </div>
+
+    <script>
+        let currentTokens = null;
+        let currentUser = null;
+
+        // Auto-detect user agent
+        document.getElementById('userAgent').value = navigator.userAgent;
+
+        function displayResult(message, type = 'info') {
+            const resultsDiv = document.getElementById('results');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `result ${type}`;
+            resultDiv.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            resultsDiv.appendChild(resultDiv);
+            resultsDiv.scrollTop = resultsDiv.scrollHeight;
+        }
+
+        function makeRequest(endpoint, method = 'POST', data = {}) {
+            const url = `http://localhost:3000${endpoint}`;
+            const options = {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'User-Agent': document.getElementById('userAgent').value || navigator.userAgent
+                },
+                credentials: 'include'
+            };
+
+            if (method !== 'GET') {
+                options.body = JSON.stringify(data);
+            }
+
+            return fetch(url, options)
+                .then(response => response.json())
+                .catch(error => {
+                    displayResult(`Network Error: ${error.message}`, 'error');
+                    return { error: error.message };
+                });
+        }
+
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            displayResult('Attempting login...', 'info');
+            
+            const result = await makeRequest('/auth/login', 'POST', { email, password });
+            
+            if (result.error) {
+                displayResult(`Login failed: ${result.error}`, 'error');
+            } else {
+                displayResult('Login successful!', 'success');
+                currentTokens = result.tokens;
+                currentUser = result.user;
+                if (result.refreshToken) {
+                    document.getElementById('refreshToken').value = result.refreshToken;
+                }
+                displayResult(`Tokens received: ${JSON.stringify(result, null, 2)}`, 'success');
+            }
+        }
+
+        async function signup() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            displayResult('Attempting signup...', 'info');
+            
+            const result = await makeRequest('/auth/signup', 'POST', { 
+                email, 
+                password,
+                name: 'Test',
+                lastName: 'User'
+            });
+            
+            if (result.error) {
+                displayResult(`Signup failed: ${result.error}`, 'error');
+            } else {
+                displayResult('Signup successful!', 'success');
+                displayResult(`Response: ${JSON.stringify(result, null, 2)}`, 'success');
+            }
+        }
+
+        async function logout() {
+            displayResult('Logging out...', 'info');
+            
+            const result = await makeRequest('/auth/logout', 'POST');
+            
+            currentTokens = null;
+            currentUser = null;
+            document.getElementById('refreshToken').value = '';
+            displayResult('Logged out successfully', 'success');
+        }
+
+        async function testXSS() {
+            const payload = document.getElementById('xssPayload').value;
+            
+            displayResult(`Testing XSS protection with payload: ${payload}`, 'info');
+            
+            // Test in various fields
+            const testFields = [
+                { endpoint: '/auth/login', field: 'email', value: payload },
+                { endpoint: '/auth/login', field: 'password', value: payload },
+                { endpoint: '/auth/signup', field: 'name', value: payload }
+            ];
+
+            for (const test of testFields) {
+                const data = { [test.field]: test.value };
+                const result = await makeRequest(test.endpoint, 'POST', data);
+                displayResult(`XSS test on ${test.field}: ${JSON.stringify(result)}`, 'info');
+            }
+        }
+
+        async function testBotDetection() {
+            const botUA = document.getElementById('botUserAgent').value;
+            if (!botUA) {
+                displayResult('Please select a bot user agent', 'error');
+                return;
+            }
+
+            const originalUA = document.getElementById('userAgent').value;
+            document.getElementById('userAgent').value = botUA;
+
+            displayResult(`Testing bot detection with User Agent: ${botUA}`, 'info');
+            
+            const result = await makeRequest('/auth/login', 'POST', {
+                email: 'bot@test.com',
+                password: 'botpassword'
+            });
+
+            displayResult(`Bot detection result: ${JSON.stringify(result)}`, 'info');
+            
+            document.getElementById('userAgent').value = originalUA;
+        }
+
+        async function testReplayAttack() {
+            const token = document.getElementById('refreshToken').value;
+            if (!token) {
+                displayResult('No refresh token available for replay test', 'error');
+                return;
+            }
+
+            displayResult('Testing replay attack protection...', 'info');
+
+            // Try to use the same token multiple times rapidly
+            const promises = [];
+            for (let i = 0; i < 5; i++) {
+                promises.push(makeRequest('/token/rotate', 'POST', { token }));
+            }
+
+            const results = await Promise.all(promises);
+            displayResult(`Replay attack test results:`, 'info');
+            results.forEach((result, index) => {
+                displayResult(`Request ${index + 1}: ${JSON.stringify(result)}`, 'info');
+            });
+        }
+
+        async function testAnomalies() {
+            displayResult('Testing anomaly detection...', 'info');
+
+            // Simulate suspicious patterns
+            const tests = [
+                { description: 'Rapid location change', lat: '40.7128', lon: '-74.0060' },
+                { description: 'Different country', lat: '35.6762', lon: '139.6503' },
+                { description: 'Suspicious IP range', ip: '10.0.0.1' }
+            ];
+
+            for (const test of tests) {
+                const result = await makeRequest('/auth/verify-anomaly', 'POST', test);
+                displayResult(`${test.description}: ${JSON.stringify(result)}`, 'info');
+            }
+        }
+
+        async function rotateToken() {
+            const token = document.getElementById('refreshToken').value;
+            if (!token) {
+                displayResult('No refresh token to rotate', 'error');
+                return;
+            }
+
+            displayResult('Rotating refresh token...', 'info');
+            
+            const result = await makeRequest('/token/rotate', 'POST', { token });
+            
+            if (result.newToken) {
+                document.getElementById('refreshToken').value = result.newToken;
+                displayResult('Token rotated successfully', 'success');
+                displayResult(`New token: ${result.newToken}`, 'success');
+            } else {
+                displayResult(`Token rotation failed: ${JSON.stringify(result)}`, 'error');
+            }
+        }
+
+        async function verifyToken() {
+            const token = document.getElementById('refreshToken').value;
+            if (!token) {
+                displayResult('No token to verify', 'error');
+                return;
+            }
+
+            displayResult('Verifying token...', 'info');
+            
+            const result = await makeRequest('/token/verify', 'POST', { token });
+            displayResult(`Token verification: ${JSON.stringify(result, null, 2)}`, 'info');
+        }
+
+        async function revokeToken() {
+            const token = document.getElementById('refreshToken').value;
+            if (!token) {
+                displayResult('No token to revoke', 'error');
+                return;
+            }
+
+            displayResult('Revoking token...', 'info');
+            
+            const result = await makeRequest('/token/revoke', 'POST', { token });
+            
+            if (result.success) {
+                document.getElementById('refreshToken').value = '';
+                displayResult('Token revoked successfully', 'success');
+            } else {
+                displayResult(`Token revocation failed: ${JSON.stringify(result)}`, 'error');
+            }
+        }
+
+        async function requestMFA() {
+            displayResult('Requesting MFA code...', 'info');
+            
+            const result = await makeRequest('/auth/mfa/request', 'POST');
+            displayResult(`MFA request result: ${JSON.stringify(result, null, 2)}`, 'info');
+        }
+
+        async function verifyMFA() {
+            const code = document.getElementById('mfaCode').value;
+            if (!code) {
+                displayResult('Please enter MFA code', 'error');
+                return;
+            }
+
+            displayResult('Verifying MFA code...', 'info');
+            
+            const result = await makeRequest('/auth/mfa/verify', 'POST', { code });
+            displayResult(`MFA verification result: ${JSON.stringify(result, null, 2)}`, 'info');
+        }
+
+        async function stressTest() {
+            const count = parseInt(document.getElementById('testCount').value);
+            const payload = document.getElementById('customPayload').value || 'stress test';
+
+            displayResult(`Starting stress test with ${count} requests...`, 'info');
+            
+            const startTime = Date.now();
+            const promises = [];
+
+            for (let i = 0; i < count; i++) {
+                promises.push(makeRequest('/auth/health', 'GET'));
+            }
+
+            const results = await Promise.all(promises);
+            const endTime = Date.now();
+            const duration = endTime - startTime;
+            
+            const successful = results.filter(r => !r.error).length;
+            const failed = results.length - successful;
+
+            displayResult(`Stress test completed in ${duration}ms`, 'info');
+            displayResult(`Successful: ${successful}, Failed: ${failed}`, 'info');
+            displayResult(`Average response time: ${duration / count}ms`, 'info');
+        }
+
+        async function timingAttack() {
+            displayResult('Testing timing attack resistance...', 'info');
+
+            const validEmail = 'valid@example.com';
+            const invalidEmail = 'invalid@example.com';
+            const password = 'testpassword';
+
+            const timings = [];
+
+            // Test valid email
+            for (let i = 0; i < 5; i++) {
+                const start = Date.now();
+                await makeRequest('/auth/login', 'POST', { email: validEmail, password });
+                timings.push({ type: 'valid', time: Date.now() - start });
+            }
+
+            // Test invalid email
+            for (let i = 0; i < 5; i++) {
+                const start = Date.now();
+                await makeRequest('/auth/login', 'POST', { email: invalidEmail, password });
+                timings.push({ type: 'invalid', time: Date.now() - start });
+            }
+
+            const validAvg = timings.filter(t => t.type === 'valid').reduce((sum, t) => sum + t.time, 0) / 5;
+            const invalidAvg = timings.filter(t => t.type === 'invalid').reduce((sum, t) => sum + t.time, 0) / 5;
+
+            displayResult(`Timing attack test results:`, 'info');
+            displayResult(`Valid email average: ${validAvg}ms`, 'info');
+            displayResult(`Invalid email average: ${invalidAvg}ms`, 'info');
+            displayResult(`Timing difference: ${Math.abs(validAvg - invalidAvg)}ms`, 'info');
+        }
+
+        async function bruteForce() {
+            const email = document.getElementById('email').value;
+            const attempts = parseInt(document.getElementById('testCount').value);
+
+            displayResult(`Starting brute force test with ${attempts} attempts...`, 'info');
+
+            let successful = 0;
+            let blocked = 0;
+
+            for (let i = 0; i < attempts; i++) {
+                const password = `attempt${i}`;
+                const result = await makeRequest('/auth/login', 'POST', { email, password });
+                
+                if (result.success) {
+                    successful++;
+                } else if (result.error && result.error.includes('rate limit')) {
+                    blocked++;
+                    displayResult(`Rate limited after ${i + 1} attempts`, 'info');
+                    break;
+                }
+
+                // Small delay to avoid overwhelming the server
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+
+            displayResult(`Brute force test completed:`, 'info');
+            displayResult(`Successful: ${successful}, Blocked: ${blocked}`, 'info');
+        }
+
+        // Display initial message
+        displayResult('JWT Auth Security Testing Interface initialized. Ready for testing.', 'success');
+        displayResult('Note: This interface requires a JWT auth server running on localhost:3000', 'info');
+    </script>
+</body>
+</html>
