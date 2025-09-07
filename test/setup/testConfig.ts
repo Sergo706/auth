@@ -130,8 +130,8 @@ export async function createTestUser(email: string = 'test@example.com'): Promis
     const visitorId = visitorResult.insertId;
 
     const [userResult] = await mainPool.execute<mysql2.ResultSetHeader>(
-      'INSERT INTO users (email, password_hash, visitor_id) VALUES (?, ?, ?)',
-      [email, 'test-password-hash', visitorId]
+      'INSERT INTO users (name, last_name, email, password_hash, visitor_id) VALUES (?, ?, ?, ?, ?)',
+      ['John', 'Doe', email, 'test-password-hash', visitorId]
     );
 
     return userResult.insertId;
