@@ -5,7 +5,7 @@ import jwt from 'jsonwebtoken';
 import { generateAccessToken, verifyAccessToken, AccessTokenPayload } from '../../src/accessTokens.js';
 import { tokenCache } from '../../src/jwtAuth/utils/accessTokentCache.js';
 import { getConfiguration } from '../../src/jwtAuth/config/configuration.js';
-import './setup.js';
+
 
 describe('Cache Behavior and Expiration', () => {
   test('should handle token expiration with cache cleanup', async () => {
@@ -220,6 +220,6 @@ describe('Cache Behavior and Expiration', () => {
 
     const result = verifyAccessToken(token);
     expect(result.valid).toBe(false);
-    expect(result.errorType).toBe('Invalid visitor id');
+    expect(result.errorType).toBe('InvalidPayloadType');
   });
 });

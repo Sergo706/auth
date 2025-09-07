@@ -3,7 +3,6 @@ import crypto from 'node:crypto';
 import jwt from 'jsonwebtoken';
 import * as configuration from '../../src/jwtAuth/config/configuration.js';
 import { generateAccessToken, verifyAccessToken, AccessTokenPayload } from '../../src/accessTokens.js';
-import './setup.js';
 import { tokenCache, TokenCacheEntry } from '../../src/jwtAuth/utils/accessTokentCache.js';
 
 describe('Security Tests', () => {

@@ -3,7 +3,7 @@ import crypto from 'node:crypto';
 import jwt from 'jsonwebtoken';
 
 import { generateAccessToken, AccessTokenPayload } from '../../src/accessTokens.js';
-import './setup.js';
+import { getConfiguration } from '../../src/jwtAuth/config/configuration.js';
 
 describe('generateAccessToken', () => {
   test('should generate a valid JWT access token with required claims', () => {
@@ -13,7 +13,7 @@ describe('generateAccessToken', () => {
       jti: crypto.randomUUID()
     };
 
-  
+    const config = getConfiguration();
     const token = generateAccessToken(user);
 
     expect(token).toMatch(/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/);
@@ -24,8 +24,8 @@ describe('generateAccessToken', () => {
     expect(decoded.payload.sub).toBe(user.id.toString());
     expect(decoded.payload.jti).toBe(user.jti);
     expect(decoded.payload.roles).toEqual([]);
-    expect(decoded.payload.aud).toBe('example.com');
-    expect(decoded.payload.iss).toBe('example.com');
+    expect(decoded.payload.aud).toBe(config.jwt.access_tokens.audience ?? config.jwt.refresh_tokens.domain);
+    expect(decoded.payload.iss).toBe(config.jwt.access_tokens.audience ?? config.jwt.refresh_tokens.domain);
   });
 
   test('should generate token with custom roles', () => {

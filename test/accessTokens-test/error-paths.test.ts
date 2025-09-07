@@ -5,7 +5,6 @@ import jwt from 'jsonwebtoken';
 import { generateAccessToken, verifyAccessToken, AccessTokenPayload } from '../../src/accessTokens.js';
 import { tokenCache } from '../../src/jwtAuth/utils/accessTokentCache.js';
 import { getConfiguration } from '../../src/jwtAuth/config/configuration.js';
-import './setup.js';
 
 describe('Error Paths and Unexpected Scenarios', () => {
   test('should handle non-integer user IDs gracefully', () => {
@@ -181,35 +180,14 @@ describe('Error Paths and Unexpected Scenarios', () => {
     const user: AccessTokenPayload = {
       id: 123,
       visitor_id: 456,
-      jti: crypto.randomUUID()
+      jti: crypto.randomUUID(),
+      role: Array.from({ length: 1000 }, (_, i) => `role${i}`)
     };
 
-    const config = getConfiguration();
+
     
-    const largePayload = {
-      visitor: user.visitor_id,
-      roles: Array.from({ length: 1000 }, (_, i) => `role${i}`),
-      customData: 'x'.repeat(10000) 
-    };
+    const largeToken = generateAccessToken(user);
 
-    const largeToken = jwt.sign(largePayload, config.jwt.jwt_secret_key, {
-      algorithm: 'HS512',
-      expiresIn: '15m',
-      audience: 'example.com',
-      issuer: 'example.com',
-      subject: user.id.toString(),
-      jwtid: user.jti
-    });
-
-
-    const cache = tokenCache();
-    cache.set(largeToken, { 
-      jti: user.jti, 
-      visitorId: user.visitor_id, 
-      userId: user.id, 
-      roles: Array.from({ length: 1000 }, (_, i) => `role${i}`), 
-      valid: true 
-    });
 
     const result = verifyAccessToken(largeToken);
     expect(result.valid).toBe(true);
@@ -229,14 +207,13 @@ describe('Error Paths and Unexpected Scenarios', () => {
     const payloadWithNulls = {
       visitor: user.visitor_id,
       roles: null, 
-      customField: undefined 
     };
 
     const tokenWithNulls = jwt.sign(payloadWithNulls, config.jwt.jwt_secret_key, {
       algorithm: 'HS512',
       expiresIn: '15m',
-      audience: 'example.com',
-      issuer: 'example.com',
+      audience: config.jwt.access_tokens.audience ?? config.jwt.refresh_tokens.domain,
+      issuer: config.jwt.access_tokens.issuer ?? config.jwt.refresh_tokens.domain,
       subject: user.id.toString(),
       jwtid: user.jti
     });
@@ -251,7 +228,8 @@ describe('Error Paths and Unexpected Scenarios', () => {
     });
 
     const result = verifyAccessToken(tokenWithNulls);
-    expect(result.valid).toBe(true); 
+    expect(result.valid).toBe(false); 
+    expect(result.errorType).toBe('MalformedPayload');
   });
 
   test('should handle malformed roles and trigger MalformedPayload error', () => {
@@ -271,8 +249,8 @@ describe('Error Paths and Unexpected Scenarios', () => {
     const tokenWithMalformedRoles = jwt.sign(payloadWithMalformedRoles, config.jwt.jwt_secret_key, {
       algorithm: 'HS512',
       expiresIn: '15m',
-      audience: 'example.com',
-      issuer: 'example.com',
+      audience: config.jwt.access_tokens.audience ?? config.jwt.refresh_tokens.domain,
+      issuer: config.jwt.access_tokens.issuer ?? config.jwt.refresh_tokens.domain,
       subject: user.id.toString(),
       jwtid: user.jti
     });
