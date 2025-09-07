@@ -26,21 +26,15 @@ This is `@riavzon/jwtauth`, a comprehensive JWT authentication library for Node.
 - **Node.js:** v20.19.4 and npm v10.8.2 (meets all requirements)
 
 These tools are ready to use without additional installation steps.
-
+Password for your mysql is 1234 user is root.
 ### Installation & Setup
-**ENVIRONMENT-DEPENDENT:** The repository has a git+ssh dependency that may cause npm install to hang in some CI environments:
+**ENVIRONMENT-DEPENDENT:** The repository has a git+ssh dependency:
 
 ```bash
 # Standard installation (usually works)
 npm install
-
-# If npm install hangs (environment-specific issue), try:
-timeout 300 npm install || echo "Install may have timed out, check node_modules"
 ```
 
-**Common Issue:** The `@riavzon/botdetector` dependency uses `git+ssh://git@github.com:Sergo706/botDetector.git#main` which requires SSH access and may hang in sandboxed environments. This is environment-dependent - many environments work fine.
-
-**Important:** Do NOT use `npm install --omit=optional` as this excludes required TypeScript dependencies and will cause build failures.
 
 ### Core Build Commands
 
@@ -58,6 +52,8 @@ npm run test
 
 # 4. Generate documentation
 npm run docs:start
+# 5. Generate tests with coverage
+npm run test:coverage
 ```
 
 ### Build Process Details
@@ -91,9 +87,11 @@ npm run test
 ```
 
 **Test Environment Notes:**
-- Uses Vitest v3.2.4 as test runner (no explicit config file - uses Vitest defaults)
-- Tests are minimal - single test file: `tests/jwts.test.ts` (JWT token generation/verification)
-- No database setup required for basic tests
+- Uses Vitest v3.2.4 as test runner (Use the default configurations changes the your env to suite the your mysql for tests)
+
+- Tests should be breaked into folders a minimal files check the structure for an example
+- Test should be configured globally check the strcuture for an example
+- Test needs to be configured with database
 - **Configuration Required:** Tests fail without library configuration (expected behavior - not a bug)
 - **Dependency Issue:** Tests may fail without `npm install` due to missing imports
 
@@ -142,6 +140,9 @@ src/
 - **`package.json`:** Build scripts and dependencies
 - **`typedoc.json`:** Documentation generation
 - **`.vitepress/config.ts`:** Documentation site configuration
+- **`.vitest.config.ts`:** Test configuration
+- **`test/setup/*`:** Test configuration functions hooks and helpers.
+
 
 ### Linting & Code Quality
 - **No root-level linting configuration** - no ESLint, Prettier, or other linting tools configured at project level
