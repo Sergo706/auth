@@ -2,6 +2,7 @@ import jwt, { JwtPayload, SignOptions } from 'jsonwebtoken';
 import { getLogger } from './jwtAuth/utils/logger.js';
 import { getConfiguration } from './jwtAuth/config/configuration.js';
 import { tokenCache } from './jwtAuth/utils/accessTokentCache.js';
+import { compareRoles } from './jwtAuth/utils/compareRoles.js';
 
 const { TokenExpiredError, JsonWebTokenError } = jwt;
 
@@ -86,7 +87,7 @@ const log = getLogger().child({service: 'auth', branch: 'access token'})
 
   const cache = tokenCache().get(token);
 
-  if (!cache || !cache.valid) {
+  if (!cache || cache.valid !== true) {
       log.warn('InvalidPayloadType')
       log.warn(`Verify access token returned on missing cache/invalid cache`)
       return { valid: false, errorType: "InvalidPayloadType" };
@@ -114,30 +115,12 @@ const log = getLogger().child({service: 'auth', branch: 'access token'})
     const provided = check.roles as string[];
     const requiredRoles = cache.roles; 
 
-    if (provided && requiredRoles && requiredRoles.length > 0) {
-      if (
-        !Array.isArray(provided) ||
-        !Array.isArray(requiredRoles) ||
-        !provided.every((r: any) => typeof r === 'string') ||
-        !requiredRoles.every((r: any) => typeof r === 'string')
-        ) {
-            log.error({ roles: provided }, 'Malformed roles claim');
-           return { valid: false, errorType: 'MalformedPayload' };
-        }
-        const missing = requiredRoles.filter(r => !provided.includes(r));
+    const compare = compareRoles(requiredRoles, provided, log);
 
-        if (missing.length > 0) {
-          log.error( { required: requiredRoles, provided: provided, missing }, 'Roles mismatch');
-          return { valid: false, errorType: 'InvalidRoles' };
-        }
-        const extras = provided.filter(r => !requiredRoles.includes(r));
-        if (extras.length > 0) {
-          log.error({ extras }, 'Unexpected roles');
-          return { valid: false, errorType: 'InvalidRoles' };
-        }
+    if (!compare.valid) {
+      return {valid: false, errorType: compare.errorType}
     }
   
-
     log.info({check},`access token verified:`)
     return {valid: true, payload: check };
 

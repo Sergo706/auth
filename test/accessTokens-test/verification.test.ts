@@ -3,7 +3,6 @@ import crypto from 'node:crypto';
 import jwt from 'jsonwebtoken';
 
 import { generateAccessToken, verifyAccessToken, AccessTokenPayload } from '../../src/accessTokens.js';
-import './setup.js';
 
 describe('verifyAccessToken', () => {
   test('should verify a valid token successfully', () => {
@@ -12,7 +11,7 @@ describe('verifyAccessToken', () => {
       visitor_id: 456,
       jti: crypto.randomUUID()
     };
-
+    
     const token = generateAccessToken(user);
     const result = verifyAccessToken(token);
 

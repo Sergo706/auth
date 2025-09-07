@@ -70,6 +70,8 @@ log.info({userId},'generating and rotating new refresh tokens...')
             WHERE 
               token = ?
               AND user_id = ?
+              AND valid = 1
+              AND expiresAt > NOW()
             `,[hashedToken, expiresAt, oldHashedClientToken, userId]); 
            
         if (rotate.affectedRows !== 1) {
@@ -181,22 +183,41 @@ const [info] = await conn.execute<ResultSetHeader>(
      AND usage_count = 0`,          
   [hashedClientToken]
 );
-// Means the info satement didnt satisfied. token is NOT valid, token didnt found, and usage count is > 0
+
+// Means the info satement didnt satisfied. token is NOT valid, token didnt found, or usage count is > 0
 if (info.affectedRows === 0) {
+    // Find out why
+    const [rows] = await conn.execute<RowDataPacket[]>('SELECT valid, user_id, usage_count FROM refresh_tokens WHERE token = ?', [hashedClientToken]);
+
+    if (rows.length === 0) {
+        await conn.commit();
+         strictAuth.warn('A non-existent refresh token was presented.');
+        return { valid: false, reason: 'Token not found' };
+    }
+    const tokenStatus = rows[0];
+
+    if (!tokenStatus.valid) {
+        await conn.commit();
+        strictAuth.warn({userId: tokenStatus.user_id}, 'A revoked refresh token was used.');
+        return { valid: false, reason: 'Token has been revoked' };
+    }
+
+ if (tokenStatus.usage_count > 0) {
+    strictAuth.warn({userId: tokenStatus.user_id}, 'A second use of a refresh token was detected. Revoking all sessions.');
+
   const [revokeAllClientsTokens] = await conn.execute<ResultSetHeader>(`
     UPDATE refresh_tokens
         SET valid = 0
-    WHERE user_id = (
-        SELECT user_id FROM refresh_tokens
-        WHERE token = ?
-        LIMIT 1
-    )
-    AND user_id IS NOT NULL`
-    ,[hashedClientToken]);
+        WHERE user_id = ? `
+    ,[tokenStatus.user_id]);
+
+    await conn.commit();
+    return { valid: false, reason: 'Token already used, Please login again' };
+}
 
   await conn.commit();
-  strictAuth.info('Token already been used, aborted')
-  return { valid: false, reason: 'Token already used, Please login again' };
+  strictAuth.error({userId: tokenStatus.userId},'Invalid token - unexpected results.')
+  return { valid: false, reason: 'Invalid token' };
 }
     
         const [rows]  = await conn.execute<RowDataPacket[]>

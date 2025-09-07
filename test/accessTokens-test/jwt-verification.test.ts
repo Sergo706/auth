@@ -5,7 +5,6 @@ import jwt from 'jsonwebtoken';
 import { generateAccessToken, verifyAccessToken, AccessTokenPayload } from '../../src/accessTokens.js';
 import { tokenCache } from '../../src/jwtAuth/utils/accessTokentCache.js';
 import { getConfiguration } from '../../src/jwtAuth/config/configuration.js';
-import './setup.js';
 
 describe('JWT Verification Branch Coverage', () => {
   test('should reach jwt.verify and catch invalid signature after cache hit', () => {
@@ -273,11 +272,12 @@ describe('JWT Verification Branch Coverage', () => {
       visitor: 999,
       roles: []
     };
+    
     const tokenWithWrongVisitor = jwt.sign(payload, config.jwt.jwt_secret_key, {
       algorithm: 'HS512',
       expiresIn: '15m',
-      audience: 'example.com',
-      issuer: 'example.com',
+      audience: config.jwt.access_tokens.audience ?? config.jwt.refresh_tokens.domain,
+      issuer: config.jwt.access_tokens.audience ?? config.jwt.refresh_tokens.domain,
       subject: user.id.toString(),
       jwtid: user.jti
     });
@@ -312,8 +312,8 @@ describe('JWT Verification Branch Coverage', () => {
     const tokenWithMalformedRoles = jwt.sign(payload, config.jwt.jwt_secret_key, {
       algorithm: 'HS512',
       expiresIn: '15m',
-      audience: 'example.com',
-      issuer: 'example.com',
+      audience: config.jwt.access_tokens.audience ?? config.jwt.refresh_tokens.domain,
+      issuer: config.jwt.access_tokens.audience ?? config.jwt.refresh_tokens.domain,
       subject: user.id.toString(),
       jwtid: user.jti
     });
@@ -348,8 +348,8 @@ describe('JWT Verification Branch Coverage', () => {
     const tokenWithMissingRoles = jwt.sign(payload, config.jwt.jwt_secret_key, {
       algorithm: 'HS512',
       expiresIn: '15m',
-      audience: 'example.com',
-      issuer: 'example.com',
+      audience: config.jwt.access_tokens.audience ?? config.jwt.refresh_tokens.domain,
+      issuer: config.jwt.access_tokens.audience ?? config.jwt.refresh_tokens.domain,
       subject: user.id.toString(),
       jwtid: user.jti
     });
@@ -384,8 +384,8 @@ describe('JWT Verification Branch Coverage', () => {
     const tokenWithExtraRoles = jwt.sign(payload, config.jwt.jwt_secret_key, {
       algorithm: 'HS512',
       expiresIn: '15m',
-      audience: 'example.com',
-      issuer: 'example.com',
+      audience: config.jwt.access_tokens.audience ?? config.jwt.refresh_tokens.domain,
+      issuer: config.jwt.access_tokens.audience ?? config.jwt.refresh_tokens.domain,
       subject: user.id.toString(),
       jwtid: user.jti
     });

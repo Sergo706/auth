@@ -3,7 +3,7 @@ import crypto from 'node:crypto';
 
 import { generateAccessToken, verifyAccessToken, AccessTokenPayload } from '../../src/accessTokens.js';
 import { tokenCache } from '../../src/jwtAuth/utils/accessTokentCache.js';
-import './setup.js';
+
 
 describe('Edge Cases and Error Handling', () => {
   test('should handle concurrent token generation', async () => {

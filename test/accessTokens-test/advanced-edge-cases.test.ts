@@ -5,7 +5,7 @@ import jwt from 'jsonwebtoken';
 import { generateAccessToken, verifyAccessToken, AccessTokenPayload } from '../../src/accessTokens.js';
 import { tokenCache } from '../../src/jwtAuth/utils/accessTokentCache.js';
 import { getConfiguration } from '../../src/jwtAuth/config/configuration.js';
-import './setup.js';
+
 
 describe('Advanced Edge Cases and Stress Testing', () => {
   test('should handle massive concurrent verification stress test', async () => {
@@ -287,20 +287,7 @@ describe('Advanced Edge Cases and Stress Testing', () => {
     };
 
     const config = getConfiguration();
-    
-    const minimalPayload = {
-      visitor: user.visitor_id,
-      roles: []
-    };
-
-    const minimalToken = jwt.sign(minimalPayload, config.jwt.jwt_secret_key, {
-      algorithm: 'HS512',
-      expiresIn: '15m',
-      audience: 'example.com',
-      issuer: 'example.com',
-      subject: user.id.toString(),
-      jwtid: user.jti
-    });
+    const minimalToken = generateAccessToken(user);
 
     const cache = tokenCache();
     cache.set(minimalToken, {
