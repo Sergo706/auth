@@ -27,6 +27,7 @@ This is `@riavzon/jwtauth`, a comprehensive JWT authentication library for Node.
 
 These tools are ready to use without additional installation steps.
 Password for your mysql is 1234 user is root.
+if for some reason you cant access the mysql instance check its configurations and configure it.
 ### Installation & Setup
 **ENVIRONMENT-DEPENDENT:** The repository has a git+ssh dependency:
 
@@ -90,8 +91,9 @@ npm run test
 - Uses Vitest v3.2.4 as test runner (Use the default configurations changes the your env to suite the your mysql for tests)
 
 - Tests should be breaked into folders a minimal files check the structure for an example
-- Test should be configured globally check the strcuture for an example
+- Test should be configured globally check the structure for an example
 - Test needs to be configured with database
+- Mocks are not allowed to be used, use real implementations when writing tests.
 - **Configuration Required:** Tests fail without library configuration (expected behavior - not a bug)
 - **Dependency Issue:** Tests may fail without `npm install` due to missing imports
 
