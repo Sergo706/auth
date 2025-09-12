@@ -19,7 +19,9 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json && cp -R src/jwtAuth/emails dist/jwtAuth && cp src/global.d.ts dist/global.d.ts && cp src/jwtAuth/utils/disposable_email_blocklist.conf dist/jwtAuth/utils && cp src/jwtAuth/models/useragent.csv dist/jwtAuth/models",
-    "prepare": "npm run build",
+
+    "build:prod": "tsc -p tsconfig.prod.json && cp -R src/jwtAuth/emails dist/jwtAuth && cp src/global.d.ts dist/global.d.ts && cp src/jwtAuth/utils/disposable_email_blocklist.conf dist/jwtAuth/utils && cp src/jwtAuth/models/useragent.csv dist/jwtAuth/models",
+    
     "build:createTables": "node dist/jwtAuth/models/schema.js",
     "docs:start": "typedoc --options ./typedoc.json && vitepress dev",
     "prepack": "npm run build",
@@ -50,6 +52,7 @@
     "lru-cache": "^11.1.0",
     "mysql2": "^3.14.0",
     "pino": "^9.7.0",
+    "pino-http": "^10.5.0",
     "rate-limiter-flexible": "^7.0.0",
     "resend": "^6.0.1",
     "sanitize-html": "^2.17.0",
