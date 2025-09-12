@@ -31,6 +31,21 @@ const store = z.strictObject({
 
 export const configurationSchema = z.strictObject({
     store: store,
+    service: z.object({
+      Hmac: z.object({
+         sharedSecret: z.string(),
+         clientId: z.string(),
+         maxClockSkew: z.number(),
+      }).optional(),
+      proxy: z.object({
+         trust: z.boolean(),
+         ipToTrust: z.string(),
+         server: z.string().optional(),
+      }),
+      port: z.number().optional(),
+      ipAddress: z.string().optional(),
+    }).optional(),
+
     telegram: z.object({
        token: z.string(),
        allowedUser: z.string().optional(),
