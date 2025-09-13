@@ -9,6 +9,7 @@ RUN echo '. "${BASH_ENV}"' >> ~/.bashrc
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | PROFILE="${BASH_ENV}" bash
 RUN echo node > .nvmrc
 RUN nvm install
+RUN ln -s "$(which node)" /usr/local/bin/node
 ENV NODE_ENV=production
 WORKDIR /app
 COPY package*.json ./
@@ -17,6 +18,6 @@ RUN --mount=type=ssh npm install --foreground-scripts --ignore-scripts=false
 COPY . .
 RUN npm run build:prod
 EXPOSE 10000 
-HEALTHCHECK --interval=5m --timeout=20s --start-period=40s \
-  CMD curl -f http://localhost:10000/health || exit 1
-CMD ["node", "dist/service.js"];
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s \
+  CMD sh -c 'code=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:10000/health || echo 000); [ "$code" = "200" ] || [ "$code" = "401" ]'
+CMD ["node", "dist/service.js"]

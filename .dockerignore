@@ -27,6 +27,14 @@ coverage/
 README.md
 typedoc.json
 .github/
+.git
 test/
 .gitignore
 vitest.config.ts
+config.json
+docker-compose.yml
+Dockerfile
+config.json
+tsconfig.json
+.dockerignore
+.npmignore

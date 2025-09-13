@@ -10,7 +10,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const LOG_DIR = path.resolve(__dirname, '..', '..', 'logs');
+const LOG_DIR = path.resolve(__dirname, '..', '..', '..', 'logs');
 if (!existsSync(LOG_DIR)) mkdirSync(LOG_DIR, { recursive: true });
 
 const transport = pinoNS.transport({  

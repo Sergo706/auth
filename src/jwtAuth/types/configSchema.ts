@@ -37,11 +37,13 @@ export const configurationSchema = z.strictObject({
          clientId: z.string(),
          maxClockSkew: z.number(),
       }).optional(),
+      
       proxy: z.object({
          trust: z.boolean(),
          ipToTrust: z.string(),
          server: z.string().optional(),
       }),
+      
       port: z.number().optional(),
       ipAddress: z.string().optional(),
     }).optional(),
