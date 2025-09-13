@@ -8,14 +8,16 @@ import fs from 'node:fs/promises';
 import { access, constants } from 'node:fs';
 import type { Configuration } from './jwtAuth/types/configSchema.js';
 import mysqlPromise from 'mysql2/promise';
+import mysql from 'mysql2'
 import { authenticationRoutes, configuration, magicLinks, tokenRotationRoutes } from './main.js';
-
+import helmet from './jwtAuth/middleware/helmet.js';
+import { validateIp } from './jwtAuth/middleware/isIpValid.js';
+import { headers } from './jwtAuth/middleware/serviceHeaders.js';
+import { notFoundHandler } from './jwtAuth/middleware/notFound.js';
 const configPath = process.env.CONFIG_PATH || '/app/config.json';
 
 async function startServer() {
       console.log(`Starting server...`)
-
-      
       try {
         access(configPath, constants.F_OK, (err) => {
             if (err) {
@@ -24,12 +26,13 @@ async function startServer() {
                 `);
             }
      });
+
        console.log(`Loading configuration from ${configPath}...`);
        const configContent = await fs.readFile(configPath, 'utf-8');
        const config: Configuration = await JSON.parse(configContent);
        console.log(`Parsing configuration...`);
        const mainPool = mysqlPromise.createPool(config.store.main);
-       const rateLimiterPool = config.store.rate_limiters_pool.store;
+       const rateLimiterPool = mysql.createPool(config.store.main) 
        configuration({
         ...config,
         store: {
@@ -51,8 +54,12 @@ async function startServer() {
                 return false
             })
         }
-        initBotDetector(configBotDetector);
+        initBotDetector(configBotDetector());
         app.use(httpLogger)
+        app.disable('x-powered-by')
+        app.use(helmet)
+        app.use(headers)
+        app.use(validateIp)
         if (config.service?.Hmac) {
             app.use(hmacAuth);
         };
@@ -66,20 +73,13 @@ async function startServer() {
         await warmUp();
         await loadUaPatterns();
         app.get('/health', (req, res) => res.status(200).send('OK'));
-
+        app.use(notFoundHandler);
         app.listen(port, server, () => {
             console.log(`Service is running at ${server}:${port}`)
         })
     } catch(error) {
        console.error('Failed to start the service:', error);
        process.exit(1);
-    } finally {
-        try {
-            console.log(`Removing configuration file from container filesystem: ${configPath}`);
-            await fs.unlink(configPath);
-        } catch(error) {
-            console.warn(`Could not remove config file: ${error}`);
-        }
     }
 }
 startServer();

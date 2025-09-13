@@ -1,0 +1,26 @@
+services:
+  auth:
+    image: jwtauth-service
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    pull_policy: never
+    restart: unless-stopped
+    cap_drop: ["ALL"]
+    pids_limit: 200
+   # ports: 
+   # - "10000:10000"
+    secrets:
+      - app_config 
+    environment:
+      - CONFIG_PATH=/run/secrets/app_config 
+    security_opt:
+      - "no-new-privileges:true"
+    network_mode: host
+    volumes: 
+      - botdetector_logs:/app/node_modules/@riavzon/botdetector/logs
+secrets:
+  app_config:
+    file: ./config.json
+
+volumes:
+  botdetector_logs:    
