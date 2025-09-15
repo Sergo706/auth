@@ -2,7 +2,7 @@
 
 A comprehensive JWT authentication library for Node.js/Express applications providing enterprise-grade security features including user authentication, OAuth integration, multi-factor authentication, magic links, token rotation, rate limiting, and bot detection.
 
-## 🚀 Quick Start
+##  Quick Start
 
 ```bash
 npm install @riavzon/jwtauth
@@ -30,20 +30,20 @@ app.use('/token', tokenRotationRoutes); // Token rotation and logout
 app.listen(3000);
 ```
 
-## ✨ Features
+##  Features
 
-- **🔐 Complete Authentication System**: Sign up, login, logout with secure password handling
-- **🔄 Token Management**: JWT access/refresh token rotation and revocation
-- **🌐 OAuth Integration**: Support for third-party OAuth providers
-- **📧 Magic Links**: Passwordless authentication and account recovery
-- **🛡️ Multi-Factor Authentication**: Email-based MFA with temporary links
-- **⚡ Rate Limiting**: Advanced rate limiting with MySQL backend storage
-- **🤖 Bot Detection**: Integrated bot detection and suspicious activity monitoring
-- **📊 Analytics**: Visitor tracking, geolocation, and user-agent analysis
-- **🔒 Security Headers**: Comprehensive security middleware with Helmet
-- **📱 Cross-Platform**: Works with web, mobile, and API clients
+- ** Complete Authentication System**: Sign up, login, logout with secure password handling
+- ** Token Management**: JWT access/refresh token rotation and revocation
+- ** OAuth Integration**: Support for third-party OAuth providers
+- ** Magic Links**: Passwordless authentication and account recovery
+- ** Multi-Factor Authentication**: Email-based MFA with temporary links
+- ** Rate Limiting**: Advanced rate limiting with MySQL backend storage
+- ** Bot Detection**: Integrated bot detection and suspicious activity monitoring
+- ** Analytics**: Visitor tracking, geolocation, and user-agent analysis
+- ** Security Headers**: Comprehensive security middleware with Helmet
+- ** Cross-Platform**: Works with web, mobile, and API clients
 
-## 📁 Project Structure
+##  Project Structure
 
 ```
 src/
@@ -64,7 +64,7 @@ src/
     └── emails/               # EJS email templates
 ```
 
-## 🔧 Installation & Setup
+##  Installation & Setup
 
 ### Library Usage
 
@@ -93,7 +93,7 @@ npm run validate-config     # Check configuration before deployment
 The service will be available at `http://localhost:10000` with the following health endpoint:
 - `GET /health` - Service health check
 
-## ⚙️ Configuration
+##  Configuration
 
 The library requires comprehensive configuration before use. Call `configuration()` once at startup:
 
@@ -159,7 +159,7 @@ configuration({
 
 For complete configuration options, see [`CONFIGURATION.md`](./CONFIGURATION.md).
 
-## 🛣️ API Routes
+## API Routes
 
 ### Authentication Routes (`authenticationRoutes`)
 
@@ -209,7 +209,7 @@ app.post('/sensitive-action',
 );
 ```
 
-## 🏗️ Architecture Patterns
+##  Architecture Patterns
 
 ### Centralized Authentication Service
 
@@ -242,7 +242,7 @@ Multiple Auth API instances can share the same configuration:
 - Token verification and rate limiting stay consistent
 - Horizontal scaling without session affinity issues
 
-## 🔒 Security Features
+## Security Features
 
 ### Token Security
 - **Access Tokens**: Short-lived (15min default), stateless JWT verification
@@ -268,7 +268,7 @@ Multiple Auth API instances can share the same configuration:
 - **CSRF Protection**: Cookie-based CSRF token validation
 - **Content Security Policy**: Configurable CSP headers
 
-## 🐳 Docker Deployment
+## Docker Deployment
 
 ### Quick Start
 
@@ -306,7 +306,7 @@ The Docker setup includes:
 - **Health Checks**: Built-in service health monitoring
 - **Resource Limits**: PID and memory limits for container security
 
-## 🚀 Development
+##  Development
 
 ### Prerequisites
 - Node.js 20+ 
@@ -349,7 +349,7 @@ npm run docs:build         # Build static docs
 npm run docs:start         # Generate and serve docs
 ```
 
-## 📚 Additional Documentation
+## Additional Documentation
 
 - **[ARCHITECTURE.md](./ARCHITECTURE.md)** - System design and deployment patterns
 - **[CONFIGURATION.md](./CONFIGURATION.md)** - Complete configuration reference  
@@ -357,7 +357,7 @@ npm run docs:start         # Generate and serve docs
 - **[DEPLOYMENT.md](./DEPLOYMENT.md)** - Production deployment guide
 - **[DEVELOPMENT.md](./DEVELOPMENT.md)** - Development and contribution guide
 
-## 🔗 Integration Examples
+## Integration Examples
 
 ### Basic Express Integration
 ```typescript
@@ -421,18 +421,6 @@ configureOauthProviders([
 // OAuth routes automatically available at:
 // POST /auth/oauth/google
 ```
-
-## 📄 License
-
-ISC
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Submit a pull request
 
 For detailed development setup, see [DEVELOPMENT.md](./DEVELOPMENT.md).
 
