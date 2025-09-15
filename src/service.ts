@@ -9,11 +9,12 @@ import { access, constants } from 'node:fs';
 import type { Configuration } from './jwtAuth/types/configSchema.js';
 import mysqlPromise from 'mysql2/promise';
 import mysql from 'mysql2'
-import { authenticationRoutes, configuration, magicLinks, tokenRotationRoutes } from './main.js';
+import { authenticationRoutes, configuration, configureOauthProviders, magicLinks, tokenRotationRoutes } from './main.js';
 import helmet from './jwtAuth/middleware/helmet.js';
 import { validateIp } from './jwtAuth/middleware/isIpValid.js';
 import { headers } from './jwtAuth/middleware/serviceHeaders.js';
 import { notFoundHandler } from './jwtAuth/middleware/notFound.js';
+import { z } from "@riavzon/jwtauth"; 
 
 const configPath = process.env.CONFIG_PATH || '/run/app/config.json';
 
@@ -33,7 +34,12 @@ async function startServer() {
        const config: Configuration = await JSON.parse(configContent);
        console.log(`Parsing configuration...`);
        const mainPool = mysqlPromise.createPool(config.store.main);
-       const rateLimiterPool = mysql.createPool(config.store.main) 
+       const rateLimiterPool = mysql.createPool(config.store.main);
+       
+    if (config.providers && config.providers.length > 0) {
+      const providers = configureOauthProviders(config.providers);
+      console.log(`Configured ${providers.length} OAuth providers: ${providers.map(p => p.provider.name).join(', ')}`);
+    }
        configuration({
         ...config,
         store: {
