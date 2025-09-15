@@ -12,7 +12,6 @@ node_modules/
 .node_repl_history
 .env
 dist/
-.env.*
 !.env.example
 package-lock.json
 *.tsbuildinfo
@@ -38,3 +37,10 @@ config.json
 tsconfig.json
 .dockerignore
 .npmignore
+age_key
+public.txt
+public_key
+detector-logs
+app-logs
+start.sh
+config.dev.json

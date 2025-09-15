@@ -1,26 +1,31 @@
 services:
   auth:
-    image: jwtauth-service
+    image: jwtauth-service:latest
     extra_hosts:
       - "host.docker.internal:host-gateway"
     pull_policy: never
+    read_only: true  
+    build: 
+      context: ./
+      dockerfile: Dockerfile
+      ssh:
+        - default
     restart: unless-stopped
     cap_drop: ["ALL"]
-    pids_limit: 200
-   # ports: 
-   # - "10000:10000"
-    secrets:
-      - app_config 
-    environment:
-      - CONFIG_PATH=/run/secrets/app_config 
-    security_opt:
-      - "no-new-privileges:true"
-    network_mode: host
+    user: 10001:10001
     volumes: 
-      - botdetector_logs:/app/node_modules/@riavzon/botdetector/logs
+      - ./app-logs:/app/logs:rw
+      - ./detector-logs:/app/node_modules/@riavzon/botdetector/logs:rw
+    tmpfs:
+      - /run/app:rw,noexec,nosuid,nodev,uid=10001,gid=10001,size=1m
+    pids_limit: 200
+    ports: 
+      - "10000:10000"
+    secrets:
+      - age_key
+    security_opt: 
+      - "no-new-privileges:true"
 secrets:
-  app_config:
-    file: ./config.json
-
-volumes:
-  botdetector_logs:    
+  age_key:
+    file: ./age_key
+    

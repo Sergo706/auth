@@ -2,3 +2,6 @@ src/
 tsconfig.json
 *.tsbuildinfo
 riavzon-jwtauth-1.0.0.tgz
+public_key
+detector-logs
+app-logs
