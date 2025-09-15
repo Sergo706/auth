@@ -32,21 +32,21 @@ This is `@riavzon/jwtauth`, a comprehensive JWT authentication library for Node.
 
 ```bash
 # Standard installation (works reliably in Copilot environment)
+npm run build
 npm install
 ```
 
-**Important:** If npm install fails, run `mkdir -p dist/jwtAuth` first due to prepare script dependency.
 
 ### Core Build Commands
 
 **Always run commands in this exact order:**
 
 ```bash
-# 1. Install dependencies (2-3 minutes, includes SSH dependency)
-npm install
-
 # 2. Build TypeScript library (3-5 seconds)
 npm run build
+
+# 1. Install dependencies (2-3 minutes, includes SSH dependency)
+npm install
 
 # 3. Run tests (requires database setup)
 npm run test
@@ -72,7 +72,6 @@ npm run build
 3. Email blocklist: `src/jwtAuth/utils/disposable_email_blocklist.conf → dist/jwtAuth/utils/`
 4. User agent data: `src/jwtAuth/models/useragent.csv → dist/jwtAuth/models/`
 
-**Known Build Issue:** If `dist/` directory doesn't exist, asset copying fails with "No such file or directory". Workaround: `mkdir -p dist/jwtAuth` before building.
 
 ### Testing Setup
 
