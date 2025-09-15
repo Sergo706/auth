@@ -32,16 +32,16 @@ app.listen(3000);
 
 ##  Features
 
-- ** Complete Authentication System**: Sign up, login, logout with secure password handling
-- ** Token Management**: JWT access/refresh token rotation and revocation
-- ** OAuth Integration**: Support for third-party OAuth providers
-- ** Magic Links**: Passwordless authentication and account recovery
-- ** Multi-Factor Authentication**: Email-based MFA with temporary links
-- ** Rate Limiting**: Advanced rate limiting with MySQL backend storage
-- ** Bot Detection**: Integrated bot detection and suspicious activity monitoring
-- ** Analytics**: Visitor tracking, geolocation, and user-agent analysis
-- ** Security Headers**: Comprehensive security middleware with Helmet
-- ** Cross-Platform**: Works with web, mobile, and API clients
+- **Complete Authentication System**: Sign up, login, logout with secure password handling
+- **Token Management**: JWT access/refresh token rotation and revocation
+- **OAuth Integration**: Support for third-party OAuth providers
+- **Magic Links**: Passwordless authentication and account recovery
+- **Multi-Factor Authentication**: Email-based MFA with temporary links
+- **Rate Limiting**: Advanced rate limiting with MySQL backend storage
+- **Bot Detection**: Integrated bot detection and suspicious activity monitoring
+- **Analytics**: Visitor tracking, geolocation, and user-agent analysis
+- **Security Headers**: Comprehensive security middleware with Helmet
+- **Cross-Platform**: Works with web, mobile, and API clients
 
 ##  Project Structure
 
