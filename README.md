@@ -80,10 +80,13 @@ For standalone deployment, use the provided Docker configuration:
 
 ```bash
 # 1. Configure your service
-cp config.json.example config.json
+cp config.json config.json  # Use the provided example
 # Edit config.json with your settings
 
-# 2. Deploy with Docker
+# 2. Validate configuration
+npm run validate-config     # Check configuration before deployment
+
+# 3. Deploy with Docker
 ./start.sh
 ```
 
@@ -336,6 +339,7 @@ npm test
 npm run build              # Build library
 npm run build:prod         # Production build
 npm run build:createTables # Create database tables
+npm run validate-config    # Validate configuration
 ```
 
 ### Documentation
