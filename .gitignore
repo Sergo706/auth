@@ -23,3 +23,10 @@ docs/
 .vitepress/markdown-examples.md
 coverage/
 config.json
+age_key
+config.json.age
+public.txt
+public_key
+detector-logs
+app-logs
+config.dev.json

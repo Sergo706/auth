@@ -14,7 +14,8 @@ import helmet from './jwtAuth/middleware/helmet.js';
 import { validateIp } from './jwtAuth/middleware/isIpValid.js';
 import { headers } from './jwtAuth/middleware/serviceHeaders.js';
 import { notFoundHandler } from './jwtAuth/middleware/notFound.js';
-const configPath = process.env.CONFIG_PATH || '/app/config.json';
+
+const configPath = process.env.CONFIG_PATH || '/run/app/config.json';
 
 async function startServer() {
       console.log(`Starting server...`)
@@ -74,6 +75,13 @@ async function startServer() {
         await loadUaPatterns();
         app.get('/health', (req, res) => res.status(200).send('OK'));
         app.use(notFoundHandler);
+        try {
+             await fs.unlink(configPath);
+             console.log(`Config file deleted`)
+            } catch (error) {
+                console.error(`Failed to delete config file`);
+                process.exit(1)
+        }
         app.listen(port, server, () => {
             console.log(`Service is running at ${server}:${port}`)
         })
