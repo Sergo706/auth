@@ -3,15 +3,11 @@ updates:
   - package-ecosystem: "npm" 
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "daily"
     open-pull-requests-limit: 10
     labels:
       - "dependencies"
       - "npm"
-    assignees:
-      - "username"
-    reviewers:
-      - "username"
     commit-message:
       prefix: "npm"
       include: "scope"
@@ -24,14 +20,14 @@ updates:
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
-      interval: "weekly"
+        interval: "daily"
     labels:
       - "dependencies"
       - "docker"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "daily"
     labels:
       - "dependencies"
       - "github-actions"
