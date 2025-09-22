@@ -1,10 +1,11 @@
 import { getConfiguration } from "./configuration.js"
 
-export  function configBotDetector() {
+export  function configBotDetector(db: any) {
     const config = getConfiguration()
+    
     return {
         store: {
-            main: config.store.main
+            main: db
         },
         telegram: {
             token: config.telegram.token!,

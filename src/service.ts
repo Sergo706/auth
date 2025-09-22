@@ -61,7 +61,7 @@ async function startServer() {
                 return false
             })
         }
-        initBotDetector(configBotDetector());
+        initBotDetector(configBotDetector(mainPool));
         app.use(httpLogger)
         app.disable('x-powered-by')
         app.use(helmet)
