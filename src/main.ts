@@ -82,6 +82,13 @@ import { protectRoute as protectRouteOriginal } from './jwtAuth/middleware/verif
  * 
  * );
  */
+import bffRoute from "./jwtAuth/routes/allowBffAccessRoute.js"
+/**
+ * @summary Router for BFF authorization endpoint (`GET /secret/data`).
+ * Minimal router that wires auth middleware before the controller.
+ * @see ../controllers/allowBffAccess.ts
+ */
+export const bffAccessRoute = bffRoute;
 export const protectRoute = protectRouteOriginal;
 export { configuration } from './jwtAuth/config/configuration.js'
 export { cookieOnly as acceptCookieOnly } from "./jwtAuth/middleware/postGuard.js";
@@ -126,6 +133,7 @@ export {  magicLinksCache  } from './jwtAuth/utils/magicLinksCache.js'
 export { getGeoData, parseUA, settings , initBotDetector, loadUaPatterns, detectBots, ApiResponse, addBannedCountries, warmUp } from '@riavzon/botdetector';
 export { makeEmailTemplate, deleteTemplate, listTemplates } from './jwtAuth/utils/emailTemplateMaker.js';
 export { getFingerPrint } from './jwtAuth/middleware/fingerPrint.js';
+export {allowBffAccess} from "./jwtAuth/controllers/allowBffAccess.js";
 /**
  * The Zod schema‐validation library, v4.
  *
