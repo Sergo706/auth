@@ -14,7 +14,7 @@ import helmet from './jwtAuth/middleware/helmet.js';
 import { validateIp } from './jwtAuth/middleware/isIpValid.js';
 import { headers } from './jwtAuth/middleware/serviceHeaders.js';
 import { notFoundHandler } from './jwtAuth/middleware/notFound.js';
-import { z } from "@riavzon/jwtauth"; 
+import allowBff from "./jwtAuth/routes/allowBffAccessRoute.js"
 
 const configPath = process.env.CONFIG_PATH || '/run/app/config.json';
 
@@ -76,7 +76,8 @@ async function startServer() {
         app.use(authenticationRoutes)
         app.use(tokenRotationRoutes)
         app.use(magicLinks)
-
+        app.use(allowBff)
+        
         await warmUp();
         await loadUaPatterns();
         app.get('/health', (req, res) => res.status(200).send('OK'));
