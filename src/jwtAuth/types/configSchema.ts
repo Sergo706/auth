@@ -2,6 +2,7 @@ import * as z from "zod";
 import type { Pool as PromisePool } from 'mysql2/promise'
 import { Pool as CallbackPool } from 'mysql2';
 import { ZodType } from 'zod/v4';
+import {configurationSchema as botDetectorConfig} from "@riavzon/botdetector"
 
 let mainPool: PromisePool;
 let limiterPool: CallbackPool;
@@ -29,6 +30,9 @@ const store = z.strictObject({
 }).required().strict(), 
 }).required().strict();
 
+
+
+
 export const configurationSchema = z.strictObject({
     store: store,
     service: z.object({
@@ -48,7 +52,7 @@ export const configurationSchema = z.strictObject({
       ipAddress: z.string().optional(),
     }).optional(),
 
-    telegram: z.object({
+   telegram: z.object({
        token: z.string(),
        allowedUser: z.string().optional(),
        chatID: z.string().optional(),
@@ -59,7 +63,20 @@ export const configurationSchema = z.strictObject({
       timeCost: z.number().optional(),
       memoryCost: z.number().optional(),
     }),
-magic_links: z.object({
+   
+    botDetector: z.discriminatedUnion("enableBotDetector", [
+      z.object({
+         enableBotDetector: z.literal(false)
+      }),
+      z.object({
+         enableBotDetector: z.literal(true),
+            settings: z.object({
+               botDetectorConfig
+            })
+      })
+ ]),
+
+  magic_links: z.object({
     jwt_secret_key: z.string(),
     expiresIn: z.union([z.string(), z.number()]).optional(),
     expiresInMs: z.number().optional(),
