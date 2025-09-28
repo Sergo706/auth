@@ -70,7 +70,8 @@ async function startServer() {
             }
 
             if (config.botDetector.settings) {
-                initBotDetector(config.botDetector.settings.botDetectorConfig);
+               const userSettings = configBotDetector(false)!
+                initBotDetector(userSettings);
             }
         };
 

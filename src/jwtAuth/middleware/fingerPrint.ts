@@ -24,11 +24,12 @@ export async function getFingerPrint(req: Request, res: Response, next: NextFunc
  const log = getLogger().child({service: 'auth', branch: 'utils', type: 'fingerPrint'})
  try {
     const ipAddress = req.ip!;
-    const userAgent = await parseUA(req.get('User-Agent'))
-    const geoInfo = await getGeoData(req.ip);
+    const userAgent =  parseUA(req.get('User-Agent')!)
+    const geoInfo = await getGeoData(req.ip!);
+    const ua = req.get('User-Agent')!
     
     req.fingerPrint = /** @type {FingerPrint} */ {
-      userAgent: req.get('User-Agent'),
+      userAgent: ua,
       ipAddress,
       ...geoInfo,
       ...userAgent

@@ -9,17 +9,19 @@
     "dist/**/*",
     "README.md"
   ],
-  "main": "./dist/main.js",
-  "types": "./dist/main.d.ts",
+
   "exports": {
     ".": {
+      "types": "./dist/main.d.ts",
       "import": "./dist/main.js",
-      "require": "./dist/main.js"
-    }
+      "default": "./dist/main.js"
+    },
+    "./package.json": "./package.json"
   },
+    "types": "./dist/main.d.ts",
   "scripts": {
-    "build": "tsc -p tsconfig.json && cp -R src/jwtAuth/emails dist/jwtAuth && cp src/global.d.ts dist/global.d.ts && cp src/jwtAuth/utils/disposable_email_blocklist.conf dist/jwtAuth/utils && cp src/jwtAuth/models/useragent.csv dist/jwtAuth/models",
-    "build:prod": "tsc -p tsconfig.prod.json && cp -R src/jwtAuth/emails dist/jwtAuth && cp src/global.d.ts dist/global.d.ts && cp src/jwtAuth/utils/disposable_email_blocklist.conf dist/jwtAuth/utils && cp src/jwtAuth/models/useragent.csv dist/jwtAuth/models",
+    "build": "tsc -p tsconfig.json && cp -R src/jwtAuth/emails dist/jwtAuth && cp src/jwtAuth/utils/disposable_email_blocklist.conf dist/jwtAuth/utils && cp src/jwtAuth/models/useragent.csv dist/jwtAuth/models",
+    "build:prod": "tsc -p tsconfig.prod.json && cp -R src/jwtAuth/emails dist/jwtAuth && cp src/jwtAuth/utils/disposable_email_blocklist.conf dist/jwtAuth/utils && cp src/jwtAuth/models/useragent.csv dist/jwtAuth/models",
     "build:createTables": "node dist/jwtAuth/models/schema.js",
     "validate-config": "node validate-config.cjs",
     "docs:start": "typedoc --options ./typedoc.json && vitepress dev",
@@ -33,6 +35,13 @@
   },
   "dependencies": {
     "@riavzon/botdetector": "github:Sergo706/botDetector",
+    "@types/cookie-parser": "^1.4.8",
+    "@types/date-fns": "^2.5.3",
+    "@types/ejs": "^3.1.5",
+    "@types/express": "^5.0.1",
+    "@types/he": "^1.2.3",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/sanitize-html": "^2.16.0",
     "argon2": "^0.44.0",
     "cookie-parser": "^1.4.7",
     "date-fns": "^4.1.0",
@@ -50,22 +59,15 @@
     "resend": "^6.0.1",
     "sanitize-html": "^2.17.0",
     "telegraf": "^4.16.3",
+    "ts-node": "^10.9.2",
     "zod": "^4.0.14"
   },
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",
-    "@types/cookie-parser": "^1.4.8",
-    "@types/date-fns": "^2.5.3",
-    "@types/ejs": "^3.1.5",
-    "@types/express": "^5.0.1",
-    "@types/he": "^1.2.3",
-    "@types/jsonwebtoken": "^9.0.9",
     "@types/node": "^24.0.13",
-    "@types/sanitize-html": "^2.16.0",
     "@vitest/coverage-v8": "^3.2.4",
     "@vitest/ui": "^3.2.4",
     "dotenv": "^17.2.2",
-    "ts-node": "^10.9.2",
     "typedoc": "^0.28.13",
     "typedoc-plugin-markdown": "^4.8.1",
     "vitepress": "^1.6.4",

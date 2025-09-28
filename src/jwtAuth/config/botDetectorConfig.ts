@@ -4,7 +4,7 @@ import { BotDetectorConfig }from "@riavzon/botdetector"
 export  function configBotDetector(useDefault: boolean): void |  BotDetectorConfig{
     const config = getConfiguration()
     if (!config.botDetector.enableBotDetector) return;
-    const botDetectorSettings = config.botDetector.settings.botDetectorConfig
+    const botDetectorSettings = config.botDetector.settings?.botDetectorConfig
     
     if (!useDefault) return botDetectorSettings;
 
