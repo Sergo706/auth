@@ -130,10 +130,11 @@ export { makeRateLimiter, unionLimiter } from './jwtAuth/utils/limiters/rateLimi
 export { getLogger } from './jwtAuth/utils/logger.js';
 export { tokenCache } from './jwtAuth/utils/accessTokentCache.js';
 export {  magicLinksCache  } from './jwtAuth/utils/magicLinksCache.js'
-export { getGeoData, parseUA, settings , initBotDetector, loadUaPatterns, detectBots, ApiResponse, addBannedCountries, warmUp } from '@riavzon/botdetector';
+export { getGeoData, parseUA, BotDetectorConfig, initBotDetector, loadUaPatterns, detectBots, ApiResponse, warmUp } from '@riavzon/botdetector';
 export { makeEmailTemplate, deleteTemplate, listTemplates } from './jwtAuth/utils/emailTemplateMaker.js';
 export { getFingerPrint } from './jwtAuth/middleware/fingerPrint.js';
 export {allowBffAccess} from "./jwtAuth/controllers/allowBffAccess.js";
+
 /**
  * The Zod schema‐validation library, v4.
  *

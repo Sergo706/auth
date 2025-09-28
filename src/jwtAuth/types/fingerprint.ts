@@ -1,28 +1,28 @@
 export interface FingerPrint {
-    userAgent:    string,
-    ipAddress:   string,
-    country:      string | undefined,
-    countryCode:  string | undefined,
-    region:       string | undefined,
-    regionName:   string | undefined,
-    city:         string | undefined,
-    district:     string | undefined,
-    lat:          string | undefined,
-    lon:          string | undefined,
-    timezone:     string | undefined,
-    currency:     string | undefined,
-    isp:          string | undefined,
-    org:          string | undefined,
-    as:       string | undefined,
-    proxy:        false,
-    hosting:      false,
-    device: string | 'desktop',
-    deviceVendor: string | 'unknown',
-    deviceModel: string | 'unknown',
-    browser: string | 'unknown',
-    browserType: string | 'unknown',
-    browserVersion: string | 'unknown',
-    os: string | 'unknown',
-    botAI: boolean,
-    bot: boolean
+    userAgent:   string;
+    ipAddress:   string;
+    country?:    string;
+    countryCode?: string;
+    region?:     string;
+    regionName?: string;
+    city?:       string;
+    district?:   string;
+    lat?:        number;
+    lon?:        number;
+    timezone?:   string;
+    currency?:   string;
+    isp?:        string;
+    org?:        string;
+    as_org?:     string;
+    proxy?:      boolean;
+    hosting?:    boolean;
+    device: string;
+    deviceVendor: string;
+    deviceModel: string;
+    browser: string;
+    browserType: string;
+    browserVersion: string;
+    os: string;
+    botAI: boolean;
+    bot: boolean;
 }

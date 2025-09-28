@@ -72,7 +72,7 @@ export const configurationSchema = z.strictObject({
          enableBotDetector: z.literal(true),
             settings: z.object({
                botDetectorConfig
-            })
+            }).optional(),
       })
  ]),
 

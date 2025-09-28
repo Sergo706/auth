@@ -64,7 +64,7 @@ if (config.store && config.store.main) {
     isValid = false;
 }
 
-console.log('\n🔐 JWT Configuration');
+console.log('\n JWT Configuration');
 if (config.jwt) {
     isValid &= validateRequired(config.jwt, 'jwt', 'jwt_secret_key');
     
@@ -93,7 +93,7 @@ if (config.jwt) {
     isValid = false;
 }
 
-console.log('\n✉ Email Configuration');
+console.log('Email Configuration');
 if (config.email) {
     isValid &= validateRequired(config.email, 'email', 'resend_key');
     isValid &= validateRequired(config.email, 'email', 'email');
@@ -114,7 +114,7 @@ if (config.email) {
     isValid = false;
 }
 
-console.log('\n🔒 Password Security');
+console.log('Password Security');
 if (config.password) {
     isValid &= validateRequired(config.password, 'password', 'pepper');
     
@@ -218,7 +218,7 @@ if (config.rate_limiters) {
     isValid = false;
 }
 
-console.log('\n🛡️  Security Checklist');
+console.log('\nSecurity Checklist');
 const secrets = [
     { name: 'JWT Secret', value: config.jwt?.jwt_secret_key },
     { name: 'Magic Links Secret', value: config.magic_links?.jwt_secret_key },
