@@ -61,7 +61,19 @@ async function startServer() {
                 return false
             })
         }
-        initBotDetector(configBotDetector(mainPool));
+        
+        if (config.botDetector.enableBotDetector) {
+            const defaultConfig = configBotDetector(true);
+            
+            if (defaultConfig && !config.botDetector.settings) {
+                initBotDetector(defaultConfig);
+            }
+
+            if (config.botDetector.settings) {
+                initBotDetector(config.botDetector.settings.botDetectorConfig);
+            }
+        };
+
         app.use(httpLogger)
         app.disable('x-powered-by')
         app.use(helmet)
