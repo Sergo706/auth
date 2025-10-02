@@ -41,6 +41,7 @@ export default defineConfig({
         { text: 'Architecture', link: '/_media/ARCHITECTURE' },
         { text: 'Deployment', link: '/_media/DEPLOYMENT' },
         { text: 'API Routes', link: '/_media/API' },
+        { text: 'Service Vs library', link: '/_media/SERVICE' },
         { text: 'Development', link: '/_media/DEVELOPMENT' }
       ]
     },

@@ -26,18 +26,7 @@ app.use('/token', tokenRotationRoutes);  // Token management
 app.use(magicLinks);                     // Magic links
 ```
 
-### Common Response Format
-
-All endpoints return JSON responses with consistent structure:
-
-```typescript
-{
-  success: boolean,
-  data?: any,
-  error?: string,
-  message?: string
-}
-```
+Responses vary by endpoint. See the examples in each section.
 
 ## Authentication Routes
 
@@ -48,18 +37,12 @@ Create a new user account.
 **Request Body:**
 ```typescript
 {
-  name: string,
-  last_name: string,
+  Name: string,                         // 1–4 names, letters only (comma/space separated)
   email: string,
-  password: string,
-  remember_user?: boolean,
-  terms_and_privacy_agreement?: boolean,
-  accepts_marketing?: boolean,
-  country?: string,
-  city?: string,
-  address?: string,
-  zip?: string,
-  district?: string
+  password: string,                     // 12–64 chars, mixed case, digit and special char
+  confirmedPassword: string,            // must match password
+  rememberUser?: "on",                 // optional; string literal transformed to boolean
+  termsConsent?: "on"                  // optional; string literal transformed to boolean
 }
 ```
 
@@ -68,29 +51,22 @@ Create a new user account.
 curl -X POST http://localhost:3000/signup \
   -H "Content-Type: application/json" \
   -d '{
-    "name": "John",
-    "last_name": "Doe", 
+    "Name": "John Doe",
     "email": "john.doe@example.com",
     "password": "SecurePassword123!",
-    "terms_and_privacy_agreement": true
+    "confirmedPassword": "SecurePassword123!",
+    "termsConsent": "on"
   }'
 ```
 
 **Success Response (201):**
 ```json
 {
-  "success": true,
-  "data": {
-    "user": {
-      "id": 123,
-      "email": "john.doe@example.com",
-      "name": "John",
-      "last_name": "Doe"
-    },
-    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "refresh_token": "rt_xxxxxxxxxxxxxxxxxxxxxxxx"
-  },
-  "message": "User created successfully"
+  "ok": true,
+  "receivedAt": "2025-01-01T12:00:00.000Z",
+  "accessToken": "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9...",
+  "banned": false,
+  "accessIat": "1735728000000"
 }
 ```
 
@@ -107,8 +83,7 @@ Authenticate user and receive tokens.
 ```typescript
 {
   email: string,
-  password: string,
-  remember_user?: boolean
+  password: string
 }
 ```
 
@@ -126,30 +101,15 @@ curl -X POST http://localhost:3000/login \
 **Success Response (200):**
 ```json
 {
-  "success": true,
-  "data": {
-    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "refresh_token": "rt_xxxxxxxxxxxxxxxxxxxxxxxx",
-    "user": {
-      "id": 123,
-      "email": "john.doe@example.com",
-      "name": "John"
-    }
-  }
+  "ok": true,
+  "receivedAt": "2025-01-01T12:00:00.000Z",
+  "accessToken": "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9...",
+  "banned": false,
+  "accessIat": "1735728000000"
 }
 ```
 
-**MFA Required Response (200):**
-```json
-{
-  "success": true,
-  "data": {
-    "mfa_required": true,
-    "visitor_id": "visitor_xxxxxxxxxx"
-  },
-  "message": "MFA verification required. Check your email."
-}
-```
+Note: MFA enforcement occurs when accessing protected routes via `protectRoute`; login itself does not return an MFA challenge.
 
 **Error Responses:**
 - `400` - Invalid request format
@@ -157,61 +117,58 @@ curl -X POST http://localhost:3000/login \
 - `429` - Rate limit exceeded
 - `423` - Account temporarily locked
 
-### POST /auth/oauth/:provider
+### POST /auth/OAuth/:providerName
 
 OAuth authentication with third-party providers.
 
 **URL Parameters:**
-- `provider` - OAuth provider name (e.g., "google", "github", "facebook")
+- `providerName` - OAuth provider identifier (e.g., "google", "github"). Routing is case-insensitive by default.
 
 **Request Body:**
 ```typescript
 {
-  code: string,           // OAuth authorization code
-  state?: string,         // OAuth state parameter
-  redirect_uri: string    // OAuth redirect URI
+  userInfo: unknown // Provider-specific profile payload validated via Zod schema
 }
 ```
 
 **Example Request:**
 ```bash
-curl -X POST http://localhost:3000/auth/oauth/google \
+curl -X POST http://localhost:3000/auth/OAuth/google \
   -H "Content-Type: application/json" \
   -d '{
-    "code": "4/0AX4XfWjj...",
-    "redirect_uri": "https://yourapp.com/auth/callback"
+    "userInfo": {
+      "sub": "google_user_id",
+      "email": "john.doe@gmail.com",
+      "email_verified": true,
+      "given_name": "John",
+      "family_name": "Doe",
+      "picture": "https://example.com/avatar.jpg"
+    }
   }'
 ```
 
 **Success Response (200):**
 ```json
 {
-  "success": true,
-  "data": {
-    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "refresh_token": "rt_xxxxxxxxxxxxxxxxxxxxxxxx",
-    "user": {
-      "id": 123,
-      "email": "john.doe@gmail.com",
-      "name": "John",
-      "provider": "google",
-      "provider_id": "google_user_id"
-    }
-  }
+  "ok": true,
+  "receivedAt": "2025-01-01T12:00:00.000Z",
+  "accessToken": "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9...",
+  "banned": false,
+  "accessIat": "1735728000000"
 }
 ```
 
 **Error Responses:**
-- `400` - Invalid OAuth code or parameters
+- `400` - Invalid or unrecognized provider payload
 - `401` - OAuth authentication failed
 - `404` - Provider not supported
 - `429` - Rate limit exceeded
 
 ## Token Management Routes
 
-These routes are mounted under the `/token` prefix.
+By default these routes are available under `/auth/*` when the router is mounted without a prefix. If you mount with a prefix (e.g., `app.use('/token', tokenRotationRoutes)`), final routes become `/token/auth/*`.
 
-### POST /token/auth/refresh-access
+### POST /auth/refresh-access
 
 Refresh an expired access token using a valid refresh token.
 
@@ -222,18 +179,16 @@ Authorization: Bearer <refresh_token>
 
 **Example Request:**
 ```bash
-curl -X POST http://localhost:3000/token/auth/refresh-access \
+curl -X POST http://localhost:3000/auth/refresh-access \
   -H "Authorization: Bearer rt_xxxxxxxxxxxxxxxxxxxxxxxx"
 ```
 
 **Success Response (200):**
 ```json
 {
-  "success": true,
-  "data": {
-    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "expires_in": 900
-  }
+  "ok": true,
+  "access_token": "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9...",
+  "expires_in": 900
 }
 ```
 
@@ -242,7 +197,7 @@ curl -X POST http://localhost:3000/token/auth/refresh-access \
 - `403` - Token revoked or user deactivated
 - `429` - Rate limit exceeded
 
-### POST /token/auth/user/refresh-session
+### POST /auth/user/refresh-session
 
 Rotate refresh token and issue new session tokens.
 
@@ -253,19 +208,17 @@ Authorization: Bearer <refresh_token>
 
 **Example Request:**
 ```bash
-curl -X POST http://localhost:3000/token/auth/user/refresh-session \
+curl -X POST http://localhost:3000/auth/user/refresh-session \
   -H "Authorization: Bearer rt_xxxxxxxxxxxxxxxxxxxxxxxx"
 ```
 
 **Success Response (200):**
 ```json
 {
-  "success": true,
-  "data": {
-    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "refresh_token": "rt_yyyyyyyyyyyyyyyyyyyyyyyy",
-    "expires_in": 900
-  }
+  "ok": true,
+  "access_token": "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9...",
+  "refresh_token": "rt_yyyyyyyyyyyyyyyyyyyyyyyy",
+  "expires_in": 900
 }
 ```
 
@@ -274,7 +227,7 @@ curl -X POST http://localhost:3000/token/auth/user/refresh-session \
 - `403` - Maximum sessions exceeded
 - `429` - Rate limit exceeded
 
-### POST /token/auth/logout
+### POST /auth/logout
 
 Revoke the current refresh token and end the session.
 
@@ -285,17 +238,28 @@ Authorization: Bearer <refresh_token>
 
 **Example Request:**
 ```bash
-curl -X POST http://localhost:3000/token/auth/logout \
+curl -X POST http://localhost:3000/auth/logout \
   -H "Authorization: Bearer rt_xxxxxxxxxxxxxxxxxxxxxxxx"
 ```
 
 **Success Response (200):**
 ```json
 {
-  "success": true,
+  "ok": true,
   "message": "Logged out successfully"
 }
 ```
+
+### POST /auth/refresh-session/rotate-every
+
+Rotate access and refresh tokens in one operation.
+
+**Headers:**
+```
+Authorization: Bearer <refresh_token>
+```
+
+This endpoint is available when `rotateOnEveryAccessExpiry` is enabled; it enforces `acceptCookieOnly` semantics (no body, no content-type, bearer auth, session cookie required).
 
 **Error Responses:**
 - `401` - Invalid refresh token
@@ -335,6 +299,18 @@ curl -X POST http://localhost:3000/auth/forgot-password \
 - `400` - Invalid email format
 - `404` - Email not found
 - `429` - Rate limit exceeded
+
+### GET /auth/reset-password/:visitor
+
+Validate a password reset link (no token issuance).
+
+**URL Parameters:**
+- `visitor` - Magic link visitor token
+
+**Success Response (200):**
+```json
+{ "link": "Password Reset" }
+```
 
 ### POST /auth/reset-password/:visitor
 
@@ -377,7 +353,7 @@ curl -X POST http://localhost:3000/auth/reset-password/ml_xxxxxxxxxx \
 
 ### GET /auth/verify-mfa/:visitor
 
-Verify multi-factor authentication using magic link.
+Validate an MFA link (no token issuance).
 
 **URL Parameters:**
 - `visitor` - MFA verification token
@@ -389,24 +365,30 @@ curl -X GET http://localhost:3000/auth/verify-mfa/mfa_xxxxxxxxxx
 
 **Success Response (200):**
 ```json
-{
-  "success": true,
-  "data": {
-    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "refresh_token": "rt_xxxxxxxxxxxxxxxxxxxxxxxx",
-    "user": {
-      "id": 123,
-      "email": "john.doe@example.com"
-    }
-  },
-  "message": "MFA verified successfully"
-}
+{ "link": "MFA Code" }
 ```
 
 **Error Responses:**
 - `401` - Invalid or expired MFA token
 - `404` - MFA token not found
 - `429` - Rate limit exceeded
+
+### POST /auth/verify-mfa/:visitor
+
+Verify MFA using the provided code in the request body. On success, sets new cookies and returns an access token.
+
+**Request Body:**
+```json
+{ "code": "123456" }
+```
+
+**Success Response (200):**
+```json
+{
+  "accessToken": "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9...",
+  "accessIat": "1735728000000"
+}
+```
 
 ## Middleware
 
@@ -547,9 +529,7 @@ Validation errors include detailed field information:
 All responses include rate limiting headers:
 
 ```
-X-RateLimit-Limit: 5
-X-RateLimit-Remaining: 4
-X-RateLimit-Reset: 1640995200
+Retry-After: 300
 ```
 
 ### Rate Limit Exceeded Response
@@ -557,9 +537,8 @@ X-RateLimit-Reset: 1640995200
 ```json
 {
   "success": false,
-  "error": "RATE_LIMITED",
-  "message": "Too many requests. Try again later.",
-  "retry_after": 300
+  "error": "Too many requests",
+  "retry": 300
 }
 ```
 
@@ -571,8 +550,8 @@ Different endpoints have different rate limiting scopes:
 |----------|-------|-------|
 | `/login` | IP + Email | 5/min, 15/15min |
 | `/signup` | IP + Email | 3/hour, 10/day |
-| `/auth/oauth/*` | IP + Provider | 5/min, 15/15min |
-| `/token/auth/*` | User + IP | 10/5min, 50/hour |
+| `/auth/OAuth/*` | IP + Provider | 5/min, 15/15min |
+| `/auth/*` | User + IP | 10/5min, 50/hour |
 | `/auth/forgot-password` | Email + IP | 3/30min, 5/12hour |
 | `/auth/reset-password/*` | IP | 5/10min |
 
@@ -611,11 +590,11 @@ curl -X GET http://localhost:3000/protected \
   -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIs..."
 
 # 3. Refresh access token when expired
-curl -X POST http://localhost:3000/token/auth/refresh-access \
+curl -X POST http://localhost:3000/auth/refresh-access \
   -H "Authorization: Bearer rt_xxxxxxxxxxxxxxxxxxxxxxxx"
 
 # 4. Logout
-curl -X POST http://localhost:3000/token/auth/logout \
+curl -X POST http://localhost:3000/auth/logout \
   -H "Authorization: Bearer rt_xxxxxxxxxxxxxxxxxxxxxxxx"
 ```
 
@@ -663,13 +642,13 @@ curl -X POST http://localhost:3000/auth/reset-password/ml_xxxxxxxxxx \
 4. **Use HTTPS only** - Never transmit tokens over HTTP
 
 ### Error Handling
-1. **Parse error responses** - Always check the `success` field
-2. **Handle rate limiting** - Respect `retry_after` values
+1. **Parse error responses** - Check the `ok` field (or endpoint-specific shape)
+2. **Handle rate limiting** - Respect `Retry-After` header and JSON `retry` field
 3. **Implement fallbacks** - Graceful degradation for auth failures
 4. **Log security events** - Monitor for unusual authentication patterns
 
 ### Security
 1. **Validate all inputs** - Don't trust client-side validation
-2. **Implement CSRF protection** - Use proper CSRF tokens
+2. **Implement CSRF protection** - Add CSRF at the client/gateway when using the service
 3. **Monitor for abuse** - Watch for unusual patterns
 4. **Keep tokens short-lived** - Regular token rotation
