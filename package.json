@@ -9,7 +9,6 @@
     "dist/**/*",
     "README.md"
   ],
-
   "exports": {
     ".": {
       "types": "./dist/main.d.ts",
@@ -18,7 +17,7 @@
     },
     "./package.json": "./package.json"
   },
-    "types": "./dist/main.d.ts",
+  "types": "./dist/main.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.json && cp -R src/jwtAuth/emails dist/jwtAuth && cp src/jwtAuth/utils/disposable_email_blocklist.conf dist/jwtAuth/utils && cp src/jwtAuth/models/useragent.csv dist/jwtAuth/models",
     "build:prod": "tsc -p tsconfig.prod.json && cp -R src/jwtAuth/emails dist/jwtAuth && cp src/jwtAuth/utils/disposable_email_blocklist.conf dist/jwtAuth/utils && cp src/jwtAuth/models/useragent.csv dist/jwtAuth/models",
