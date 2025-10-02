@@ -5,7 +5,7 @@ export  function configBotDetector(useDefault: boolean): void |  BotDetectorConf
     const config = getConfiguration()
     if (!config.botDetector.enableBotDetector) return;
     const botDetectorSettings = config.botDetector.settings?.botDetectorConfig
-    
+
     if (!useDefault) return botDetectorSettings;
 
     const defaultSettings: BotDetectorConfig = {
@@ -23,6 +23,7 @@ export  function configBotDetector(useDefault: boolean): void |  BotDetectorConf
         restoredReputaionPoints: 1,
         setNewComputedScore: false,
         banUnlistedBots: true,
+        whiteList: ["172.18.0.1"],
        checksTimeRateControl: {
             checkEveryReqest: true,
             checkEvery: 1000 * 60 * 5, 

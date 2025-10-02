@@ -8,7 +8,7 @@ import { getConfiguration } from '../config/configuration.js';
 
 export const hmacAuth: RequestHandler = (req, res, next) => {
     const {service} = getConfiguration()
-    if (!service) return;
+    if (!service) return next();
     const SHARED_SECRET = service.Hmac?.sharedSecret
     const EXPECTED_CLIENT_ID = service.Hmac?.clientId;
     const MAX_CLOCK_SKEW_MS = service.Hmac?.maxClockSkew;
@@ -18,6 +18,13 @@ export const hmacAuth: RequestHandler = (req, res, next) => {
     const sig = req.get('X-Signature');
     const reqid = req.get('X-Request-ID')
     const log = getLogger().child({service: 'HMAC', clientId: id});
+
+    const remote = req.ip || req.socket.remoteAddress || '';
+    const isLocal = remote === '127.0.0.1' || remote === '::1' || remote === '::ffff:127.0.0.1';
+    const isHealth = req.method === 'GET' && (req.path === '/health' || req.originalUrl === '/health');
+
+    if (isHealth && isLocal) return next();
+    
 
   if (!id || !ts || !sig || !reqid) {
     reject(reasons.missingHeaders, parseInt(id!), res)
