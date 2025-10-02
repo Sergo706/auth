@@ -54,8 +54,15 @@ Promise<
         const [visitorsData]  = await pool.execute<RowDataPacket[]>
         ("SELECT country, city , district, visitor_id  FROM visitors WHERE canary_id = ?", [cookie]);
         const results = visitorsData[0];   
-        log.info(`Got visitor data. proceeding to user creation...`)
-        if (results) {
+        
+        if (!results) {
+            log.warn(`Visitors table is empty for this visitor, skipping user creation...`)
+            return {
+                success: false
+            }
+        };
+        
+           log.info(`Got visitor data. proceeding to user creation...`)
            const payload: User = {
                ...data,
                country: results.country === 'unknown' ? null : results.country,
@@ -82,14 +89,14 @@ Promise<
             const refresh = await generateRefreshToken(jwt.refresh_tokens.refresh_ttl,  newUserId);
             const accessToken = generateAccessToken({id: newUserId, visitor_id: results.visitor_id, jti: crypto.randomUUID()});
             log.info(`New User created succsesfuly!`)
-            sendLog('New User created', `New User created succsesfuly!`)
+            sendLog('New User created', `New User created successfully!`)
         return {
             success: true,
             accessToken: accessToken,
             refreshToken: refresh
         }
         
-        }         
+                 
     } catch(err) {
         const mysqlErr = err as any;
          if (mysqlErr.code === 'ER_DUP_ENTRY') {
