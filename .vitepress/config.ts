@@ -40,6 +40,7 @@ export default defineConfig({
         { text: 'Configuration', link: '/_media/CONFIGURATION' },
         { text: 'Architecture', link: '/_media/ARCHITECTURE' },
         { text: 'Deployment', link: '/_media/DEPLOYMENT' },
+        { text: 'API Routes', link: '/_media/API' },
         { text: 'Development', link: '/_media/DEVELOPMENT' }
       ]
     },
