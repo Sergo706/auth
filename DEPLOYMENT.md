@@ -28,7 +28,8 @@ This document provides comprehensive guidance for deploying the JWT Auth Library
    ```bash
    git clone <repository-url>
    cd auth
-   cp config.json config.json  # Use provided example
+   # Start from the provided example and edit it
+   cp config.dev.json config.json
    ```
 
 2. **Edit configuration:**

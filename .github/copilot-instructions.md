@@ -19,11 +19,11 @@ This is `@riavzon/jwtauth`, a comprehensive JWT authentication library for Node.
 - **npm:** v10.8.2+ required  
 - **Database:** MySQL 8.0+ (for user storage and rate limiting)
 
-**✅ Copilot Environment Confirmed:** The following tools are pre-installed and available:
+Environment tools available:
 - **MySQL:** v8.0.43+ (client tools at `/usr/bin/mysql`)
 - **nginx:** v1.24.0+ (available at `/usr/sbin/nginx`)
 - **curl:** v8.5.0+ (available at `/usr/bin/curl`)
-- **Node.js:** v20.19.5 and npm v10.8.2 ✅
+- **Node.js:** v20.19.5 and npm v10.8.2
 
 **MySQL Access:** `mysql -h 127.0.0.1 -u root -p1234`
 
@@ -31,22 +31,22 @@ This is `@riavzon/jwtauth`, a comprehensive JWT authentication library for Node.
 **SSH Dependency Note:** Repository includes `@riavzon/botdetector` via git+ssh. In Copilot environment, this installs successfully without timeout.
 
 ```bash
-# Standard installation (works reliably in Copilot environment)
-npm run build
+# Standard installation
 npm install
+npm run build
 ```
 
 
 ### Core Build Commands
 
-**Always run commands in this exact order:**
+Recommended command order:
 
 ```bash
-# 2. Build TypeScript library (3-5 seconds)
-npm run build
-
-# 1. Install dependencies (2-3 minutes, includes SSH dependency)
+# 1. Install dependencies (includes SSH dependency)
 npm install
+
+# 2. Build TypeScript library
+npm run build
 
 # 3. Run tests (requires database setup)
 npm run test
@@ -68,9 +68,8 @@ npm run build
 
 **Critical Asset Copying:**
 1. Email templates: `src/jwtAuth/emails → dist/jwtAuth/emails`
-2. Type definitions: `src/global.d.ts → dist/global.d.ts`  
-3. Email blocklist: `src/jwtAuth/utils/disposable_email_blocklist.conf → dist/jwtAuth/utils/`
-4. User agent data: `src/jwtAuth/models/useragent.csv → dist/jwtAuth/models/`
+2. Email blocklist: `src/jwtAuth/utils/disposable_email_blocklist.conf → dist/jwtAuth/utils/`
+3. User agent data: `src/jwtAuth/models/useragent.csv → dist/jwtAuth/models/`
 
 
 ### Testing Setup
@@ -153,7 +152,6 @@ src/
 ├── tempLinks.ts         # Temporary JWT links (MFA/password reset)
 ├── anomalies.ts         # Suspicious activity detection
 ├── service.ts           # Service entry point (Docker/standalone)
-├── global.d.ts          # Global type definitions (must be copied to dist/)
 └── jwtAuth/            # Core library implementation
     ├── config/         # Configuration & validation
     ├── controllers/    # Route handlers (login, OAuth, etc.)

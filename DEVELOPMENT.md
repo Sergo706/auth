@@ -95,7 +95,6 @@ src/
 ├── refreshTokens.ts          # Refresh token utilities
 ├── tempLinks.ts              # Magic link utilities
 ├── anomalies.ts              # Anomaly detection
-├── global.d.ts               # Global type definitions
 └── jwtAuth/
     ├── config/               # Configuration management
     │   ├── configuration.ts  # Main config function
@@ -210,11 +209,11 @@ GRANT ALL PRIVILEGES ON jwtauth_test.* TO 'dev_user'@'localhost';
 Set test environment variables:
 ```bash
 # Test environment
-VITE_DB_HOST=localhost
-VITE_DB_PORT=3306  
-VITE_DB_USER=dev_user
-VITE_DB_PASS=dev_password
-VITE_DB_NAME=jwtauth_test
+DB_HOST=localhost
+DB_PORT=3306  
+DB_USER=dev_user
+DB_PASS=dev_password
+DB_NAME=jwtauth_test
 ```
 
 ### Running Tests
@@ -315,9 +314,8 @@ npm run build
 This runs:
 1. `tsc -p tsconfig.json` - TypeScript compilation
 2. Copy email templates: `cp -R src/jwtAuth/emails dist/jwtAuth`
-3. Copy global types: `cp src/global.d.ts dist/global.d.ts`
-4. Copy configuration files: `cp src/jwtAuth/utils/disposable_email_blocklist.conf dist/jwtAuth/utils`
-5. Copy data files: `cp src/jwtAuth/models/useragent.csv dist/jwtAuth/models`
+3. Copy configuration files: `cp src/jwtAuth/utils/disposable_email_blocklist.conf dist/jwtAuth/utils`
+4. Copy data files: `cp src/jwtAuth/models/useragent.csv dist/jwtAuth/models`
 
 ### Production Build
 
@@ -333,7 +331,6 @@ dist/
 ├── main.d.ts            # Type definitions
 ├── service.js           # Service entry point
 ├── accessTokens.js      # Compiled utilities
-├── global.d.ts          # Global types
 └── jwtAuth/
     ├── config/          # Compiled configuration
     ├── controllers/     # Compiled controllers

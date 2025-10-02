@@ -23,7 +23,7 @@ configuration({
 });
 
 // Mount authentication routes
-app.use(authenticationRoutes);      // /signup, /login, /auth/oauth/:provider
+app.use(authenticationRoutes);      // /signup, /login, /auth/OAuth/:providerName
 app.use(magicLinks);               // MFA and password reset flows  
 app.use('/token', tokenRotationRoutes); // Token rotation and logout
 
@@ -40,8 +40,14 @@ app.listen(3000);
 - **Rate Limiting**: Advanced rate limiting with MySQL backend storage
 - **Bot Detection**: Integrated bot detection and suspicious activity monitoring
 - **Analytics**: Visitor tracking, geolocation, and user-agent analysis
-- **Security Headers**: Comprehensive security middleware with Helmet
+- **Security Headers**: Helmet integration with secure defaults
 - **Cross-Platform**: Works with web, mobile, and API clients
+
+## Library vs Service
+
+- Library usage: Import the library into your Express application and mount the provided routers and middleware. You control routing prefixes, CSRF, and application-specific concerns.
+- Service usage: Run the included standalone service (via Docker or Node). It uses secure defaults and is configured via JSON. The service exposes the same REST endpoints but does not include CSRF or a full OAuth browser flow.
+- Client library: For production frontends, use a client integration to add CSRF protection and end-to-end OAuth flows. CSRF and full OAuth browser-based flows are intentionally not part of this service.
 
 ##  Project Structure
 
@@ -80,8 +86,9 @@ For standalone deployment, use the provided Docker configuration:
 
 ```bash
 # 1. Configure your service
-cp config.json config.json  # Use the provided example
-# Edit config.json with your settings
+# Start from the provided example and edit it:
+cp config.dev.json config.json
+# Adjust values for your environment
 
 # 2. Validate configuration
 npm run validate-config     # Check configuration before deployment
@@ -115,7 +122,7 @@ configuration({
     jwt_secret_key: 'your-secret-key',
     access_tokens: {
       expiresIn: '15m',
-      algorithm: 'HS256'
+      algorithm: 'HS512'
     },
     refresh_tokens: {
       rotateOnEveryAccessExpiry: true,
@@ -167,25 +174,30 @@ For complete configuration options, see [`CONFIGURATION.md`](./CONFIGURATION.md)
 |--------|----------|-------------|
 | `POST` | `/signup` | Create a new user account |
 | `POST` | `/login` | Authenticate user and get tokens |
-| `POST` | `/auth/oauth/:provider` | OAuth authentication flow |
+| `POST` | `/auth/OAuth/:providerName` | OAuth authentication (provider-defined `userInfo` payload) |
 
 ### Magic Links (`magicLinks`)
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `GET` | `/auth/verify-mfa/:visitor` | Verify multi-factor authentication link |
+| `GET`  | `/auth/verify-mfa/:visitor` | Validate MFA link (confirmation only) |
+| `POST` | `/auth/verify-mfa/:visitor` | Verify MFA code (issues new tokens) |
 | `POST` | `/auth/forgot-password` | Initiate password reset flow |
+| `GET`  | `/auth/reset-password/:visitor` | Validate password reset link (confirmation only) |
 | `POST` | `/auth/reset-password/:visitor` | Complete password reset |
 
 ### Token Management (`tokenRotationRoutes`)
 
-Mount under `/token` prefix:
+Default routes are defined under `/auth/*` when mounted without a prefix:
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | `POST` | `/auth/refresh-access` | Rotate access token |
 | `POST` | `/auth/user/refresh-session` | Rotate and issue new refresh tokens |
 | `POST` | `/auth/logout` | Revoke current refresh token |
+| `POST` | `/auth/refresh-session/rotate-every` | Rotate both access and refresh tokens |
+
+If you mount the router under a prefix (e.g., `app.use('/token', tokenRotationRoutes)`), the final routes become `/token/auth/*`.
 
 ### Middleware
 
@@ -215,6 +227,21 @@ app.post('/sensitive-action',
 
 This library is designed for centralized authentication architecture:
 
+```
+
+### BFF Access Route
+
+The library includes a minimal BFF authorization endpoint:
+
+- `GET /secret/data` (via `bffAccessRoute`) — protected by `requireAccessToken`, `requireRefreshToken`, and `protectRoute`. Returns `{ authorized: boolean, roles, ipAddress, userAgent, date }`.
+
+Mount with:
+
+```typescript
+import { bffAccessRoute, requireAccessToken, requireRefreshToken, protectRoute } from '@riavzon/jwtauth';
+
+app.use(bffAccessRoute);
+// Internally, the route wires the required middleware before the controller
 ```
 ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
 │   Client    │    │     BFF     │    │  Database   │
@@ -263,10 +290,10 @@ Multiple Auth API instances can share the same configuration:
 - **Integration**: Built-in with `@riavzon/botdetector` library
 
 ### Security Headers
-- **Helmet Integration**: Complete security header configuration
-- **XSS Protection**: Input sanitization and output encoding
-- **CSRF Protection**: Cookie-based CSRF token validation
-- **Content Security Policy**: Configurable CSP headers
+- **Helmet Integration**: Security headers with safe defaults
+- **XSS Protection**: Input sanitization and output encoding helpers
+- **Content Security Policy**: Add CSP directives suitable for your application
+- **CSRF**: Not included by default in the service; add CSRF in your client or gateway
 
 ## Docker Deployment
 
@@ -274,8 +301,8 @@ Multiple Auth API instances can share the same configuration:
 
 1. **Configure your service:**
    ```bash
-   cp config.json config.json  # Use the provided example
-   # Edit config.json with your actual settings
+   # Start from the provided example and edit it
+   cp config.dev.json config.json
    ```
 
 2. **Deploy with Docker:**
@@ -356,6 +383,7 @@ npm run docs:start         # Generate and serve docs
 - **[API.md](./API.md)** - Detailed API endpoint documentation
 - **[DEPLOYMENT.md](./DEPLOYMENT.md)** - Production deployment guide
 - **[DEVELOPMENT.md](./DEVELOPMENT.md)** - Development and contribution guide
+ - **[SERVICE.md](./SERVICE.md)** - Using this repo as a service vs a library
 
 ## Integration Examples
 
@@ -418,8 +446,8 @@ configureOauthProviders([
   }
 ]);
 
-// OAuth routes automatically available at:
-// POST /auth/oauth/google
+// OAuth routes automatically available at (case-insensitive unless configured otherwise):
+// POST /auth/OAuth/google
 ```
 
 For detailed development setup, see [DEVELOPMENT.md](./DEVELOPMENT.md).
@@ -427,4 +455,3 @@ For detailed development setup, see [DEVELOPMENT.md](./DEVELOPMENT.md).
 ---
 
 **Note**: This library requires MySQL for user storage and rate limiting. Ensure your database is properly configured before deployment.
-

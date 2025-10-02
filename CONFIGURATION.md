@@ -98,7 +98,7 @@ Or manually create using the schema in `src/jwtAuth/models/schema.ts`.
     access_tokens: {
       expiresIn?: string | number,       // Token lifetime (default: "15m")
       expiresInMs?: number,              // Lifetime in milliseconds
-      algorithm?: string,                // Signing algorithm (default: "HS256")
+      algorithm?: string,                // Signing algorithm (default: "HS512")
       audience?: string,                 // Token audience
       issuer?: string,                   // Token issuer
       subject?: string,                  // Token subject
@@ -118,6 +118,9 @@ Or manually create using the schema in `src/jwtAuth/models/schema.ts`.
 }
 ```
 
+Notes:
+- If `audience` or `issuer` are not provided, they default to `jwt.refresh_tokens.domain` for verification consistency across services.
+
 ### Example JWT Configuration
 
 ```typescript
@@ -126,7 +129,7 @@ Or manually create using the schema in `src/jwtAuth/models/schema.ts`.
     jwt_secret_key: "your-256-bit-secret-key-here",
     access_tokens: {
       expiresIn: "15m",              // 15 minutes
-      algorithm: "HS256",
+      algorithm: "HS512",
       audience: "your-app-name",
       issuer: "auth.yourcompany.com",
       maxCacheEntries: 5000
@@ -492,7 +495,7 @@ Rate limiting is highly configurable with multiple layers of protection.
     jwt_secret_key: "dev-secret-key-not-for-production",
     access_tokens: {
       expiresIn: "1h",           // Longer for development
-      algorithm: "HS256"
+      algorithm: "HS512"
     },
     refresh_tokens: {
       rotateOnEveryAccessExpiry: false,  // Disabled for easier debugging
@@ -544,7 +547,7 @@ Rate limiting is highly configurable with multiple layers of protection.
     jwt_secret_key: process.env.JWT_SECRET,
     access_tokens: {
       expiresIn: "15m",          // Short for security
-      algorithm: "HS256"
+      algorithm: "HS512"
     },
     refresh_tokens: {
       rotateOnEveryAccessExpiry: true,   // Enhanced security
