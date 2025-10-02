@@ -79,12 +79,15 @@ export const allowBffAccess = async (req: Request, res: Response, next: NextFunc
     return;
   } 
 
+  const roles = req.user.roles;
+  
   baseLog.info(`User has been authorized`)
   res.status(200).json({
     authorized: true,
     ipAddress: req.ip,
     userAgent:  req.get("User-Agent"),
-    date: new Date().toISOString()
+    date: new Date().toISOString(),
+    roles: roles ?? "No roles added with this token."
   })
   return;
 }
