@@ -107,6 +107,4 @@ Promise<
         sendLog('Failed to Create New User', `${err}`)
         return {success: false};
     }
-    
-return {success: false}
 }
