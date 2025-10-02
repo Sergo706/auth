@@ -40,7 +40,7 @@ interface RefreshRow {
   deviceModel:         string;
   browserType:         string;
   os:                  string;
-  suspicos_activity_score: number;
+  suspicious_activity_score: number;
 }
 
 /**
@@ -132,7 +132,7 @@ SELECT
             visitors.browserType,
             visitors.browserVersion,
             visitors.os,
-            visitors.suspicos_activity_score
+            visitors.suspicious_activity_score
 
       FROM refresh_tokens 
       JOIN users ON refresh_tokens.user_id = users.id
@@ -242,7 +242,7 @@ if (tokenResults.canary_id !== cookie) {
     };
 
 
-    if (tokenResults.suspicos_activity_score >= 9) { 
+    if (tokenResults.suspicious_activity_score >= 9) { 
             log.info(`Suspicos score to high`)  
         return {
           valid: false,

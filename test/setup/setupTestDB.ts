@@ -46,7 +46,9 @@ async function createTablesForTesting() {
             device_type VARCHAR(64),
             browser VARCHAR(64),
             proxy BOOLEAN,
+            proxy_allowed BOOLEAN,
             hosting BOOLEAN,
+            hosting_allowed BOOLEAN,
             is_bot BOOLEAN DEFAULT false,
             first_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             last_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -56,7 +58,7 @@ async function createTablesForTesting() {
             browserType VARCHAR(64) DEFAULT 'unknown',
             browserVersion VARCHAR(64) DEFAULT 'unknown',
             os VARCHAR(64) DEFAULT 'unknown',
-            suspicos_activity_score INT DEFAULT 0
+            suspicious_activity_score INT DEFAULT 0
         );
         `);
 
