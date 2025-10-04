@@ -6,6 +6,7 @@ import { requireRefreshToken } from "../middleware/requireRefreshToken.js";
 import { handleLogout } from "../controllers/logout.js";
 import { rotateCredentials } from "../controllers/rotateOnEveryUse.js";
 import { getConfiguration } from "../config/configuration.js";
+import { requireAccessToken } from "../middleware/requireAccessToken.js";
 const router = Router();
 
 
@@ -38,6 +39,7 @@ router.post(
 router.post(
 '/auth/logout',
   requireRefreshToken,
+  requireAccessToken,
   cookieOnly,
   handleLogout
 )
