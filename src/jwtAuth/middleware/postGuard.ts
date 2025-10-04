@@ -38,7 +38,7 @@ export function cookieOnly(req: Request, res: Response, next: NextFunction) {
     return
   }
 
-  if (req.headers['content-length'] && Number(req.headers['content-length']) > 0) {
+  if (req.headers['content-length'] && Number(req.headers['content-length']) > 0 || req.body) {
     log.warn('Request body not allowed')
     res.status(413).json({ error: 'Request body not allowed' });
     return 

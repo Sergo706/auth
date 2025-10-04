@@ -61,17 +61,14 @@ return token;
  *
  * @param {string} token
  *   The JWT string to verify.
- * @param {import('./accessTokens.js').claims} Payload
- *   The expected payload shape/schema for validation.
  *
  * @returns {{ valid: boolean; payload?: JwtPayload; errorType?: string }}
  *   An object indicating verification success, the decoded payload if valid,
  *   or an error type if verification failed.
  *
  * @example
- * import { claims } from './accessTokens.js';
  *
- * const result = verifyAccessToken(token, claims);
+ * const result = verifyAccessToken(token);
  * if (result.valid) {
  *   console.log('Payload:', result.payload);
  * } else {
