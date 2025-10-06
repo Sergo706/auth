@@ -6,9 +6,16 @@ import { protectRoute } from "../middleware/verifyJwt.js";
 import { Router } from "express";
 
 /**
- * @summary Router for BFF authorization endpoint (`GET /secret/data`).
- * Minimal router that wires auth middleware before the controller.
+ * @summary BFF authorization and token metadata routes.
+ * @description
+ * - `GET /secret/data` returns protected resource after access checks.
+ * - `GET /secret/metadata` returns decoded access token payload and TTL hints.
+ *
+ * Both routes are protected by `requireAccessToken`, `requireRefreshToken`,
+ * and `protectRoute`.
+ *
  * @see ../controllers/allowBffAccess.ts
+ * @see ../controllers/getPayloadMeta.ts
  */
 const router = Router();
 

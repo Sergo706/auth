@@ -2,30 +2,43 @@ import { Request, Response, NextFunction } from 'express';
 import { getLogger } from '../utils/logger.js';
 
 /**
+ * @summary Guard that accepts cookie-only requests for sensitive auth routes.
  * @description
- * Enforces that a request can only post cookies to your server,
- * and requires you to set a Authorization Bearer header.
- * On failure, response:
- * 
- * res.status(401).json({ error: 'Refresh token missing' });
- * 
- * res.status(400).json({ error: 'Request body not allowed' });
- * 
- * res.status(400).json({ error: 'Query string not allowed' });
- * 
- * res.status(400).json({ error: 'Content-Type not allowed' });
- * 
- * .
+ * Enforces a strict input contract for endpoints driven by refresh-token
+ * cookies, preventing body/query/content-type based injection vectors.
  *
- * @name acceptCookieOnly
+ * Rules:
+ * - Requires cookie `session` (refresh token) → 401 if missing.
+ * - Rejects any request body: parsed JSON, positive `content-length`, or
+ *   `transfer-encoding: chunked` → 400.
+ * - Rejects any query string → 400.
+ * - Rejects any `Content-Type` header → 400.
+ *
+ * Status codes (unified JSON):
+ * - 401: `{ error: 'Refresh token missing' }`
+ * - 400: `{ error: 'Request body not allowed' | 'Query string not allowed' | 'Content-Type not allowed' }`
+ *
+ * Recommended order:
+ * - `requireRefreshToken` → `cookieOnly` → your controller.
+ * - Add `requireAccessToken` where both tokens are required (e.g. logout).
+ *
+ * @remarks Uses 400 for content-related rejections to standardize errors.
+ *
+ * @name cookieOnly
  * @function
- * @param {import('express').Request}   req
- * @param {import('express').Response}  res
- * @param {import('express').NextFunction} next
- * @see {@link ./middleware/postGuard.js}
+ * @param req Express Request
+ * @param res Express Response
+ * @param next Express NextFunction
  * @example
- * // only requests carrying the above conditions will reach your handler
- * app.post('/submit-comment', acceptCookieOnly, (req, res) => { … });
+ * // Rotate access token (requires refresh cookie only)
+ * app.post('/auth/refresh-access', requireRefreshToken, cookieOnly, rotateAccessToken);
+ * @example
+ * // Rotate refresh+access on every use
+ * app.post('/auth/refresh-session/rotate-every', requireRefreshToken, cookieOnly, rotateCredentials);
+ * @example
+ * // Logout requires both tokens
+ * app.post('/auth/logout', requireRefreshToken, requireAccessToken, cookieOnly, handleLogout);
+ * @see ../routes/TokenRotations.ts
  */
 export function cookieOnly(req: Request, res: Response, next: NextFunction) {
   const log = getLogger().child({service: 'auth', branch: 'content guard'})

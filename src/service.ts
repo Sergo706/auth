@@ -19,6 +19,15 @@ import { finalUnHandledErrors } from './jwtAuth/middleware/finalErrorHandler.js'
 
 const configPath = process.env.CONFIG_PATH || '/run/app/config.json';
 
+/**
+ * Bootstraps and starts the HTTP service.
+ *
+ * - Loads configuration from `CONFIG_PATH` and initializes DB pools.
+ * - Configures OAuth providers, security middleware and request guards.
+ * - Registers authentication, token rotation and BFF routes.
+ * - Adds health check, `notFoundHandler`, and `finalUnHandledErrors` handlers.
+ * - Starts listening on the configured address and port.
+ */
 async function startServer() {
       console.log(`Starting server...`)
       try {

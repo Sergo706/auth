@@ -16,6 +16,29 @@ const consecutiveForIp = makeConsecutiveCache< {countData:number} >(500, 1000 * 
 const consecutiveForCompositeKey = makeConsecutiveCache< {countData:number} >(500, 1000 * 60 * 10);
 const consecutiveForRefreshToken = makeConsecutiveCache< {countData:number} >(500, 1000 * 60 * 60 * 12);
 
+/**
+ * Rotates both refresh and access tokens on every valid refresh-token use.
+ *
+ * Flow:
+ * - Requires refresh cookie `session` and `canary_id`.
+ * - Applies rate limits (by IP, composite key and token hash).
+ * - Runs anomaly checks and may trigger an email MFA challenge.
+ * - On success, revokes old refresh token, issues new refresh + access, and sets cookies.
+ *
+ * Responses:
+ * - 202: MFA challenge sent via email (no rotation performed yet).
+ * - 201: Rotation successful. Returns `{ message, accessToken, accessIat }`.
+ * - 401: Login required, re-login required, session expired, or verification failed.
+ * - 429: Rate limited by rotation limiters.
+ * - 500: Internal errors (DB/server/MFA dispatch).
+ *
+ * Notes:
+ * - Access token `jti` is generated with `randomUUID()`.
+ * - Cookies `session` and `iat` are updated on success using strict/same-site settings.
+ *
+ * @param req Express Request (expects cookies `session` and `canary_id`).
+ * @param res Express Response
+ */
 export const rotateCredentials = async (req: Request, res: Response) => {
   const { jwt } = getConfiguration();
   const { refreshAccessTokenLimiter, refreshTokenLimiter } = getLimiters();
@@ -157,4 +180,3 @@ export const rotateCredentials = async (req: Request, res: Response) => {
     return;
   }
 };
-

@@ -3,6 +3,26 @@ import { getConfiguration } from "../config/configuration.js";
 import { getLogger } from "../utils/logger.js";
 import { Request, Response } from "express";
 
+/**
+ * Returns metadata about the authenticated access token for the current user.
+ *
+ * Mounted at `GET /secret/metadata` behind `requireAccessToken` →
+ * `requireRefreshToken` → `protectRoute`.
+ *
+ * Validates user and visitor existence, then reports:
+ * - Original JWT payload (as attached by `protectRoute`).
+ * - Time until expiration and a rotation recommendation threshold (25% of TTL).
+ * - Caller IP, user agent and current date for observability.
+ *
+ * Responses:
+ * - 200: authorized with payload and TTL details.
+ * - 401: not authenticated.
+ * - 404: user/visitor not found.
+ * - 500: internal validation error (logged).
+ *
+ * @param req Express Request with `user` context from `protectRoute`.
+ * @param res Express Response
+ */
     export async function getAccessTokenPayload (req: Request, res: Response) {
             const log = getLogger().child({service: 'auth', branch: "access token", type: 'getAccessTokenPayload'});
             const config = getConfiguration();

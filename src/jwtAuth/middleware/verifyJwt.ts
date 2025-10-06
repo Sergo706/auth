@@ -9,6 +9,31 @@ import { guard } from "../utils/limiters/utils/guard.js";
 
 const consecutiveForJti = makeConsecutiveCache< {countData:number} >(2000, 1000 * 60 * 60 * 24);
 
+/**
+ * Verifies the access token and refresh cookies, runs anomaly checks,
+ * and enriches `req.user` with identity, roles, and the decoded payload.
+ *
+ * Requirements:
+ * - `req.token` must contain a Bearer access token.
+ * - Refresh cookies `session` and `canary_id` must be present.
+ * - Access token must be valid and not blacklisted by the limiter.
+ *
+ * On success attaches:
+ * ```ts
+ * req.user = {
+ *   userId,
+ *   visitor_id,
+ *   accessTokenId,
+ *   roles: string[],
+ *   payload: JwtPayload
+ * }
+ * ```
+ *
+ * Responses:
+ * - 202: MFA challenge sent via email.
+ * - 401: Missing/invalid token, missing refresh cookies, malformed payload, or verification failed.
+ * - 500: Internal errors (MFA dispatch or verification flow).
+ */
 export const protectRoute = async (req: Request, res: Response, next: NextFunction) => {
  const token = req.token;
  const session = req.cookies.session;
