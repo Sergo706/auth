@@ -5,7 +5,7 @@ import { generateAccessToken } from '../../accessTokens.js';
 import { strangeThings } from "../../anomalies.js";
 import { sendTempMfaLink } from '../utils/emailMFA.js';
 import { getLogger } from '../utils/logger.js';
-import { createHash } from "crypto";
+import { createHash,randomUUID } from "crypto";
 import { guard } from "../utils/limiters/utils/guard.js";
 import { getLimiters } from "../utils/limiters/protectedEndpoints/tokensLimiters.js";
 import { makeConsecutiveCache } from "../utils/limiters/utils/consecutiveCache.js";
@@ -59,7 +59,7 @@ export const rotateCredentials = async (req: Request, res: Response) => {
 
      if (!valid && !reqMFA) {
        log.info({token: '[REDACTED]',valid, reason, reqMFA, userId, visitorId},`Relogin is required`)
-       res.status(401).json({error: 'Relogin is required', reason: reason});
+       res.status(401).json({error: 'Re-login is required', message: reason});
        return;
      }
 
@@ -94,7 +94,7 @@ export const rotateCredentials = async (req: Request, res: Response) => {
              path: '/'
             });
             log.info({user: result.userId},`User's Session is expired`);
-            res.status(401).json({session: 'Session is expired'})
+            res.status(401).json({error: 'Session is expired'})
             return;
          }
 
@@ -121,7 +121,7 @@ export const rotateCredentials = async (req: Request, res: Response) => {
     const newAccess  = generateAccessToken({
       id: result.userId!,
       visitor_id: result.visitor_id!,
-      jti: crypto.randomUUID()
+      jti: randomUUID()
     });
 
   makeCookie(res, 'iat', Date.now().toString(), {
@@ -144,7 +144,7 @@ export const rotateCredentials = async (req: Request, res: Response) => {
     await refreshAccessTokenLimiter.block(compositeKey, 60 * 60 * 24 * 3);
      log.info(`Refresh & access tokens rotated successfully`);
      res.status(201).json({
-      session:  'Refresh & access tokens rotated',
+      message:  'Refresh & access tokens rotated',
       accessToken: newAccess,
       accessIat: Date.now().toString()
     }) 
