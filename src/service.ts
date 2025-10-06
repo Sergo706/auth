@@ -1,4 +1,4 @@
-import express from 'express'
+import express, { Request,Response,NextFunction } from 'express'
 import cookieParser from "cookie-parser";
 import { hmacAuth } from './jwtAuth/middleware/HmacAuth.js';
 import { httpLogger } from './jwtAuth/middleware/httpLogger.js';
@@ -9,12 +9,13 @@ import { access, constants } from 'node:fs';
 import type { Configuration } from './jwtAuth/types/configSchema.js';
 import mysqlPromise from 'mysql2/promise';
 import mysql from 'mysql2'
-import { authenticationRoutes, configuration, configureOauthProviders, magicLinks, tokenRotationRoutes } from './main.js';
+import { authenticationRoutes, configuration, configureOauthProviders, getLogger, magicLinks, tokenRotationRoutes } from './main.js';
 import helmet from './jwtAuth/middleware/helmet.js';
 import { validateIp } from './jwtAuth/middleware/isIpValid.js';
 import { headers } from './jwtAuth/middleware/serviceHeaders.js';
 import { notFoundHandler } from './jwtAuth/middleware/notFound.js';
 import allowBff from "./jwtAuth/routes/allowBffAccessRoute.js"
+import { finalUnHandledErrors } from './jwtAuth/middleware/finalErrorHandler.js';
 
 const configPath = process.env.CONFIG_PATH || '/run/app/config.json';
 
@@ -95,6 +96,7 @@ async function startServer() {
         await loadUaPatterns();
         app.get('/health', (req, res) => res.status(200).send('OK'));
         app.use(notFoundHandler);
+        app.use(finalUnHandledErrors);
         try {
              await fs.unlink(configPath);
              console.log(`Config file deleted`)

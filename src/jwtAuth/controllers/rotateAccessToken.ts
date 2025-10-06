@@ -4,7 +4,7 @@ import { generateAccessToken } from "../../accessTokens.js";
 import { strangeThings } from "../../anomalies.js";
 import { sendTempMfaLink } from "../utils/emailMFA.js";
 import { getLogger } from "../utils/logger.js";
-import { createHash } from "crypto";
+import { createHash, randomUUID } from "crypto";
 import { guard } from "../utils/limiters/utils/guard.js";
 import { getLimiters} from "../utils/limiters/protectedEndpoints/tokensLimiters.js";
 import { makeConsecutiveCache } from "../utils/limiters/utils/consecutiveCache.js";
@@ -104,7 +104,7 @@ export const rotateAccessToken =  async (req: Request, res: Response) => {
          const accessToken = generateAccessToken({
             id: result.userId!,
             visitor_id: result.visitor_id!,
-            jti: crypto.randomUUID()
+            jti: randomUUID()
         });
 
         resetLimiters(log, hashedToken, [refreshTokenLimiter]);
