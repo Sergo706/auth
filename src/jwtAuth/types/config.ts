@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken'
-import { ProviderConfig } from '../utils/newOauthProvider.js';
+import { ProviderConfig, JsonProviderSpec } from '../utils/newOauthProvider.js';
 import { ZodType } from 'zod/v4';
 import mysql2 from 'mysql2/promise';
 import mysql from 'mysql2'; 
@@ -35,7 +35,7 @@ export interface AuthConfig {
     domain: string;
     maxCacheEntries?: number;
   },
-  providers?: ProviderConfig<ZodType>[];
+  providers?: Array<ProviderConfig<ZodType> | JsonProviderSpec>;
    jwt: {
      jwt_secret_key: string ;
      access_tokens: {

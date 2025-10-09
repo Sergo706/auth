@@ -8,6 +8,7 @@ import { IssuedRefreshToken } from "../../refreshTokens.js";
 import { getConfiguration } from "../config/configuration.js";
 import { getLogger } from "../utils/logger.js";
 import { StandardProfile } from "../utils/newOauthProvider.js";
+import { deriveLastNames } from "../utils/normalizeUsersNames.js";
 /**
  * @description
  * Create a new OAuth user record using the provided profile data.
@@ -98,9 +99,11 @@ const pool = getPool()
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
+     const computedLastName = deriveLastNames(name ?? undefined, given_name ?? undefined, family_name ?? undefined, last_name ?? undefined);
+
      const params = [
         name ?? given_name ?? null,
-        family_name ?? last_name ?? null,
+        family_name ?? last_name ?? computedLastName,
         email,
         avatar ?? null,
         'no_password',
