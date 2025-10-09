@@ -87,12 +87,32 @@ export const configurationSchema = z.strictObject({
     domain: z.url({protocol: /^https?$/, hostname: z.regexes.domain, normalize: true}),
     maxCacheEntries: z.number().optional()
  }),  
-    providers: z.array( 
-    z.object({
-      name: z.string(), 
-      schema: z.instanceof(ZodType).transform(v => v as ZodType),
-   })
-).optional(),
+    providers: z.array(
+      z.union([
+        z.object({
+          name: z.string(),
+          schema: z.instanceof(ZodType).transform(v => v as ZodType),
+        }),
+        z.object({
+          name: z.string(),
+          useStandardProfile: z.boolean().optional(),
+          fields: z
+            .record(
+              z.string(),
+              z.enum([
+               'string','string?',
+               'email','email?',
+               'boolean','boolean?',
+               'url','url?',
+               'number','number?',
+               'int','int?',
+               'safeString','safeString?'
+               ])
+            )
+            .optional(),
+        }),
+      ])
+    ).optional(),
     
      
  jwt: z.object({

@@ -44,7 +44,7 @@ export const OAuthHandler = async (req: Request, res: Response, next: NextFuncti
       }
 
       log.info({body: req.body, cookies: req.cookies}, `Entered OAuth body`)
-      const rawInfo = req.body.userInfo; 
+      const rawInfo = req.body.userInfo ?? req.body.user ?? req.body; 
       const result = await validateSchema(matchedProvider.provider.schema, rawInfo, req, log);
 
 

@@ -166,6 +166,51 @@ configuration({
 
 For complete configuration options, see [`CONFIGURATION.md`](./CONFIGURATION.md).
 
+### OAuth Providers (Library vs Service)
+
+- Library mode (code): pass real Zod schemas
+```ts
+configuration({
+  providers: [
+    {
+      name: 'google',
+      schema: z.object({
+        sub: z.string(),
+        email: z.string().email().optional(),
+        given_name: z.string().optional(),
+        family_name: z.string().optional(),
+        picture: z.string().url().optional(),
+        locale: z.string().optional(),
+      })
+    }
+  ]
+});
+```
+
+- Service mode (JSON): use a simple DSL or the standard profile
+```json
+{
+  "providers": [
+    { "name": "google", "useStandardProfile": true },
+    {
+      "name": "github",
+      "fields": {
+        "sub": "string",
+        "email": "email?",
+        "given_name": "string?",
+        "family_name": "string?",
+        "avatar": "url?",
+        "locale": "string?"
+      }
+    }
+  ]
+}
+```
+
+- Allowed tokens: `string`, `email`, `boolean`, `url`, `number`, `int` (append `?` for optional)
+
+See CONFIGURATION.md for full examples and runtime details.
+
 ## API Routes
 
 ### Authentication Routes (`authenticationRoutes`)

@@ -1,5 +1,6 @@
 import z, { ZodType } from "zod/v4";
 import { getConfiguration } from "../config/configuration.js";
+import { makeSanitizedZodString } from "../../main.js";
 
 export const StandardProfileSchema = z.object({
   sub: z.string(),
@@ -21,10 +22,27 @@ export interface ProviderConfig<Schema extends ZodType> {
   mapProfile(raw: z.infer<Schema>): StandardProfile;
 }
 
+type JsonFieldToken =
+  | 'string' | 'string?'
+  | 'email'  | 'email?'
+  | 'boolean'| 'boolean?'
+  | 'url'    | 'url?'
+  | 'number' | 'number?'
+  | 'int'    | 'int?'
+  | 'safeString' | 'safeString?';
+
+export interface JsonProviderSpec {
+  name: string;
+  useStandardProfile?: boolean;
+  fields?: Record<string, JsonFieldToken>;
+}
+
 interface ProviderInput<Schema extends ZodType = ZodType> {
   name: string;
   schema: Schema;
 };
+
+type AnyProviderSpec = ProviderInput<ZodType> | JsonProviderSpec;
 
 interface OAuthProvider<Schema extends ZodType = ZodType> {
   provider: Provider<Schema>;
@@ -44,7 +62,7 @@ class Provider<Schema extends ZodType> implements ProviderConfig<Schema> {
       sub: (data as any).sub as string,        
       email: (data as any).email,
       email_verified: Boolean((data as any).email_verified),
-      name: (data as any).given_name, 
+      name: (data as any).name ?? (data as any).given_name, 
       given_name: (data as any).given_name,  
       family_name: (data as any).family_name,
       last_name: (data as any).last_name,
@@ -55,12 +73,46 @@ class Provider<Schema extends ZodType> implements ProviderConfig<Schema> {
 }
 
 
-function mapProvider<Schema extends ZodType>(config: ProviderInput<Schema>): OAuthProvider<Schema> {
-  const provider = new Provider<Schema>(config.name, config.schema)
+function buildSchemaFromFields(fields?: Record<string, JsonFieldToken>, useStandard?: boolean): ZodType {
+  if (useStandard || !fields) return StandardProfileSchema;
+
+  const shape: Record<string, ZodType> = {};
+  const makeOptional = (type: ZodType, optional: boolean) => optional ? type.optional() : type;
+
+  const tokenToZod = (token: JsonFieldToken): ZodType => {
+    const optional = token.endsWith('?');
+    const base = token.replace('?', '');
+
+    switch (base) {
+      case 'string': return makeOptional(z.string(), optional);
+      case 'safeString': return makeOptional(makeSanitizedZodString({min: 0, max: 300}), optional)
+      case 'email': return makeOptional(z.email(), optional);
+      case 'boolean':return makeOptional(z.boolean(), optional);
+      case 'url': return makeOptional(z.url(), optional);
+      case 'number': return makeOptional(z.number(), optional);
+      case 'int': return makeOptional(z.int(), optional);
+      default: return makeOptional(z.unknown(), optional);
+    }
+  };
+
+  for (const [key, tok] of Object.entries(fields)) {
+    shape[key] = tokenToZod(tok);
+  }
+
+  return z.object(shape);
+}
+
+
+function mapProvider(config: AnyProviderSpec): OAuthProvider<ZodType> {
+  const hasSchema = (spec: AnyProviderSpec): spec is ProviderInput<ZodType> => { return 'schema' in spec; }
+
+  const schema = hasSchema(config) ? config.schema : buildSchemaFromFields(config.fields, config.useStandardProfile);
+
+  const provider = new Provider(config.name, schema);
   return {
     provider,
-    mapProfile: provider.mapProfile.bind(provider) as (raw: z.infer<Schema>) => StandardProfile
-  }
+    mapProfile: provider.mapProfile.bind(provider) as (raw: any) => StandardProfile,
+  };
 }
 
 /**
@@ -88,7 +140,7 @@ function mapProvider<Schema extends ZodType>(config: ProviderInput<Schema>): OAu
  * import { googleConfig, facebookConfig } from './oauthConfigs';
  * const allProviders = configureOauthProviders([googleConfig, facebookConfig]);
  */
-export function getProviders(newProviders?: ProviderInput<ZodType>[]): OAuthProvider<ZodType>[] {
-      const raw = newProviders ?? getConfiguration().providers ?? [];      
-      return  raw.map((p) => mapProvider(p));
-} 
+export function getProviders(newProviders?: AnyProviderSpec[]): OAuthProvider<ZodType>[] {
+  const raw = newProviders ?? (getConfiguration().providers as AnyProviderSpec[] | undefined) ?? [];
+  return raw.map((p) => mapProvider(p));
+}

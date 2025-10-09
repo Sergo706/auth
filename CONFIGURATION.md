@@ -429,14 +429,58 @@ Rate limiting is highly configurable with multiple layers of protection.
 
 ### OAuth Providers
 
+There are two ways to configure OAuth providers:
+
+1) Library mode (code): pass actual Zod schemas in your app code.
+2) Service mode (JSON): use a JSON-friendly DSL that the service converts to Zod at runtime.
+
+Library mode (code)
 ```typescript
 {
   providers?: Array<{
     name: string,               // Provider name (e.g., "google", "github")
-    schema: ZodType            // Zod schema for provider configuration
+    schema: ZodType             // Zod schema that validates `userInfo`
   }>
 }
 ```
+
+Service mode (JSON DSL)
+- Each provider can be expressed as either:
+  - `{ "name": "google", "useStandardProfile": true }` to use the built-in StandardProfileSchema, or
+  - `{ "name": "github", "fields": { ... } }` to define a minimal schema using simple tokens.
+
+- Allowed field tokens (add `?` to make optional):
+  - `string`, `string?`
+  - `email`, `email?`
+  - `boolean`, `boolean?`
+  - `url`, `url?`
+  - `number`, `number?`
+  - `int`, `int?`
+
+JSON examples
+```json
+{
+  "providers": [
+    { "name": "google", "useStandardProfile": true },
+    {
+      "name": "github",
+      "fields": {
+        "sub": "string",
+        "email": "email?",
+        "given_name": "string?",
+        "family_name": "string?",
+        "avatar": "url?",
+        "locale": "string?"
+      }
+    }
+  ]
+}
+```
+
+Runtime behavior
+- The service reads `providers` from JSON and accepts them as-is.
+- Internally, it builds a Zod schema from `fields` or uses the built-in StandardProfileSchema when `useStandardProfile` is true.
+- The OAuth route expects `POST /auth/OAuth/:providerName` with a JSON body `{ "userInfo": { ... } }` matching the chosen schema.
 
 ### Example Service Configuration
 
