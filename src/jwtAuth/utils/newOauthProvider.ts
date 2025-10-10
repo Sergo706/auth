@@ -3,15 +3,25 @@ import { getConfiguration } from "../config/configuration.js";
 import { makeSanitizedZodString } from "../../main.js";
 
 export const StandardProfileSchema = z.object({
-  sub: z.string(),
-  email: z.email().optional(),
+  sub: z.union([z.string(), z.number()]).optional(),
+  id: z.union([z.string(), z.number()]).optional(),
+  user_id: z.union([z.string(), z.number()]).optional(),
+  email: z.email(),
   email_verified: z.boolean().optional(),
   name: z.string().optional(),
   given_name: z.string().optional(),
   family_name: z.string().optional(),
   last_name: z.string().optional(),
   avatar: z.url({protocol: /^https$/, hostname: z.regexes.domain, normalize: true}).optional(),
+  avatar_url: z.url({protocol: /^https$/, hostname: z.regexes.domain, normalize: true}).optional(),
+  picture: z.url({protocol: /^https$/, hostname: z.regexes.domain, normalize: true}).optional(),
+  picture_url: z.url({protocol: /^https$/, hostname: z.regexes.domain, normalize: true}).optional(),
   locale: z.string().optional(),
+  location: z.string().optional(),
+
+}).refine(userId => Boolean(userId.sub || userId.id || userId.user_id), {
+message: 'One of sub | id | user_id is required',
+path: ['sub'],
 });
 
 export type StandardProfile = z.infer<typeof StandardProfileSchema>;
@@ -57,17 +67,18 @@ class Provider<Schema extends ZodType> implements ProviderConfig<Schema> {
   ) {}
 
   mapProfile(raw: z.infer<Schema>): StandardProfile {
-    const data = raw;
+    const data = raw as any;
+    const userId = String(data.sub ?? data.id ?? data.user_id)
     return {
-      sub: (data as any).sub as string,        
-      email: (data as any).email,
-      email_verified: Boolean((data as any).email_verified),
-      name: (data as any).name ?? (data as any).given_name, 
-      given_name: (data as any).given_name,  
-      family_name: (data as any).family_name,
-      last_name: (data as any).last_name,
-      avatar: (data as any).picture ?? (data as any).avatar,
-      locale: (data as any).locale,          
+      sub: userId,     
+      email: data.email,
+      email_verified: Boolean(data.email_verified),
+      name: data.name ?? data.given_name, 
+      given_name: data.given_name,  
+      family_name: data.family_name,
+      last_name: data.last_name,
+      avatar: data.picture ?? data.picture_url ?? data.avatar ?? data.avatar_url,
+      locale: data.locale ?? data.location,          
     };
   }
 }
