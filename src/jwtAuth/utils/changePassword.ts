@@ -36,7 +36,7 @@ log.info('Searching for user email...')
 const pool = getPool()
  try { 
  const [results] =  await pool.execute<RowDataPacket[]>(`
-    SELECT id, name, email AS user_email, visitor_id
+    SELECT id, name, email AS user_email, visitor_id, password_hash 
     FROM users
     WHERE email = ?
     `,[email]);
@@ -46,7 +46,13 @@ const pool = getPool()
         return {valid: false, error: 'No email found'};
     }
 log.info('Found user, generating link and email...')
-const { id, name, user_email, visitor_id } = results[0];
+const { id, name, user_email, visitor_id, password_hash } = results[0];
+
+    if (password_hash === 'no_password') {
+         log.warn('No password found to be changed')  
+         return {valid: false, error: 'No password found'};
+    }
+
 const jti = `${crypto.randomUUID()}${crypto.randomBytes(64).toString('hex')}`;
 
 const payload: LinkTokenPayload = {

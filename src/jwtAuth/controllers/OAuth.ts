@@ -61,15 +61,16 @@ export const OAuthHandler = async (req: Request, res: Response, next: NextFuncti
         const userSchema = matchedProvider.mapProfile(validUserData)
         const canaryCookie = req.cookies.canary_id;
         let accessToken: string, refreshToken: IssuedRefreshToken;
-        const compositeKey = `${req.ip!}_${userSchema.sub}`;
+        const userSub = String(userSchema.sub ?? userSchema.id ?? userSchema.user_id);
+        const compositeKey = `${req.ip!}_${userSub}`;
 
 
 
-        if (!(await guard(subLimiter, userSchema.sub, consecutiveForSub, 2, 'sub limiter', log, res))) return;
+        if (!(await guard(subLimiter, userSub!, consecutiveForSub, 2, 'sub limiter', log, res))) return;
         if (!(await guard(compositeKeyLimiter, compositeKey, consecutiveForCompositeKey, 2, 'compositeKey', log, res))) return;
 
-        if (!userSchema || !userSchema.sub) {
-          log.error({Schema: userSchema, providerId: userSchema.sub},`Schema is not valid or provider id is undefined!'`);
+        if (!userSchema || !userSub) {
+          log.error({Schema: userSchema, providerId: userSub},`Schema is not valid or provider id is undefined!'`);
           res.status(500)
           .json({
             ok: false,
@@ -79,20 +80,26 @@ export const OAuthHandler = async (req: Request, res: Response, next: NextFuncti
           return;
         };
 
-        log.info(`Calling findUserByProvider with id=', ${userSchema.sub}`)
-        const found = await findUserByProvider(providedName, userSchema.sub);
+        log.info(`Calling findUserByProvider with id=', ${userSub}`)
+        const found = await findUserByProvider(providedName, userSub);
         log.info({found: found.user},`findUserByProvider returned`)
 
       if(!found.user) { 
         log.info(`No existing user found, creating new one...`)
         const makeNewUser = await createOauthUser(canaryCookie, userSchema, providedName);
       if (!makeNewUser.success) {
-        log.warn(`Failed to create new user. Server Error: 500`);
+        log.warn(`Failed to create new OAuth user for ${providedName}.`);
         if (makeNewUser.duplicate) {
             log.warn(`Founded duplicated user`)
             res.status(409).json({ ok: false, receivedAt: new Date().toISOString(), error: 'E-mail already registered' , banned: false});
             return;
-            }
+          }
+
+        if (makeNewUser.noCanaryCookie) {
+            log.warn(`No fingerprint`)
+            res.status(400).json({ok: false, receivedAt: new Date().toISOString(), error: 'No canary_id or visitor fingerprint in db!'});
+            return;
+        }
             res.status(500).json({ ok: false, receivedAt: new Date().toISOString(), error: 'server error', banned: false});
             return;
         }

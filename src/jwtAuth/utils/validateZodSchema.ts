@@ -58,7 +58,7 @@ log.info(`Validating schema...`)
     const errors: Record<string,string> = {}
     sch.error.issues.forEach(issue => {
       const key = issue.path[0] as string
-      log.info(`Schema error, data is not valid: ${issue}`)
+      log.info({issue}, `Schema error, data is not valid`)
       errors[`${key} Error`] = issue.message
     })
     return {

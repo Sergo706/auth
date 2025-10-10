@@ -58,7 +58,7 @@ export const initPasswordReset = async (req: Request, res: Response, next: NextF
         consecutiveForEmail.delete(validetedEmail);
         consecutiveForCompositeKey.delete(compositeKey)
         await resetLimitersUni(compositeKey);
-        log.info(`Reset email was send successfuly.`)
+        log.info(`Reset email was send successfully.`)
   };
 
   } finally {    

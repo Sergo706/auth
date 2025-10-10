@@ -55,7 +55,7 @@ import { deriveLastNames } from "../utils/normalizeUsersNames.js";
  */
 export async function createOauthUser(cookie: string, data: StandardProfile, provider: string): 
 Promise <  
-{ success: boolean;  accessToken?: string; refreshToken?: IssuedRefreshToken; duplicate?: true;  }
+{ success: boolean;  accessToken?: string; refreshToken?: IssuedRefreshToken; duplicate?: true; noCanaryCookie?: true }
 > {  
     const log = getLogger().child({service: 'auth', branch: 'oauth'});
 
@@ -67,10 +67,17 @@ const { jwt } = getConfiguration();
 const pool = getPool()
     try {
     const [visitorsData]  = await pool.execute<RowDataPacket[]>
-    ("SELECT country, city , district, visitor_id  FROM visitors WHERE canary_id = ?", [cookie]);
+    ("SELECT country, city , district, visitor_id, canary_id  FROM visitors WHERE canary_id = ?", [cookie]);
     const results = visitorsData[0];   
 
-        if (results) {
+    if (!results || !results.canary_id) {
+        log.error({visitors: results, canary: results.canary_id}, `No Visitors data is present, cannot make new user!`)
+        return {
+            success: false,
+            noCanaryCookie: true
+        }
+    }
+   
            const payload: OauthUser = {
                ...data,
                country: results.country === 'unknown' ? null : results.country,
@@ -130,7 +137,6 @@ const pool = getPool()
      refreshToken: refresh
   }
 
-    }
         } catch(err) {
         const mysqlErr = err as any;
          if (mysqlErr.code === 'ER_DUP_ENTRY') {
@@ -141,6 +147,5 @@ const pool = getPool()
         sendLog('Failed to Create New User', `Error: ${err}`)
         return {success: false};
     }
-return {success: false}
 
 }
