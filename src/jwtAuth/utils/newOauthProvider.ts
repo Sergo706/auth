@@ -16,8 +16,8 @@ export const StandardProfileSchema = z.object({
   avatar_url: z.url({protocol: /^https$/, hostname: z.regexes.domain, normalize: true}).optional(),
   picture: z.url({protocol: /^https$/, hostname: z.regexes.domain, normalize: true}).optional(),
   picture_url: z.url({protocol: /^https$/, hostname: z.regexes.domain, normalize: true}).optional(),
-  locale: z.string().optional(),
-  location: z.string().optional(),
+  locale: z.any().optional(),
+  location: z.any().optional(),
 
 }).refine(userId => Boolean(userId.sub || userId.id || userId.user_id), {
 message: 'One of sub | id | user_id is required',
