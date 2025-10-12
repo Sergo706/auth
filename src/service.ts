@@ -16,6 +16,7 @@ import { headers } from './jwtAuth/middleware/serviceHeaders.js';
 import { notFoundHandler } from './jwtAuth/middleware/notFound.js';
 import allowBff from "./jwtAuth/routes/allowBffAccessRoute.js"
 import { finalUnHandledErrors } from './jwtAuth/middleware/finalErrorHandler.js';
+import { sendOperationalConfig } from './jwtAuth/controllers/sendOprConfig.js';
 
 const configPath = process.env.CONFIG_PATH || '/run/app/config.json';
 
@@ -100,7 +101,7 @@ async function startServer() {
         app.use(tokenRotationRoutes)
         app.use(magicLinks)
         app.use(allowBff)
-        
+        app.use('/operational/config', sendOperationalConfig)
         await warmUp();
         await loadUaPatterns();
         app.get('/health', (req, res) => res.status(200).send('OK'));

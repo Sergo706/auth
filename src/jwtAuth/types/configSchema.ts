@@ -50,6 +50,7 @@ export const configurationSchema = z.strictObject({
       
       port: z.number().optional(),
       ipAddress: z.string().optional(),
+      clientIp: z.string().optional(),
     }).optional(),
 
    telegram: z.object({
