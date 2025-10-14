@@ -4,17 +4,31 @@ import { makeCookie } from "../utils/cookieGenerator.js";
 import { strangeThings } from "../../anomalies.js";
 import { sendTempMfaLink } from "../utils/emailMFA.js";
 import { getLogger } from "../utils/logger.js";
-import { rotateRefreshToken } from "../../refreshTokens.js";
+import { rotateInPlaceRefreshToken } from "../utils/rotateRefreshTokens.js";
 import { createHash } from "crypto";
 import { guard } from "../utils/limiters/utils/guard.js";
 import { getLimiters } from "../utils/limiters/protectedEndpoints/tokensLimiters.js";
 import { makeConsecutiveCache } from "../utils/limiters/utils/consecutiveCache.js";
 import { getConfiguration } from "../config/configuration.js";
 
+
 const consecutiveForIp = makeConsecutiveCache< {countData:number} >(2000, 1000 * 60 * 60 * 12);
 const consecutiveForCompositeKey = makeConsecutiveCache< {countData:number} >(2000, 60 * 60 * 12);
 const consecutiveForRefreshToken = makeConsecutiveCache< {countData:number} >(2000, 1000 * 60 * 60 * 12);
 
+/**
+ * Rotate refresh credentials when nearing expiry or when the refresh token has
+ * expired but the overall session is still within `MAX_SESSION_LIFE`.
+ *
+ * Flow:
+ * - Enforce canary cookie, rate limits, and anomaly checks (`strangeThings`).
+ * - If session exceeds `MAX_SESSION_LIFE`, revoke and clear cookies (401).
+ * - If token is valid and fresh, respond 200 without changes.
+ * - If token is expired but eligible, rotate (in-place helper or new issuance),
+ *   set new cookies, and respond 201.
+ *
+ * Responses: 200 (up to date), 201 (rotated), 401 (relogin/MFA), 500 (server).
+ */
 export const rotateRefreshTokens = async (req: Request, res: Response) => { 
         const { jwt } = getConfiguration();
         const rawRefreshToken = req.cookies.session;
@@ -70,8 +84,8 @@ export const rotateRefreshTokens = async (req: Request, res: Response) => {
 
          const result = await verifyRefreshToken(rawRefreshToken);       
       
-         if (result.valid && Date.now() - result.sessionTTL!.getTime() >= jwt.refresh_tokens.MAX_SESSION_LIFE) {
-          const revoke = await revokeRefreshToken(rawRefreshToken, false);
+         if (result.valid && Date.now() - result.sessionStartedAt!.getTime() >= jwt.refresh_tokens.MAX_SESSION_LIFE) {
+          const revoke = await revokeRefreshToken(rawRefreshToken);
               if (!revoke.success) {
                   log.error(`DB error revoking token`)
                   res.status(500).json({ error: 'DB error revoking token' });
@@ -93,7 +107,7 @@ export const rotateRefreshTokens = async (req: Request, res: Response) => {
              path: '/'
             }); 
             log.info({user: result.userId},`User's Session is expired`);
-            res.status(401).json({session: 'Session is expired'})
+            res.status(401).json({error: 'Session is expired'})
             return;
          }
 
@@ -125,7 +139,7 @@ export const rotateRefreshTokens = async (req: Request, res: Response) => {
            }
 
            log.info({userID: result.userId, visitorId: result.visitor_id},`Refresh verified...`)
-           const updateToken = await rotateRefreshToken(jwt.refresh_tokens.refresh_ttl, result.userId, rawRefreshToken, false);
+           const updateToken = await rotateInPlaceRefreshToken(jwt.refresh_tokens.refresh_ttl, result.userId, rawRefreshToken);
            log.info({userID: result.userId, visitorId: result.visitor_id},`Rotating token...`)
 
            let newTokenValue; 

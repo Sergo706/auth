@@ -107,4 +107,11 @@ const httpOpts: HttpOptions<Request, Response> = {
     reqId:  'requestId'   
   },
 }
+/**
+ * Express HTTP logger middleware using `pino-http` with sane defaults:
+ * - Redacts sensitive headers/cookies
+ * - Generates/propagates `X-Request-Id`
+ * - Writes JSON logs to `logs/http.log`
+ * - Adjusts log levels based on status codes
+ */
 export const httpLogger = (pinoHttpNS as any)(httpOpts);

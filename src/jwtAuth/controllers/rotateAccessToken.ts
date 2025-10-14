@@ -88,8 +88,8 @@ export const rotateAccessToken =  async (req: Request, res: Response) => {
 
          const result = await verifyRefreshToken(rawRefreshToken);
 
-          if (result.valid && Date.now() - result.sessionTTL!.getTime() >= jwt.refresh_tokens.MAX_SESSION_LIFE) {
-           const revoke = await revokeRefreshToken(rawRefreshToken, false);
+          if (result.valid && Date.now() - result.sessionStartedAt!.getTime() >= jwt.refresh_tokens.MAX_SESSION_LIFE) {
+           const revoke = await revokeRefreshToken(rawRefreshToken);
                if (!revoke.success) {
                    log.error(`DB error revoking token`)
                    res.status(500).json({ error: 'DB error revoking token' });

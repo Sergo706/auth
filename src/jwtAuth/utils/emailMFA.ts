@@ -67,7 +67,7 @@ const log = getLogger().child({service: 'auth', branch: 'mfa', visitorId: user.v
     SELECT code_hash FROM mfa_codes
      WHERE user_id = ?
      AND token = ?
-     AND expires_at > NOW() 
+     AND expires_at > UTC_TIMESTAMP()
   `, [user.userId, hashedClientToken]);
 
 

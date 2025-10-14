@@ -6,6 +6,18 @@ import { getLogger } from "../utils/logger.js";
 import { getConfiguration } from '../config/configuration.js';
 
 
+/**
+ * Verify inbound requests using HMAC headers and a shared secret.
+ *
+ * Expected headers:
+ * - `X-Client-Id`: client identifier.
+ * - `X-Timestamp`: client time in ms.
+ * - `X-Signature`: hex HMAC-SHA256 of `id:ts:method:url:reqid`.
+ * - `X-Request-ID`: unique request id.
+ *
+ * Allows unauthenticated local `GET /health`. For other requests, responds 401
+ * using `reject()` when validation fails; otherwise calls `next()`.
+ */
 export const hmacAuth: RequestHandler = (req, res, next) => {
     const {service} = getConfiguration()
     if (!service) return next();

@@ -45,7 +45,7 @@ import { Request, Response } from "express";
       const [row] = await pool.execute<RowDataPacket[]>('SELECT * FROM users WHERE id = ?', [userId])
       const [rowVisitor] = await pool.execute<RowDataPacket[]>('SELECT * FROM visitors WHERE visitor_id = ?', [visitor_id])
 
-      if (!row || !rowVisitor) {
+      if (!row.length || !rowVisitor.length) {
          log.warn(`Unauthorized access attempt, user not found`)
          res.status(404).json({
             authorized: false,
@@ -59,6 +59,7 @@ import { Request, Response } from "express";
 
   } catch(error) {
     log.error(`Error validating user identity`)
+    res.status(500).json({ authorized:false, reason:'Server error' })
     return;
   } 
 

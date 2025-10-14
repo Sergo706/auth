@@ -15,6 +15,21 @@ const consecutiveForIp = makeConsecutiveCache<{countData:number}>(2000, 1000 * 6
 const consecutiveForSub = makeConsecutiveCache<{countData:number}>(2000, 1000 * 60 * 5 );
 const consecutiveForCompositeKey = makeConsecutiveCache<{countData:number}>(2000, 1000 * 60 * 10 );
 
+/**
+ * Handle OAuth login/registration for a configured provider.
+ *
+ * Flow:
+ * - Validates provider name from route param and input against provider schema.
+ * - Applies IP/subject/composite-key rate limits.
+ * - Finds or creates the user, issues refresh + access tokens, and sets cookies.
+ *
+ * Responses:
+ * - 201: `{ ok, accessToken, accessIat }` with cookies set.
+ * - 400: Bad request or schema validation errors.
+ * - 404: Unknown provider.
+ * - 409: E-mail already registered (duplicate on create path).
+ * - 500: Server error during user creation or token issuance.
+ */
 export const OAuthHandler = async (req: Request, res: Response, next: NextFunction) => {
   const log = getLogger().child({service: 'auth', branch: 'oauth', visitorId: req.newVisitorId});
   const { uniLimiter, compositeKeyLimiter, subLimiter } = getLimiters();

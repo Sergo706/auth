@@ -116,10 +116,10 @@ export { createUser } from "./jwtAuth/models/createUser.js";
 export { findUserByProvider as findUserByOauthProvider } from "./jwtAuth/models/findUserByProvider.js";
 export { generateAccessToken, verifyAccessToken} from "./accessTokens.js"
 export { revokeRefreshToken,
-         rotateRefreshToken,
          generateRefreshToken, 
          consumeAndVerifyRefreshToken, 
          verifyRefreshToken } from "./refreshTokens.js";   
+export {rotateOneUseRefreshToken, rotateInPlaceRefreshToken}   from "./jwtAuth/utils/rotateRefreshTokens.js";     
 export { strangeThings } from "./anomalies.js"
 export { verifyTempJwtLink as verifyTempLink, tempJwtLink as signNewTempLink } from "./tempLinks.js"
 export { makeConsecutiveCache } from './jwtAuth/utils/limiters/utils/consecutiveCache.js';
@@ -134,7 +134,10 @@ export { getGeoData, parseUA, BotDetectorConfig, initBotDetector, loadUaPatterns
 export { makeEmailTemplate, deleteTemplate, listTemplates } from './jwtAuth/utils/emailTemplateMaker.js';
 export { getFingerPrint } from './jwtAuth/middleware/fingerPrint.js';
 export {allowBffAccess} from "./jwtAuth/controllers/allowBffAccess.js";
-
+export {ensureSha256Hex, toDigestHex} from "./jwtAuth/utils/hashChecker.js";
+export {getAccessTokenPayload} from "./jwtAuth/controllers/getPayloadMeta.js";
+export {sendOperationalConfig} from "./jwtAuth/controllers/sendOprConfig.js";
+export {getRefreshTokenMetaData} from "./jwtAuth/controllers/getRefreshTokenMetaData.js"
 /**
  * The Zod schema‐validation library, v4.
  *
