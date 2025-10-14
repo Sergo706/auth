@@ -190,7 +190,7 @@ if (tokenResults.canary_id !== cookie) {
      (SELECT COUNT(*) FROM refresh_tokens
        WHERE user_id = ? AND valid = 1) AS totalValid,
 
-     (SELECT SUM(created_at >= NOW() - INTERVAL 10 MINUTE)
+     (SELECT SUM(created_at >= UTC_TIMESTAMP() - INTERVAL 10 MINUTE)
        FROM refresh_tokens
        WHERE user_id = ? AND valid = 1) AS recentValid,
 
@@ -243,10 +243,10 @@ if (tokenResults.canary_id !== cookie) {
 
 
     if (tokenResults.suspicious_activity_score >= 9) { 
-            log.info(`Suspicos score to high`)  
+            log.info(`Suspicion score to high`)  
         return {
           valid: false,
-          reason: 'Suspicos score to high',
+          reason: 'Suspicion score to high',
           reqMFA: true,
           userId: tokenResults.user_id,
           visitorId: tokenResults.visitor_id

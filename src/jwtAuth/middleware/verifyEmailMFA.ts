@@ -101,7 +101,7 @@ try {
       FROM mfa_codes
        WHERE jti        = ?
          AND code_hash  = ?
-         AND expires_at > NOW()
+         AND expires_at > UTC_TIMESTAMP()
          AND used       = 0
       FOR UPDATE
     `,[req.link.jti, submittedHash])
@@ -118,7 +118,7 @@ try {
        WHERE jti        = ?
          AND user_id    = ?
          AND code_hash  = ?
-         AND expires_at > NOW()
+         AND expires_at > UTC_TIMESTAMP()
          AND used       = 0
       LIMIT 1
     `,[req.link.jti, rows[0].user_id, submittedHash])
@@ -145,7 +145,7 @@ const currentVisitorId = req.newVisitorId || req.link.visitor;
     ON visitors.visitor_id = ?
   SET
     users.visitor_id     = visitors.visitor_id,
-    users.last_mfa_at    = NOW(),
+    users.last_mfa_at    = UTC_TIMESTAMP(),
     visitors.proxy_allowed   = 1,
     visitors.hosting_allowed = 1
   WHERE
@@ -196,14 +196,14 @@ const currentVisitorId = req.newVisitorId || req.link.visitor;
   const userId = rows[0].user_id;
 
 
-  const result = await verifyRefreshToken(token, true);
+  const result = await verifyRefreshToken(token);
   if (!result.valid) {
     log.warn(`invalid refresh token: ${result.reason}`)
      res.status(401).json({ error: result.reason });
     return;
   }
   
-   const {success} = await revokeRefreshToken(token, true);
+   const {success} = await revokeRefreshToken(token);
    
     if (!success) {
       log.error(`Error Revoking refresh token`)

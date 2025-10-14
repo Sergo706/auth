@@ -12,6 +12,19 @@ import { waitSomeTime } from '../utils/timeEnum.js';
   const consecutiveForEmail = makeConsecutiveCache< {countData:number} >(2000, 1000 * 24 * 60 * 60);
   const consecutiveForCompositeKey = makeConsecutiveCache< {countData:number} >(2000, 1000 * 60 * 30);
 
+/**
+ * Begin the password reset flow for a given email.
+ *
+ * Behavior:
+ * - Requires `application/json` body with a valid email.
+ * - Applies IP/email/composite-key rate limits.
+ * - Always responds with 200 and a generic success message if no error occurred
+ *   earlier, after an artificial minimum delay to avoid enumeration timing.
+ *
+ * Responses prior to the uniform 200:
+ * - 400: Schema errors or bad content type.
+ * - 403: Banned/XSS attempt signaled by validator.
+ */
 export const initPasswordReset = async (req: Request, res: Response, next: NextFunction) => {
   const { uniLimiter, ipLimiter, emailLimiter } = getLimiters();
   const log = getLogger().child({service: 'auth', branch: 'password-reset'})

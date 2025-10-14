@@ -1,5 +1,7 @@
 import { allowBffAccess } from "../controllers/allowBffAccess.js";
 import { getAccessTokenPayload } from "../controllers/getPayloadMeta.js";
+import { getRefreshTokenMetaData } from "../controllers/getRefreshTokenMetaData.js";
+import { cookieOnly } from "../middleware/postGuard.js";
 import { requireAccessToken } from "../middleware/requireAccessToken.js";
 import { requireRefreshToken } from "../middleware/requireRefreshToken.js";
 import { protectRoute } from "../middleware/verifyJwt.js";
@@ -26,10 +28,17 @@ router.get('/secret/data',
   protectRoute,
   allowBffAccess
 )
-router.get('/secret/metadata', 
+router.get('/secret/accesstoken/metadata', 
   requireAccessToken,
   requireRefreshToken,
   protectRoute,
+  cookieOnly,
   getAccessTokenPayload
+)
+
+router.get('/secret/refreshtoken/metadata', 
+  requireRefreshToken,
+  cookieOnly,
+  getRefreshTokenMetaData
 )
 export default router;

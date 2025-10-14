@@ -14,6 +14,16 @@ const usageCountGet = makeConsecutiveCache<{count:number}>(1000, 1000 * 60 * 20)
 const allowedPerSuccessfulGet = 5;
 const allowedPerSuccessfulPost = 1;
 
+/**
+ * Verify MFA magic links (GET to preview, POST to consume) with rate limiting.
+ *
+ * Query: `?temp=<token>` and route param `:visitor` must match token payload.
+ *
+ * - GET: allows up to a limited number of previews; responds 200 when valid.
+ * - POST: allows a single use; on success calls `next()` to continue the flow.
+ *
+ * Errors: 400 for invalid/expired/mismatched links; rate limits applied.
+ */
 export const linkMfaVerification = async (req: Request, res: Response, next: NextFunction) => {
 const log = getLogger().child({service: 'auth', branch: `tempLinks`, linkType: 'mfa'})
 const { usedJtiLimiter } = getLimiters();
@@ -103,6 +113,16 @@ if (Number(req.params.visitor) !== results.payload.visitor) {
 } 
 
 
+/**
+ * Verify password-reset magic links (GET to preview, POST to consume) with rate limiting.
+ *
+ * Query: `?temp=<token>` and route param `:visitor` must match token payload.
+ *
+ * - GET: allows a limited number of previews; responds 200 when valid.
+ * - POST: allows a single consumption; on success calls `next()`.
+ *
+ * Errors: 400 for invalid/expired/mismatched links; rate limits applied.
+ */
 export const linkPasswordVerification = async (req: Request, res: Response, next: NextFunction) => {
 const log = getLogger().child({service: 'auth', branch: `tempLinks`, linkType: 'password-reset'})
 const { usedJtiLimiter } = getLimiters();

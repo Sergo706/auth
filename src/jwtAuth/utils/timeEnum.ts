@@ -10,10 +10,10 @@ import pino from "pino"
  * await timeEnumeration(1000); // wait 1 second
  */
 export async function waitSomeTime(time: number, log: pino.Logger): Promise<void> {
-    log.info(`Starting time enumration...`);
+    log.info(`Starting time enumeration...`);
     return new Promise(resolve => {
         setTimeout(() => {
-            log.info(`Time enumration completed.`);
+            log.info(`Time enumeration completed.`);
             resolve();
         }, time);
     });

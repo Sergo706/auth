@@ -2,7 +2,16 @@ import { Request,Response } from "express";
 import { getConfiguration } from "../config/configuration.js";
 import { getLogger } from "../utils/logger.js";
 
-
+/**
+ * Return a minimal operational configuration to a trusted client IP.
+ *
+ * Exposes non-sensitive runtime values (e.g., cookie domain, access TTL)
+ * to a preconfigured client for coordination. Rejects all other IPs.
+ *
+ * Responses:
+ * - 200: `{ domain, accessTokenTTL }` for allowed client IP.
+ * - 403: Forbidden for untrusted IPs.
+ */
 export async function sendOperationalConfig (req: Request, res: Response) {
 
   const log = getLogger().child({    

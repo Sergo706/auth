@@ -11,6 +11,21 @@ import { verifyAccessToken } from "../../accessTokens.js";
 const consecutiveForIp = makeConsecutiveCache< {countData:number} >(2000, 1000 * 60 * 10);
 const consecutiveForRefreshToken = makeConsecutiveCache< {countData:number} >(2000, 1000 * 60 * 60 * 12);
 
+/**
+ * Log out the current session by verifying and revoking the refresh token,
+ * blacklisting the access token `jti`, and clearing cookies.
+ *
+ * Requirements:
+ * - `requireRefreshToken` and `requireAccessToken` should run before to populate
+ *   `req.cookies.session` and `req.token`.
+ * - Applies IP and token-hash rate limits.
+ *
+ * Responses:
+ * - 200: `{ ok: true, message }` after successful revocation and blacklist.
+ * - 400: Missing refresh/access token.
+ * - 401: Invalid credentials/verification failed.
+ * - 500: DB or server error during revocation/blacklist.
+ */
 export const handleLogout = async (req: Request, res: Response) => {
  const rawRefreshToken = req.cookies.session;
  const accessToken = req.token;
@@ -32,7 +47,7 @@ export const handleLogout = async (req: Request, res: Response) => {
 
  try {
   log.info('logging user out...')
-  const result = await verifyRefreshToken(hashedToken, true);
+  const result = await verifyRefreshToken(rawRefreshToken);
 
         if (!result.valid) {
           log.warn(`Couldn't revoke a refresh token, because it's not a valid one.`);

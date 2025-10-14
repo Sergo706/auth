@@ -18,6 +18,21 @@ const consecutiveForIp = makeConsecutiveCache< {countData:number} >(2000, 1000 *
 const consecutive429 = makeConsecutiveCache< {countData:number} >(2000, 1000 * 60 * 60);
 const consecutiveForEmail = makeConsecutiveCache< {countData:number} >(2000, 1000 * 24 * 60 * 60);
 
+/**
+ * Authenticate a user via email and password with rate limiting and schema validation.
+ *
+ * Behavior:
+ * - Requires `application/json` body matching the login schema.
+ * - Applies IP/email/composite-key rate limits.
+ * - Verifies password and returns tokens; sets `session` and `iat` cookies.
+ *
+ * Responses:
+ * - 200: `{ ok, accessToken, accessIat }` on success.
+ * - 400: Invalid body or schema errors.
+ * - 401: Invalid credentials.
+ * - 403: Banned/XSS attempt signaled by validator.
+ * - 500: Server error during hashing or token issuance.
+ */
 export const handleLogin = async (req: Request, res: Response, next: NextFunction) => {
 const { ipLimiter, emailLimiter, uniLimiter } = getLimiters();
 const log = getLogger().child({service: 'auth', branch: 'classic', type: 'login'});
