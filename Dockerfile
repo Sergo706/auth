@@ -28,7 +28,7 @@ USER appuser
 RUN --mount=type=ssh,uid=10001,gid=10001 npm install --foreground-scripts --ignore-scripts=false
 RUN npm run build:prod
 EXPOSE 10000 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=30s \
+HEALTHCHECK --interval=30s --timeout=5s --retries=5 --start-period=60s \
   CMD sh -c 'code=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:10000/health || echo 000); [ "$code" = "200" ] || [ "$code" = "401" ]'
 ENTRYPOINT ["./decrypt.sh"]  
 CMD ["node", "dist/service.js"]
