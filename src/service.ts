@@ -72,7 +72,7 @@ async function startServer() {
                 return false
             })
         }
-        
+        app.get('/health', (req, res) => res.status(200).send('OK'));
         if (config.botDetector.enableBotDetector) {
             const defaultConfig = configBotDetector(true);
             
@@ -104,7 +104,6 @@ async function startServer() {
         app.use('/operational/config', sendOperationalConfig)
         await warmUp();
         await loadUaPatterns();
-        app.get('/health', (req, res) => res.status(200).send('OK'));
         app.use(notFoundHandler);
         app.use(finalUnHandledErrors);
         try {
