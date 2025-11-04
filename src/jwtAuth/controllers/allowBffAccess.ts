@@ -83,6 +83,7 @@ export const allowBffAccess = async (req: Request, res: Response, next: NextFunc
   
   baseLog.info(`User has been authorized`)
   res.status(200).json({
+    userId,
     authorized: true,
     ipAddress: req.ip,
     userAgent:  req.get("User-Agent"),
