@@ -24,9 +24,14 @@ export async function sendOperationalConfig (req: Request, res: Response) {
 });
 
   const config = getConfiguration();
-  const clientIp = config.service?.clientIp ?? config.service?.proxy.ipToTrust;
+  const trustedClientIp = config.service?.clientIp ?? config.service?.proxy.ipToTrust;
+  let physicalIp = req.socket.remoteAddress || '';
 
-  if (!clientIp || req.ip !== clientIp) {
+  if (physicalIp.startsWith('::ffff:')) {
+      physicalIp = physicalIp.substring(7);
+  }
+
+  if (!trustedClientIp || physicalIp !== trustedClientIp) {
     log.warn('Not allowed ip access attempt')
     res.status(403).json({error: 'Forbidden'});
     return;
