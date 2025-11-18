@@ -70,9 +70,9 @@ Promise<
                district: results.district === 'unknown' ? null : results.district,
                visitor_id: results.visitor_id,
             }
-            const { Name, confirmedPassword, ...restPayload } = payload;
-            const userNames = Name.replace(/\s{2,}/g, ' ').split(/\s*,\s*|\s+/).filter(Boolean);
-            const [name = '', ...rest] = userNames;
+            const { name, confirmedPassword, ...restPayload } = payload;
+            const userNames = name.replace(/\s{2,}/g, ' ').split(/\s*,\s*|\s+/).filter(Boolean);
+            const [Name = '', ...rest] = userNames;
             const lastname = rest.join(' ');
 
 
@@ -82,13 +82,13 @@ Promise<
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `;
           
-            const params = [name, lastname, Object.values(restPayload)].flat()
+            const params = [Name, lastname, Object.values(restPayload)].flat()
             const [newUser] = await pool.execute<ResultSetHeader>(stm, params);  
             const newUserId =  newUser.insertId;
             log.info(`User created, isussing tokens...`)
             const refresh = await generateRefreshToken(jwt.refresh_tokens.refresh_ttl,  newUserId);
             const accessToken = generateAccessToken({id: newUserId, visitor_id: results.visitor_id, jti: crypto.randomUUID()});
-            log.info(`New User created succsesfuly!`)
+            log.info(`New User created successfully!`)
             sendLog('New User created', `New User created successfully!`)
         return {
             success: true,
