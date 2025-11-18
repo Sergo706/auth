@@ -2,7 +2,7 @@
 
 FROM ubuntu:latest
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-RUN apt update && apt install -y curl git age
+RUN apt update && apt install -y curl git age libatomic1
 ENV BASH_ENV=/.bash_env
 RUN touch "${BASH_ENV}"
 RUN echo '. "${BASH_ENV}"' >> ~/.bashrc
