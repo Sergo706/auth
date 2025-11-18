@@ -2,7 +2,7 @@ import { z } from "zod/v4";
 import { makeSafeString } from "../utils/zodSafeStringMaker.js";
 
 export const newUser = z.strictObject({ 
-    Name: makeSafeString({
+    name: makeSafeString({
         min: 2,
         max: 72,
         pattern: /^[A-Za-z]+(?:(?:,\s*|\s+)[A-Za-z]+){0,3}$/,
