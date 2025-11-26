@@ -84,8 +84,9 @@ export const configurationSchema = z.strictObject({
     /** 
     * Full domain name, including the protocol
     * @example https://example.com.
+    * @example https://localhost
     */
-    domain: z.url({protocol: /^https?$/, hostname: z.regexes.domain, normalize: true}),
+    domain: z.url({protocol: /^https?$/, normalize: false}),
     maxCacheEntries: z.number().optional()
  }),  
     providers: z.array(
