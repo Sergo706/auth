@@ -73,7 +73,7 @@ export const allowBffAccess = async (req: Request, res: Response, next: NextFunc
         })
          return;
       } 
-
+      
   } catch(error) {
     baseLog.error(`Error validating user identity`)
     return;

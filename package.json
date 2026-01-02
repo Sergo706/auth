@@ -33,7 +33,7 @@
     "docs:preview": "vitepress preview"
   },
   "dependencies": {
-    "@riavzon/botdetector": "github:Sergo706/botDetector",
+    "@riavzon/botdetector": "github:Sergo706/botDetector#71a1c78e65cdd609c0a389496be84eb8797fac33",
     "@types/date-fns": "^2.5.3",
     "@types/ejs": "^3.1.5",
     "@types/he": "^1.2.3",
@@ -60,7 +60,8 @@
     "zod": "^4.0.14"
   },
   "overrides": {
-    "pino": "^10.0.0"
+    "pino": "^10.0.0",
+    "ua-parser-js": "2.0.3"
   },
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",
