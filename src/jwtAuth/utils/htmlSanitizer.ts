@@ -38,8 +38,15 @@ interface html {
  */
 export default function sanitizeInputString(vall: string): {vall :string, results: html} {
   let results: html = { htmlFound: false };
-  const config = getConfiguration();
+  const { htmlSanitizer } = getConfiguration();
   const log = getLogger().child({service: 'auth', branch: 'utils', type: 'sanitizeInputString'})
+  if (!vall) return { vall: '', results };
+
+  if (vall.length > htmlSanitizer.maxAllowedInputLength) {
+        log.warn({ length: vall.length }, 'Input rejected: Exceeded max length');
+        throw new Error("Input too large for sanitization");
+  }
+
   let clean = vall
   .normalize('NFKC') 
   .replace(/[\uFEFF\u200B-\u200D\u202A-\u202E\uFF1C\uFF1E]/g, '')
@@ -61,20 +68,20 @@ export default function sanitizeInputString(vall: string): {vall :string, result
   }
   
 
-    let i = 1;
-    while (true) {
-    let prev = clean;
+    let loopCount = 0;
+    const MAX_LOOPS = htmlSanitizer.IrritationCount;
+    let prev = '';
+    do {
+      prev = clean;
       try {
         clean = decodeURIComponent(clean);
-        log.info('URI-decode success');
       } catch {
-        log.info('URI-decode failed, carrying on' );
       }
+
+      loopCount++;
       clean = he.decode(clean);
       
-      log.info(`Runned ${i++} times. Allowed remaining irritation ${i - config.htmlSanitizerIrritationCount}`);
-      if (clean === prev) break;
-      if (i > config.htmlSanitizerIrritationCount) {
+      if (loopCount > MAX_LOOPS) {
       log.warn('Input rejected: Excessive encoding depth');
       return {
           vall: '',
@@ -84,8 +91,13 @@ export default function sanitizeInputString(vall: string): {vall :string, result
           }
       };
    }
+
+    } while (clean !== prev);
+
+    if (loopCount > 1) {
+        log.info(`Sanitization required ${loopCount} iterations.`);
     }
-    
+
     const tagRx = /<\s*\/?\s*[A-Za-z][A-Za-z0-9-]*(?:\s+[^>]*?)?\s*>/i;
     if (
        tagRx.test(clean)    ||   

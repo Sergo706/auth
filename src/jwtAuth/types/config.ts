@@ -23,12 +23,18 @@ export interface AuthConfig {
       timeCost?: number;
       memoryCost?: number;
     },
+    htmlSanitizer: {
     /** 
  * The number of time to run the sanitizer in a loop before breaking.
  * keep number high but not to high to prevent ddos.
  * default 50
  * */
-  htmlSanitizerIrritationCount: number;
+    IrritationCount: number;
+    /**
+     * The maximum allowed input length to be provided before throwing an error.
+     */
+    maxAllowedInputLength: number;
+  }
   magic_links: {
     jwt_secret_key: string;
     expiresIn?: number;
