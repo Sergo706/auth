@@ -1,6 +1,7 @@
 import sanitizeHtml from 'sanitize-html';
 import he from 'he'
 import { getLogger } from './logger.js';
+import { getConfiguration } from '../config/configuration.js';
 interface html {
   htmlFound: boolean;
     tags?: {
@@ -37,6 +38,7 @@ interface html {
  */
 export default function sanitizeInputString(vall: string): {vall :string, results: html} {
   let results: html = { htmlFound: false };
+  const config = getConfiguration();
   const log = getLogger().child({service: 'auth', branch: 'utils', type: 'sanitizeInputString'})
   let clean = vall
   .normalize('NFKC') 
@@ -48,13 +50,14 @@ export default function sanitizeInputString(vall: string): {vall :string, result
   try {
     clean = decodeURIComponent(clean);
   } catch {
-    clean = clean.replace(/%[0-9A-Fa-f]{2}/g, seq => {
-      try { 
-        return decodeURIComponent(seq) 
-      } catch {
-         return seq 
-        }
-    });
+    log.warn('Input rejected: Malformed URI encoding');
+    return { 
+      vall: '', 
+      results: { 
+        htmlFound: true, 
+        tags: { tagName: 'Rejected: Malformed URI' } 
+      } 
+    };
   }
   
 
@@ -63,14 +66,24 @@ export default function sanitizeInputString(vall: string): {vall :string, result
     let prev = clean;
       try {
         clean = decodeURIComponent(clean);
-        log.info({clean}, 'URI-decode success');
+        log.info('URI-decode success');
       } catch {
-        log.info({clean},'URI-decode failed, carrying on' );
+        log.info('URI-decode failed, carrying on' );
       }
       clean = he.decode(clean);
       
-      log.info({prev}, `runned ${i++} times. prev: ${prev}  Now: ${clean}`);
+      log.info(`Runned ${i++} times. Allowed remaining irritation ${i - config.htmlSanitizerIrritationCount}`);
       if (clean === prev) break;
+      if (i > config.htmlSanitizerIrritationCount) {
+      log.warn('Input rejected: Excessive encoding depth');
+      return {
+          vall: '',
+          results: {
+              htmlFound: true,
+              tags: { tagName: 'Rejected: Excessive Encoding' }
+          }
+      };
+   }
     }
     
     const tagRx = /<\s*\/?\s*[A-Za-z][A-Za-z0-9-]*(?:\s+[^>]*?)?\s*>/i;
@@ -124,6 +137,6 @@ export default function sanitizeInputString(vall: string): {vall :string, result
       .replace(/`/g,'&#x60;')
       .replace(/\$\{/g, '\\${')
       .trim();
-  log.info({stripped}, `Final Results`)
+  log.info(`Sanitized input.`)
   return { vall: stripped, results }
 }
