@@ -51,7 +51,7 @@ export function generateAccessToken(user: AccessTokenPayload): string {
   })
   
 tokenCache().set(token, { jti: user.jti, visitorId: user.visitor_id, userId: user.id,  roles: user.role ?? [], valid: true })
-log.info({user},'Generated new access token')
+log.info({userId: user.id},'Generated new access token')
 return token;
 };
 

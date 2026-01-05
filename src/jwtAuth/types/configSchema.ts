@@ -76,7 +76,12 @@ export const configurationSchema = z.strictObject({
             }).optional(),
       })
  ]),
-
+/** 
+ * The number of time to run the sanitizer in a loop before breaking.
+ * keep number high but not to high to prevent ddos.
+ * default 50
+ * */
+  htmlSanitizerIrritationCount: z.number().default(50),
   magic_links: z.object({
     jwt_secret_key: z.string(),
     expiresIn: z.union([z.string(), z.number()]).optional(),

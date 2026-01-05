@@ -4,8 +4,12 @@ import { reject } from './handleRejectedHmac.js';
 import { reasons } from '../types/rejects.js';
 import { getLogger } from "../utils/logger.js";
 import { getConfiguration } from '../config/configuration.js';
+import { LRUCache } from "lru-cache";
 
-
+const nonceCache = new LRUCache<string, boolean>({
+    max: 5000,
+    ttl: 1000 * 60 * 5 
+});
 /**
  * Verify inbound requests using HMAC headers and a shared secret.
  *
@@ -23,7 +27,7 @@ export const hmacAuth: RequestHandler = (req, res, next) => {
     if (!service) return next();
     const SHARED_SECRET = service.Hmac?.sharedSecret
     const EXPECTED_CLIENT_ID = service.Hmac?.clientId;
-    const MAX_CLOCK_SKEW_MS = service.Hmac?.maxClockSkew;
+    const MAX_CLOCK_SKEW_MS = service.Hmac?.maxClockSkew ?? 300000;
 
     const id = req.get('X-Client-Id');
     const ts = req.get('X-Timestamp');
@@ -39,20 +43,25 @@ export const hmacAuth: RequestHandler = (req, res, next) => {
     
 
   if (!id || !ts || !sig || !reqid) {
-    reject(reasons.missingHeaders, parseInt(id!), res)
+    reject(reasons.missingHeaders, id, res)
     return;
   }
 
   if (id !==  EXPECTED_CLIENT_ID) {
-    reject(reasons.unknownClient, parseInt(id!), res)
+    reject(reasons.unknownClient, id, res)
     return;
   }
 
   if (Math.abs(Date.now() - Number(ts)) > MAX_CLOCK_SKEW_MS!) {
-    reject(reasons.timestamp, parseInt(id!), res)
+    reject(reasons.timestamp, id, res)
     return;
   }
 
+  if (nonceCache.has(reqid)) {
+        reject('Replay detected', id, res);
+        return;
+  }
+  
   const base = `${id}:${ts}:${req.method}:${req.originalUrl}:${reqid}`;
   const expected = crypto.createHmac('sha256', SHARED_SECRET!).update(base).digest('hex');
   const bufExp = Buffer.from(expected, "hex");
@@ -60,9 +69,11 @@ export const hmacAuth: RequestHandler = (req, res, next) => {
 
 
   if (bufExp.length !== bufGot.length || !crypto.timingSafeEqual(bufExp, bufGot)) {
-    reject(reasons.buffer, parseInt(id!), res)
+    reject(reasons.buffer, id, res)
     return;
   }
+
+  nonceCache.set(reqid, true, { ttl: MAX_CLOCK_SKEW_MS });
   log.info({Authorized: true, ClientID: id, Reason: 'Match'})
 
  return next();
