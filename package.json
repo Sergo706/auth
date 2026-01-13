@@ -67,7 +67,7 @@
     "@rollup/plugin-terser": "^0.4.4",
     "@types/cookie-parser": "^1.4.9",
     "@types/express": "^5.0.3",
-    "@types/node": "^24.0.13",
+    "@types/node": "^25.0.7",
     "@vitest/coverage-v8": "^3.2.4",
     "@vitest/ui": "^3.2.4",
     "dotenv": "^17.2.2",
