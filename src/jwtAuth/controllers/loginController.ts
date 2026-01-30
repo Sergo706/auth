@@ -13,6 +13,7 @@ import { makeCookie } from "../utils/cookieGenerator.js";
 import { makeConsecutiveCache } from "../utils/limiters/utils/consecutiveCache.js";
 import { guard } from "../utils/limiters/utils/guard.js";
 import crypto from 'node:crypto'
+import { trustVisitor } from "../models/trustVisitor.js";
 
 const consecutiveForIp = makeConsecutiveCache< {countData:number} >(2000, 1000 * 24 * 60 * 60);
 const consecutive429 = makeConsecutiveCache< {countData:number} >(2000, 1000 * 60 * 60);
@@ -36,7 +37,7 @@ const consecutiveForEmail = makeConsecutiveCache< {countData:number} >(2000, 100
 export const handleLogin = async (req: Request, res: Response, next: NextFunction) => {
 const { ipLimiter, emailLimiter, uniLimiter } = getLimiters();
 const log = getLogger().child({service: 'auth', branch: 'classic', type: 'login'});
-const { jwt } = getConfiguration();
+const { jwt, trustUserDeviceOnAuth } = getConfiguration();
 log.info(`Validating data...`)
 
  
@@ -95,7 +96,16 @@ log.info(`Data parsed and sanitized, searching for user...`)
     consecutiveForIp.delete(req.ip!);
     consecutive429.delete(compositeKey);
     consecutiveForEmail.delete(email)
-    await resetLimitersUni(compositeKey);
+    await resetLimitersUni(compositeKey); 
+
+    if(trustUserDeviceOnAuth && req.newVisitorId) {
+       const trustUser = await trustVisitor(results.id, req.newVisitorId, req.cookies.canary_id, req.fingerPrint, log)
+       if (trustUser.ok) {
+        results.visitor_id = req.newVisitorId;
+       } else {
+        log.warn({reason: trustUser.data},`Failed to trust user device`) 
+       }
+    }
 
       const refreshToken = await generateRefreshToken(jwt.refresh_tokens.refresh_ttl, results.id);
       const accessToken  = generateAccessToken({ id: results.id, visitor_id: results.visitor_id, jti: crypto.randomUUID() });

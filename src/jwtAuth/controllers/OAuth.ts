@@ -10,6 +10,9 @@ import { guard } from "../utils/limiters/utils/guard.js";
 import { validateSchema } from "../utils/validateZodSchema.js";
 import { getLimiters } from "../utils/limiters/protectedEndpoints/oauthLimiters.js";
 import { getProviders } from "../utils/newOauthProvider.js";
+import { trustVisitor } from "../models/trustVisitor.js";
+import { generateAccessToken } from "../../accessTokens.js";
+import crypto from "crypto";
 
 const consecutiveForIp = makeConsecutiveCache<{countData:number}>(2000, 1000 * 60 * 60 );
 const consecutiveForSub = makeConsecutiveCache<{countData:number}>(2000, 1000 * 60 * 5 );
@@ -33,8 +36,8 @@ const consecutiveForCompositeKey = makeConsecutiveCache<{countData:number}>(2000
 export const OAuthHandler = async (req: Request, res: Response, next: NextFunction) => {
   const log = getLogger().child({service: 'auth', branch: 'oauth', visitorId: req.newVisitorId});
   const { uniLimiter, compositeKeyLimiter, subLimiter } = getLimiters();
-  const { jwt } = getConfiguration();
-  const providedName = req.params.providerName;
+  const { jwt, trustUserDeviceOnAuth } = getConfiguration();
+  const providedName = req.params.providerName as string;
   const providers = getProviders()
 
       if (!req.is('application/json')) {
@@ -123,6 +126,15 @@ export const OAuthHandler = async (req: Request, res: Response, next: NextFuncti
       } else {
             accessToken  = found.accessToken!;
             refreshToken = found.refreshToken!;
+
+            if (trustUserDeviceOnAuth && req.newVisitorId) {
+              const trustUser = await trustVisitor(found.id!, req.newVisitorId, req.cookies.canary_id, req.fingerPrint, log);
+                 if (trustUser.ok) {
+                    accessToken = generateAccessToken({ id: found.id!, visitor_id: req.newVisitorId, jti: crypto.randomUUID() });
+                 } else {
+                  log.warn({reason: trustUser.data},`Failed to trust user device`) 
+                 }
+            }
       }
           
           makeCookie(res, 'iat', Date.now().toString(), {
