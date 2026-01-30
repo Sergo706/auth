@@ -23,7 +23,7 @@ export  function configBotDetector(useDefault: boolean): void |  BotDetectorConf
         restoredReputaionPoints: 1,
         setNewComputedScore: false,
         banUnlistedBots: true,
-        whiteList: ["172.18.0.1", "172.21.10.1", "127.0.0.1", "172.20.5.4", "::ffff:127.0.0.1"],
+        whiteList: ["172.18.0.1", "172.21.10.1", "127.0.0.1", "172.20.5.4", "172.21.10.4", "::ffff:127.0.0.1"],
        checksTimeRateControl: {
             checkEveryReqest: true,
             checkEvery: 1000 * 60 * 5, 

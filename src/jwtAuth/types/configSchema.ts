@@ -123,7 +123,13 @@ export const configurationSchema = z.strictObject({
         }),
       ])
     ).optional(),
-    
+
+    /**
+     * Trust the user device on successful logins.
+     * Preventing the user to go through an MFA flow on login and expired canary_id Cookie.
+     * @default true
+     */
+   trustUserDeviceOnAuth: z.boolean().default(true),
      
  jwt: z.object({
     jwt_secret_key: z.string(),

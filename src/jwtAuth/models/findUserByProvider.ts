@@ -36,6 +36,8 @@ export async function findUserByProvider(provider: string, provider_id: string):
     user: boolean;
     accessToken?: string;
     refreshToken?: IssuedRefreshToken;
+    id?: number;
+    visitor_id?: number;
 }> {
     const log = getLogger().child({service: 'auth', branch: 'oauth'});
     const { jwt } = getConfiguration();
@@ -64,7 +66,9 @@ export async function findUserByProvider(provider: string, provider_id: string):
           return {
             user: true,
             accessToken: accessToken,
-            refreshToken: refresh
+            refreshToken: refresh,
+            id: id,
+            visitor_id: visitor_id
           }
         }
 
