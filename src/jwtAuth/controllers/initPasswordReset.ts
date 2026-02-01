@@ -7,10 +7,12 @@ import {  getLimiters, resetLimitersUni } from "../utils/limiters/protectedEndpo
 import { makeConsecutiveCache } from '../utils/limiters/utils/consecutiveCache.js';
 import { guard } from '../utils/limiters/utils/guard.js';
 import { waitSomeTime } from '../utils/timeEnum.js';
+import { getLimiters as getEmailLimiters } from "../utils/limiters/protectedEndpoints/emailMfaFlow/email.js";
 
   const consecutiveForIp = makeConsecutiveCache< {countData:number} >(2000, 1000 * 24 * 60 * 60);
   const consecutiveForEmail = makeConsecutiveCache< {countData:number} >(2000, 1000 * 24 * 60 * 60);
   const consecutiveForCompositeKey = makeConsecutiveCache< {countData:number} >(2000, 1000 * 60 * 30);
+  const consecutiveForGlobal = makeConsecutiveCache<{countData: number}>(100, 1000 * 60 * 60 * 24);
 
 /**
  * Begin the password reset flow for a given email.
@@ -27,6 +29,8 @@ import { waitSomeTime } from '../utils/timeEnum.js';
  */
 export const initPasswordReset = async (req: Request, res: Response, next: NextFunction) => {
   const { uniLimiter, ipLimiter, emailLimiter } = getLimiters();
+  const { globalEmailLimiter } = getEmailLimiters();
+
   const log = getLogger().child({service: 'auth', branch: 'password-reset'})
   log.info('Starting password reset process...');
   const start = Date.now();
@@ -37,6 +41,9 @@ export const initPasswordReset = async (req: Request, res: Response, next: NextF
       res.status(400).json({error: 'Bad Request.'})
       return; 
     }
+     
+    if (!(await guard(globalEmailLimiter, 'global_emails', consecutiveForGlobal, 1, 'globalEmailLimiter', log, res))) return;
+    
 
     if (!(await guard(ipLimiter, req.ip!, consecutiveForIp, 2, 'ip', log, res))) return;
 

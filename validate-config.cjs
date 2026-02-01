@@ -24,7 +24,7 @@ try {
 }
 
 function validateRequired(obj, path, field) {
-    if (!obj[field]) {
+    if (!obj || obj[field] === undefined || obj[field] === null) {
         console.error(`𐄂 Missing required field: ${path}.${field}`);
         return false;
     }
@@ -32,7 +32,7 @@ function validateRequired(obj, path, field) {
 }
 
 function validateOptional(obj, path, field, defaultValue) {
-    if (!obj[field]) {
+    if (!obj || obj[field] === undefined) {
         console.log(`⚠  Optional field not set: ${path}.${field} (will use default: ${defaultValue})`);
         return false;
     }
@@ -41,6 +41,9 @@ function validateOptional(obj, path, field, defaultValue) {
 
 let isValid = true;
 
+// ============================================
+// Database Configuration
+// ============================================
 console.log('⌬⌬⌬ Database Configuration');
 if (config.store && config.store.main) {
     const db = config.store.main;
@@ -64,6 +67,9 @@ if (config.store && config.store.main) {
     isValid = false;
 }
 
+// ============================================
+// JWT Configuration
+// ============================================
 console.log('\n JWT Configuration');
 if (config.jwt) {
     isValid &= validateRequired(config.jwt, 'jwt', 'jwt_secret_key');
@@ -81,19 +87,36 @@ if (config.jwt) {
     if (config.jwt.access_tokens) {
         console.log(`   Access Token Expiry: ${config.jwt.access_tokens.expiresIn || '15m'}`);
         console.log(`   Algorithm: ${config.jwt.access_tokens.algorithm || 'HS256'}`);
+        validateOptional(config.jwt.access_tokens, 'jwt.access_tokens', 'audience', 'none');
+        validateOptional(config.jwt.access_tokens, 'jwt.access_tokens', 'issuer', 'none');
     }
     
     if (config.jwt.refresh_tokens) {
+        isValid &= validateRequired(config.jwt.refresh_tokens, 'jwt.refresh_tokens', 'rotateOnEveryAccessExpiry');
+        isValid &= validateRequired(config.jwt.refresh_tokens, 'jwt.refresh_tokens', 'refresh_ttl');
+        isValid &= validateRequired(config.jwt.refresh_tokens, 'jwt.refresh_tokens', 'domain');
+        isValid &= validateRequired(config.jwt.refresh_tokens, 'jwt.refresh_tokens', 'MAX_SESSION_LIFE');
+        isValid &= validateRequired(config.jwt.refresh_tokens, 'jwt.refresh_tokens', 'maxAllowedSessionsPerUser');
+        isValid &= validateRequired(config.jwt.refresh_tokens, 'jwt.refresh_tokens', 'byPassAnomaliesFor');
+        
         console.log(`   Refresh Token TTL: ${config.jwt.refresh_tokens.refresh_ttl}ms`);
         console.log(`   Max Sessions per User: ${config.jwt.refresh_tokens.maxAllowedSessionsPerUser}`);
+        console.log(`   Max Session Life: ${config.jwt.refresh_tokens.MAX_SESSION_LIFE}ms`);
         console.log(`   Auto-rotate: ${config.jwt.refresh_tokens.rotateOnEveryAccessExpiry}`);
+        console.log(`   Bypass Anomalies For: ${config.jwt.refresh_tokens.byPassAnomaliesFor}ms`);
+    } else {
+        console.error('𐄂 Missing: jwt.refresh_tokens configuration');
+        isValid = false;
     }
 } else {
     console.error('𐄂 Missing: jwt configuration');
     isValid = false;
 }
 
-console.log('Email Configuration');
+// ============================================
+// Email Configuration
+// ============================================
+console.log('\nEmail Configuration');
 if (config.email) {
     isValid &= validateRequired(config.email, 'email', 'resend_key');
     isValid &= validateRequired(config.email, 'email', 'email');
@@ -114,7 +137,10 @@ if (config.email) {
     isValid = false;
 }
 
-console.log('Password Security');
+// ============================================
+// Password Security
+// ============================================
+console.log('\nPassword Security');
 if (config.password) {
     isValid &= validateRequired(config.password, 'password', 'pepper');
     
@@ -136,6 +162,9 @@ if (config.password) {
     isValid = false;
 }
 
+// ============================================
+// Magic Links Configuration
+// ============================================
 console.log('\n★★★ Magic Links Configuration');
 if (config.magic_links) {
     isValid &= validateRequired(config.magic_links, 'magic_links', 'jwt_secret_key');
@@ -160,17 +189,23 @@ if (config.magic_links) {
     }
     
     console.log(`   Expiry: ${config.magic_links.expiresIn || '15m'}`);
+    validateOptional(config.magic_links, 'magic_links', 'maxCacheEntries', 1000);
 } else {
     console.error('𐄂 Missing: magic_links configuration');
     isValid = false;
 }
 
+// ============================================
+// Service Configuration
+// ============================================
 console.log('\n Service Configuration');
 if (config.service) {
     console.log(`   Port: ${config.service.port || 10000}`);
     console.log(`   IP Address: ${config.service.ipAddress || '0.0.0.0'}`);
     
     if (config.service.proxy) {
+        isValid &= validateRequired(config.service.proxy, 'service.proxy', 'trust');
+        isValid &= validateRequired(config.service.proxy, 'service.proxy', 'ipToTrust');
         console.log(`   Proxy Trust: ${config.service.proxy.trust}`);
         if (config.service.proxy.ipToTrust) {
             console.log(`   Trusted IP: ${config.service.proxy.ipToTrust}`);
@@ -181,6 +216,7 @@ if (config.service) {
         console.log('HMAC Authentication: Enabled ✓');
         isValid &= validateRequired(config.service.Hmac, 'service.Hmac', 'sharedSecret');
         isValid &= validateRequired(config.service.Hmac, 'service.Hmac', 'clientId');
+        isValid &= validateRequired(config.service.Hmac, 'service.Hmac', 'maxClockSkew');
     } else {
         console.log('   HMAC Authentication: Disabled');
     }
@@ -188,6 +224,9 @@ if (config.service) {
     console.log('   Using default service configuration');
 }
 
+// ============================================
+// Telegram Integration
+// ============================================
 console.log('\n Telegram Integration');
 if (config.telegram) {
     isValid &= validateRequired(config.telegram, 'telegram', 'token');
@@ -195,18 +234,95 @@ if (config.telegram) {
     if (config.telegram.token) {
         console.log('   Telegram Bot: Configured ✓');
         console.log(`   Chat ID: ${config.telegram.chatID || 'Not set (notifications disabled)'}`);
+        validateOptional(config.telegram, 'telegram', 'allowedUser', 'none');
     }
 } else {
-    console.log('   Telegram Integration: Disabled');
+    console.error('𐄂 Missing: telegram configuration');
+    isValid = false;
 }
 
+// ============================================
+// Bot Detector Configuration
+// ============================================
+console.log('\n🤖 Bot Detector Configuration');
+if (config.botDetector) {
+    if (config.botDetector.enableBotDetector === true) {
+        console.log('   Bot Detector: Enabled ✓');
+        if (config.botDetector.settings) {
+            console.log('   Custom Settings: Configured');
+        } else {
+            console.log('   Custom Settings: Using defaults');
+        }
+    } else if (config.botDetector.enableBotDetector === false) {
+        console.log('   Bot Detector: Disabled ⚠');
+    } else {
+        console.error('𐄂 Invalid botDetector.enableBotDetector value (must be true or false)');
+        isValid = false;
+    }
+} else {
+    console.error('𐄂 Missing: botDetector configuration');
+    isValid = false;
+}
+
+// ============================================
+// HTML Sanitizer Configuration
+// ============================================
+console.log('\n🧹 HTML Sanitizer Configuration');
+if (config.htmlSanitizer) {
+    console.log(`   Irritation Count: ${config.htmlSanitizer.IrritationCount || 50}`);
+    console.log(`   Max Allowed Input Length: ${config.htmlSanitizer.maxAllowedInputLength || 50000}`);
+} else {
+    console.error('𐄂 Missing: htmlSanitizer configuration');
+    isValid = false;
+}
+
+// ============================================
+// Trust User Device On Auth
+// ============================================
+console.log('\n🔐 Trust User Device On Auth');
+if (config.trustUserDeviceOnAuth !== undefined) {
+    console.log(`   Trust User Device On Auth: ${config.trustUserDeviceOnAuth}`);
+} else {
+    console.log('   Trust User Device On Auth: true (default)');
+}
+
+// ============================================
+// OAuth Providers Configuration
+// ============================================
+console.log('\n🔗 OAuth Providers Configuration');
+if (config.providers && Array.isArray(config.providers)) {
+    if (config.providers.length > 0) {
+        console.log(`   Configured Providers: ${config.providers.length}`);
+        config.providers.forEach((provider, i) => {
+            console.log(`     ${i + 1}. ${provider.name || 'Unknown'}`);
+        });
+    } else {
+        console.log('   No OAuth providers configured');
+    }
+} else {
+    console.log('   OAuth Providers: Not configured (optional)');
+}
+
+// ============================================
+// Rate Limiting Configuration
+// ============================================
 console.log('\n⚡ Rate Limiting Configuration');
 if (config.rate_limiters) {
     const limiters = Object.keys(config.rate_limiters);
     console.log(`   Configured Limiters: ${limiters.join(', ')}`);
     
-    const criticalLimiters = ['loginLimiters', 'signupLimiters', 'tokenLimiters'];
-    criticalLimiters.forEach(limiter => {
+    const allLimiters = [
+        'linkVerificationLimiter',
+        'loginLimiters', 
+        'oauthLimiters',
+        'signupLimiters', 
+        'tempPostRoutesLimiters',
+        'tokenLimiters', 
+        'initPasswordResetLimiters', 
+        'emailMfaLimiters'
+    ];
+    
+    allLimiters.forEach(limiter => {
         if (config.rate_limiters[limiter]) {
             console.log(`   ${limiter}: ✓`);
         } else {
@@ -214,16 +330,35 @@ if (config.rate_limiters) {
         }
     });
 } else {
-    console.error('𐄂 Missing: rate_limiters configuration');
-    isValid = false;
+    console.log('   Rate Limiters: Using all defaults ⚠');
 }
 
+// ============================================
+// Log Level
+// ============================================
+console.log('\n📝 Logging Configuration');
+const validLogLevels = ['trace', 'debug', 'info', 'warn', 'error', 'fatal'];
+if (config.logLevel) {
+    if (validLogLevels.includes(config.logLevel)) {
+        console.log(`   Log Level: ${config.logLevel} ✓`);
+    } else {
+        console.error(`𐄂 Invalid log level: ${config.logLevel} (must be one of: ${validLogLevels.join(', ')})`);
+        isValid = false;
+    }
+} else {
+    console.log('   Log Level: info (default)');
+}
+
+// ============================================
+// Security Checklist
+// ============================================
 console.log('\nSecurity Checklist');
 const secrets = [
     { name: 'JWT Secret', value: config.jwt?.jwt_secret_key },
     { name: 'Magic Links Secret', value: config.magic_links?.jwt_secret_key },
     { name: 'Password Pepper', value: config.password?.pepper },
     { name: 'Database Password', value: config.store?.main?.password },
+    { name: 'HMAC Shared Secret', value: config.service?.Hmac?.sharedSecret },
 ];
 
 secrets.forEach(secret => {
@@ -240,6 +375,9 @@ secrets.forEach(secret => {
     }
 });
 
+// ============================================
+// Final Summary
+// ============================================
 console.log('\n' + '='.repeat(50));
 if (isValid) {
     console.log('✓ Configuration validation passed!');
@@ -262,5 +400,7 @@ if (isValid) {
 console.log('\nConfiguration Summary:');
 console.log(`   Database: ${config.store?.main?.database} @ ${config.store?.main?.host}`);
 console.log(`   Service Port: ${config.service?.port || 10000}`);
+console.log(`   Bot Detector: ${config.botDetector?.enableBotDetector ? 'Enabled' : 'Disabled'}`);
+console.log(`   Trust Device On Auth: ${config.trustUserDeviceOnAuth ?? true}`);
 console.log(`   Log Level: ${config.logLevel || 'info'}`);
 console.log(`   Environment: ${process.env.NODE_ENV || 'development'}`);
