@@ -81,7 +81,12 @@ const { blackList } = getLimiters();
           userId: userId!,
           visitor: visitorId!
           }, 
-            session)
+            session,
+            req.ip!,
+            res
+          )
+            if (mfa === 'rate_limited') return;
+            
             if (!mfa) { 
               log.warn({token: '[REDACTED]',valid, reason, reqMFA, userId, visitorId},`mfa error 500`)
             res.status(500).json({ error: 'Could not send MFA code, try again later' });

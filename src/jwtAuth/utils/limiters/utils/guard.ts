@@ -76,7 +76,7 @@ export async function guard(
     return false;
   }
 
-  const rlRes: RateLimiterRes | null = await consumeOrReject(limiter, key, res, log);
+  const rlRes = await consumeOrReject(limiter, key, res, log) as RateLimiterRes | null;
   
   if (rlRes === null) {
     const entry = (cache.get(key)?.countData ?? 0) + 1;
