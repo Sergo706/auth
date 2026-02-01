@@ -420,6 +420,46 @@ export const configurationSchema = z.strictObject({
 
     }).optional(),
 
+    emailMfaLimiters: z.object({
+      unionLimiters: z.object({ 
+        limit: z.object({
+           inMemoryBlockOnConsumed: z.number(),
+           points: z.number(),
+           duration: z.number(),
+           blockDuration: z.number(),
+           inMemoryBlockDuration: z.number()   
+        }),
+        longLimiter: z.object({
+           inMemoryBlockOnConsumed: z.number(),
+           points: z.number(),
+           duration: z.number(),
+           blockDuration: z.number(),
+           inMemoryBlockDuration: z.number()   
+        })
+      }),
+      ipLimiter: z.object({
+           inMemoryBlockOnConsumed: z.number(),
+           points: z.number(),
+           duration: z.number(),
+           blockDuration: z.number(),
+           inMemoryBlockDuration: z.number()   
+      }),
+      userIdLimiter: z.object({
+           inMemoryBlockOnConsumed: z.number(),
+           points: z.number(),
+           duration: z.number(),
+           blockDuration: z.number(),
+           inMemoryBlockDuration: z.number()   
+      }),
+      globalEmailLimiter: z.object({
+           inMemoryBlockOnConsumed: z.number(),
+           points: z.number(),
+           duration: z.number(),
+           blockDuration: z.number(),
+           inMemoryBlockDuration: z.number()   
+      })
+    }).optional(),
+
 }).optional(),
 logLevel: z.enum(['trace' , 'debug' , 'info' , 'warn' , 'error' , 'fatal']).optional()  
 
