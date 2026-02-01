@@ -1,7 +1,8 @@
-import { RateLimiterRes } from "rate-limiter-flexible";
+import { RateLimiterMemory, RateLimiterMySQL, RateLimiterRes } from "rate-limiter-flexible";
 import { Response } from "express";
+import { BlockableUnion } from "../rateLimit.js";
 
-
+type Limiter = RateLimiterMemory | RateLimiterMySQL | BlockableUnion
 /**
  * @description
  * Attempts to consume a point for the given rate limiter.  
@@ -32,11 +33,11 @@ import { Response } from "express";
  * }
  */
 export async function consumeOrReject(
-  limiter: any,        
+  limiter: Limiter,        
   key: string,
   res: Response,
   log: any
-) : Promise<RateLimiterRes | null>{
+) : Promise<RateLimiterRes | Record<string, RateLimiterRes> | null>{
   try {
     return await limiter.consume(key);
   } catch (err: any) {

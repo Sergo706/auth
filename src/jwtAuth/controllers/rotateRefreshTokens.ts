@@ -56,7 +56,12 @@ export const rotateRefreshTokens = async (req: Request, res: Response) => {
           userId: userId!,
           visitor: visitorId!
           }, 
-            rawRefreshToken)
+            rawRefreshToken,
+            req.ip!,
+            res
+          )
+          
+            if (mfa === 'rate_limited') return;
             if (!mfa) { 
             log.warn({token: '[REDACTED]',valid, reason, reqMFA, userId, visitorId},`mfa error 500`)
             res.status(500).json({ error: 'Could not send MFA code, try again later' });
