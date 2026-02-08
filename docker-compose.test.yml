@@ -1,0 +1,52 @@
+services:
+  mysql-test:
+    image: mysql:8.0
+    restart: unless-stopped
+    command: --local-infile=1
+    environment:
+      MYSQL_ROOT_PASSWORD: ${TEST_DB_PASSWORD}
+      MYSQL_DATABASE: ${TEST_DB_NAME}
+      MYSQL_USER: ${TEST_DB_USER}
+      MYSQL_PASSWORD: ${TEST_DB_PASSWORD}
+    ports:
+      - "3308:3306" 
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+    tmpfs:
+      - /var/lib/mysql:rw,noexec,nosuid,nodev,size=512m 
+
+  auth-test:
+    image: jwtauth-service:latest
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    pull_policy: never
+    read_only: true
+    build: 
+      context: ./
+      dockerfile: Dockerfile
+      ssh:
+        - default
+    restart: unless-stopped
+    cap_drop: ["ALL"]
+    user: 10001:10001
+    depends_on:
+      mysql-test:
+        condition: service_healthy
+    volumes: 
+      - ./app-logs:/app/logs:rw
+      - ./detector-logs:/app/node_modules/@riavzon/botdetector/logs:rw
+    tmpfs:
+      - /run/app:rw,noexec,nosuid,nodev,uid=10001,gid=10001,size=1m
+    pids_limit: 200
+    ports: 
+      - "10000:10000"
+    secrets:
+      - age_key
+    security_opt: 
+      - "no-new-privileges:true"
+
+secrets:
+  age_key:
+    file: ./age_key

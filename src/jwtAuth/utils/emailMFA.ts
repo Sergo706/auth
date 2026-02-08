@@ -9,6 +9,7 @@ import { Response } from "express";
 import { guard } from "./limiters/utils/guard.js";
 import { getLimiters } from "./limiters/protectedEndpoints/emailMfaFlow/email.js";
 import { makeConsecutiveCache } from "./limiters/utils/consecutiveCache.js";
+import { generateMfaCode } from "./secureRandomCode.js";
 
 const consecutiveForGlobal = makeConsecutiveCache<{countData: number}>(100, 1000 * 60 * 60 * 24);
 const consecutiveForUserId = makeConsecutiveCache<{countData: number}>(2000, 1000 * 60 * 60 * 24);
@@ -79,59 +80,24 @@ export async function sendTempMfaLink(
   const path = "/auth/verify-mfa";
   const url = `${magic_links.domain}${path}/${user.visitor}?temp=${encodeURIComponent(tempToken)}`;
 
-  log.info(`Generating mfa code...`);
-  const randomCode = crypto.randomInt(1000000, 9999999).toString().padStart(7, '0');
-  const hashedCode = crypto.createHash("sha256").update(randomCode).digest("hex");
-  const expires = new Date(Date.now() + 7 * 60 * 1000);
-  const hashedClientToken = crypto.createHash('sha256').update(sessionToken).digest('hex');
-  const params = [user.userId, hashedClientToken, jti, hashedCode, expires];
-  const pool = getPool();
-  const conn = await pool.getConnection();
-
-  try { 
-    
-    await conn.beginTransaction();  
-
-  const [exits] = await conn.execute<RowDataPacket[]>(`
-    SELECT code_hash FROM mfa_codes
-     WHERE user_id = ?
-     AND token = ?
-     AND expires_at > UTC_TIMESTAMP()
-  `, [user.userId, hashedClientToken]);
-
-
-    if (exits.length > 0) {
-      log.info(`Valid MFA code found for user ${user.userId}: ${exits[0].code_hash}`)
-      await conn.commit();
-      conn.release();
-      return true;
-    };
-
-      await conn.execute(`
-      DELETE FROM mfa_codes
-      WHERE user_id = ?
-    `, [user.userId]);    
-
-   await conn.execute<RowDataPacket[]>(`
-    INSERT INTO mfa_codes
-    (user_id, token, jti, code_hash, expires_at)
-    VALUES (?, ?, ?, ?, ?)
-    `,params);
-    await conn.commit();
-   log.info(`Generated code`)
-  
-} catch(err) {
-    log.error({err}, `error Generating code`)
-    await conn.rollback();
-    conn.release();
-    return false;
-} 
-conn.release();
 try {
+  const { ok, data, code, date } = await generateMfaCode(log, sessionToken, user.userId, jti)
+  
+  if (data === 'Code exists') {
+    log.info(`Valid MFA code found for user ${user.userId}`)
+    return true;
+  }
+
+  if (!ok || !code) {
+      log.warn({ data, ok, date }, "Error generating new mfa code.");
+      return false
+  }
+  
+  const pool = getPool()
   log.info(`Sending email...`)
   const [rows] = await pool.execute<RowDataPacket[]>(`SELECT name, email FROM users WHERE id = ?`, [user.userId]);
   const { name, email } = rows[0];
-  await mfaEmail(name, Number(randomCode), email, url);
+  await mfaEmail(name, Number(code), email, url);
   log.info(`email sended.`)
   return true;
 } catch (err) {

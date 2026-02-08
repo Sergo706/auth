@@ -5,12 +5,12 @@ import { magicLinksCache } from "./jwtAuth/utils/magicLinksCache.js";
 
 const { TokenExpiredError, JsonWebTokenError } = jwt;
 
-export interface LinkTokenPayload {
+export type LinkTokenPayload<T extends Record<string, unknown> = Record<string, unknown>> = {
   visitor: number;
   subject: string;
-  purpose: "PASSWORD_RESET" | "MFA";
+  purpose: "PASSWORD_RESET" | "MFA" | string;
   jti: string;
-}
+} & T;
 
 
 /**
@@ -40,7 +40,7 @@ export interface LinkTokenPayload {
  * const token = tempJwtLink(payload);
  * console.log('Link token:', token);
  */
-export function tempJwtLink (payload: LinkTokenPayload): string {
+export function tempJwtLink<T extends Record<string, unknown>>(payload: LinkTokenPayload<T>): string {
 const { magic_links } = getConfiguration(); 
 const log = getLogger().child({service: 'auth', branch: 'tempLinks', type: 'signature'})
 
@@ -55,7 +55,7 @@ const token = jwt.sign(safePayload, magic_links.jwt_secret_key, {
    audience:   `${magic_links.domain}`,
    jwtid: jti
 })
-magicLinksCache().set(token, { jti: payload.jti, visitor: payload.visitor, purpose: payload.purpose, subject: payload.subject, valid: true })
+magicLinksCache().set(token, { ...payload, valid: true })
 log.info({payload},`Generated link signature`)
 return token;
 }
@@ -102,8 +102,8 @@ return token;
  *
  * @see {@link ./tempJwtLink.js}
  */
-export function verifyTempJwtLink (token: string): 
-{valid: boolean, payload?: JwtPayload, errorType?: string} {
+export function verifyTempJwtLink<T extends Record<string, unknown>> (token: string): 
+{valid: boolean, payload?: LinkTokenPayload<T>, errorType?: string} {
   const log = getLogger().child({service: 'auth', branch: 'tempLinks', type: 'signature'})
 log.info(`verifying link signature`)
 const { magic_links } = getConfiguration(); 
@@ -138,7 +138,7 @@ try {
       return { valid: false, errorType: "Invalid visitor id" };
     }
 
-   return {valid: true, payload: check };
+   return {valid: true, payload: check as LinkTokenPayload<T> };
   
 } catch (err) {
     if (!(err instanceof Error)) {
