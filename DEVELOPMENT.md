@@ -144,10 +144,17 @@ test/
 │   ├── verification.test.ts
 │   ├── security.test.ts
 │   └── ...
-└── refreshTokens-test/       # Refresh token tests
-    ├── generateRefreshToken.test.ts
-    ├── rotateRefreshToken.test.ts
-    └── ...
+├── refreshTokens-test/       # Refresh token tests
+│   ├── generateRefreshToken.test.ts
+│   ├── rotateRefreshToken.test.ts
+│   └── ...
+├── initCustomMfaFlow/        # Custom MFA initialization tests
+│   └── init.test.ts
+├── verifyCustomMfaController/ # Custom MFA verification tests
+│   └── verify.test.ts
+└── utils/                    # Utility tests
+    └── verifyMfaCode/
+        └── verifyMfaCode.test.ts
 ```
 
 ## Development Workflow

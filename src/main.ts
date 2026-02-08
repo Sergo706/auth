@@ -138,6 +138,12 @@ export {ensureSha256Hex, toDigestHex} from "./jwtAuth/utils/hashChecker.js";
 export {getAccessTokenPayload} from "./jwtAuth/controllers/getPayloadMeta.js";
 export {sendOperationalConfig} from "./jwtAuth/controllers/sendOprConfig.js";
 export {getRefreshTokenMetaData} from "./jwtAuth/controllers/getRefreshTokenMetaData.js"
+export { generateCustomMfaFlow } from "./jwtAuth/utils/customMfaLinks.js";
+export { verifyMfaCode } from "./jwtAuth/utils/verifyMfaCode.js";
+export { generateMfaCode } from "./jwtAuth/utils/secureRandomCode.js";
+export { initCustomMfaFlow } from "./jwtAuth/controllers/initCustomMfaFlow.js";
+export { verifyCustomMfa } from "./jwtAuth/controllers/verifyCustomMfaController.js";
+export { customMfaFlowsVerification } from "./jwtAuth/middleware/verifyTempLink.js";
 /**
  * The Zod schema‐validation library, v4.
  *

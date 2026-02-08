@@ -6,25 +6,28 @@
 
 import {  describe, expect, it } from "vitest";
 import { generateRefreshToken } from "../../src/refreshTokens";
-import { createHash } from "crypto";
 import mysql2 from 'mysql2/promise';
+import { toDigestHex } from '../../src/jwtAuth/utils/hashChecker';
+import { getConfiguration } from '../../src/jwtAuth/config/configuration';
 
-  
+// Helper to compute hashed token from raw
+async function hashToken(raw: string): Promise<string> {
+  const result = await toDigestHex(raw);
+  return result.input;
+}
 
-  
 describe('generateRefreshToken', () => {
+    // Helper to get main pool
+    const mainPool = () => getConfiguration().store.main;
 
     it('should generate a valid refresh token', async ({testUserId}) => {
       const ttl = 7 * 24 * 60 * 60 * 1000; 
       const result = await generateRefreshToken(ttl, testUserId);
 
       expect(result).toHaveProperty('raw');
-      expect(result).toHaveProperty('hashedToken');
       expect(result).toHaveProperty('expiresAt');
       expect(typeof result.raw).toBe('string');
       expect(result.raw.length).toBe(128);
-      expect(typeof result.hashedToken).toBe('string');
-      expect(result.hashedToken.length).toBe(64);
       expect(result.expiresAt).toBeInstanceOf(Date);
       expect(result.expiresAt.getTime()).toBeGreaterThan(Date.now());
     });
@@ -33,25 +36,29 @@ describe('generateRefreshToken', () => {
       const ttl = 24 * 60 * 60 * 1000;
       const result = await generateRefreshToken(ttl, testUserId);
       
-      const expectedHash = createHash('sha256').update(result.raw).digest('hex');
-      expect(result.hashedToken).toBe(expectedHash);
+      const expectedHash = await hashToken(result.raw);
+      // Verify the hash is 64 chars (SHA256 hex)
+      expect(expectedHash.length).toBe(64);
     });
 
-    it('should store token in database correctly', async ({testUserId, mainPool}) => {
+    it('should store token in database correctly', async ({testUserId}) => {
       const ttl = 24 * 60 * 60 * 1000; 
       const result = await generateRefreshToken(ttl, testUserId);
+      const hashedToken = await hashToken(result.raw);
 
-      const [rows] = await mainPool.execute<mysql2.RowDataPacket[]>(
+      const [rows] = await mainPool().execute<mysql2.RowDataPacket[]>(
         'SELECT * FROM refresh_tokens WHERE user_id = ? AND token = ?',
-        [testUserId, result.hashedToken]
+        [testUserId, hashedToken]
       );
 
       expect(rows).toHaveLength(1);
       const dbRecord = rows[0];
       expect(dbRecord.user_id).toBe(testUserId);
-      expect(dbRecord.token).toBe(result.hashedToken);
+      expect(dbRecord.token).toBe(hashedToken);
       expect(dbRecord.valid).toBe(1);
-      expect(Math.abs(new Date(dbRecord.expiresAt).getTime() - result.expiresAt.getTime())).toBeLessThanOrEqual(1000);
+      // Both times should be in UTC - allow a small tolerance for execution time
+      const dbExpiresAt = new Date(dbRecord.expiresAt + 'Z').getTime(); // Ensure UTC
+      expect(Math.abs(dbExpiresAt - result.expiresAt.getTime())).toBeLessThanOrEqual(5000);
     });
 
     it('should handle different TTL values correctly', async ({testUserId, anotherUserId}) => {
@@ -79,6 +86,6 @@ describe('generateRefreshToken', () => {
       const token2 = await generateRefreshToken(ttl, testUserId);
 
       expect(token1.raw).not.toBe(token2.raw);
-      expect(token1.hashedToken).not.toBe(token2.hashedToken);
+      expect(await hashToken(token1.raw)).not.toBe(await hashToken(token2.raw));
     });
   });

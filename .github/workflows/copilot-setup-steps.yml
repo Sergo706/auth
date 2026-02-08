@@ -14,21 +14,6 @@ jobs:
       contents: read
     environment: copilot
 
-    services:
-      mysql: 
-        image: mysql:8.4   
-        env:
-          MYSQL_DATABASE: app_db
-          MYSQL_ROOT_PASSWORD: 1234
-        ports: [ "3306:3306" ] 
-        options: >-
-          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -p1234"
-          --health-interval=10s --health-timeout=5s --health-retries=10
-
-      nginx:
-        image: nginx:1.27-alpine
-        ports: [ "8080:80" ]    
-
     steps:
       - name: Checkout code
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
@@ -43,31 +28,49 @@ jobs:
         env:
           DEPLOY_KEY: ${{ secrets.BOTDETECTOR_DEPLOY_KEY }}
         run: |
-          install -m 700 -d ~/.ssh
+          mkdir -p ~/.ssh
           printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan github.com >> ~/.ssh/known_hosts
           eval "$(ssh-agent -s)"
           ssh-add ~/.ssh/id_ed25519
+          echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> $GITHUB_ENV
 
-      - name: Trust github.com host key
+      - name: Install dependencies
         run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan github.com >> ~/.ssh/known_hosts
+            sudo apt-get update
+            sudo apt-get install -y age docker-compose-plugin
 
-      - name: Tools
+      - name: Create Test Env
         run: |
-          sudo apt-get update
-          sudo apt-get install -y mysql-client curl age 
+          # Create .env.test for local test runner and setupTestDB.ts
+          echo "TEST_DB_HOST=localhost" > .env.test
+          echo "TEST_DB_PORT=3308" >> .env.test
+          echo "TEST_DB_USER=root" >> .env.test
+          echo "TEST_DB_PASSWORD=very_secure_password_for_tests" >> .env.test
+          echo "TEST_DB_NAME=my_auth_tests_db" >> .env.test
+          
+          # We assume config.test.json is committed by user
+
+      - name: Start Services (Build & Up)
+        env:
+          SSH_KEY_PATH: ~/.ssh/id_ed25519
+        run: |
+          chmod +x ./start.sh
+          # Uses committed config.test.json
+          ./start.sh config.test.json auth-test
 
       - name: Wait for MySQL
         run: |
-          for i in {1..60}; do mysqladmin ping -h 127.0.0.1 -uroot -p1234 --silent && break; sleep 2; done
-          mysql -h 127.0.0.1 -uroot -p1234 -e "CREATE DATABASE IF NOT EXISTS app_db;" 
+          # Wait for exposed port 3307
+          for i in {1..60}; do mysqladmin ping -h 127.0.0.1 -P 3308 -uroot -pvery_secure_password_for_tests --silent && break; sleep 2; done
 
-      - name: Install dependencies
-        run: npm install
-      
-      - name: Build
-        run: npm run build
+      - name: Setup Database Schema
+        run: |
+          npm ci
+          # Assuming setupTestDB.ts handles creating tables
+          npx ts-node test/setup/setupTestDB.ts
 
+      - name: Run All Tests
+        run: |
+          npm test
