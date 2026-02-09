@@ -10,7 +10,8 @@ import { guard } from "./limiters/utils/guard.js";
 import { makeConsecutiveCache } from "./limiters/utils/consecutiveCache.js";
 import { toDigestHex } from "./hashChecker.js";
 import { generateMfaCode } from "./secureRandomCode.js";
-import { sendGenericMfaEmail } from "./genericMfaFlowEmail.js";
+import { mfaEmail } from "./systemEmailMap.js";
+import { EmailMetaDataOTP } from "../types/Emails.js";
 
 const consecutiveForGlobal = makeConsecutiveCache<{countData: number}>(100, 1000 * 60 * 60 * 24);
 const consecutiveForUserId = makeConsecutiveCache<{countData: number}>(2000, 1000 * 60 * 60 * 24);
@@ -55,7 +56,8 @@ export async function generateCustomMfaFlow(
     user: { userId: number; visitor: number },
     sessionToken: string,
     ip: string,
-    res: Response
+    res: Response,
+    meta: EmailMetaDataOTP
 ) {
       const { magic_links } = getConfiguration();
       const { globalEmailLimiter, userIdLimiter, ipLimiter } = getLimiters();
@@ -128,7 +130,7 @@ export async function generateCustomMfaFlow(
 
         log.info("Sending email...")
         const pool = getPool()
-        const [rows] = await pool.execute<RowDataPacket[]>(`SELECT name, email FROM users WHERE id = ?`, [user.userId]);
+        const [rows] = await pool.execute<RowDataPacket[]>(`SELECT email FROM users WHERE id = ?`, [user.userId]);
 
         if (!rows.length) {
             log.warn("Failed to find user email and name.")
@@ -139,8 +141,8 @@ export async function generateCustomMfaFlow(
             }
         }
 
-        const { name, email } = rows[0];
-        await sendGenericMfaEmail(name, Number(code), email, url) 
+        const { email } = rows[0];
+        await mfaEmail(Number(code), email, url, meta) 
         log.info(`Email sended.`)
         return {
             ok: true,

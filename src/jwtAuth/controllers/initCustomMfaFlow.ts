@@ -9,6 +9,7 @@ import { getConfiguration } from '../config/configuration.js';
 import { schema } from '../types/CustomMfaSchema.js';
 import { generateCustomMfaFlow } from '../utils/customMfaLinks.js';
 import { waitSomeTime } from '../utils/timeEnum.js';
+import { EmailMetaDataOTP } from '../types/Emails.js';
 
   const consecutiveForIp = makeConsecutiveCache< {countData:number} >(2000, 1000 * 24 * 60 * 60);
   const consecutiveForEmail = makeConsecutiveCache< {countData:number} >(2000, 1000 * 24 * 60 * 60);
@@ -120,13 +121,22 @@ export async function initCustomMfaFlow(req: Request, res: Response, next: NextF
     const { userId, visitor_id: visitorId } = req.user!;
 
     log.info({ userId, visitorId }, `Verified session health, initiating MFA...`);
+    const { device, os, browser, city, country, browserType} = req.fingerPrint;
+
+    const meta: EmailMetaDataOTP = {
+        device: `${device ?? 'Unknown Device'}-${os ?? ''}-${req.ip!}`.trim(),
+        browser: `${browser ?? 'Unknown Browser'}-${browserType ?? ''}`.trim(),
+        location: `${country ?? 'Unknown Location'}-${city ?? ''}`.trim()
+    }
     const { ok, data } = await generateCustomMfaFlow(
         validRandom,
         validReason, 
         { userId: Number(userId)!, visitor: Number(visitorId)! },
          refresh,
          req.ip!,
-        res)
+        res,
+        meta
+      )
 
     if (!ok && data === 'rate_limited') return;
     
