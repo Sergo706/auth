@@ -6,7 +6,6 @@ import { makeConsecutiveCache } from "../utils/limiters/utils/consecutiveCache.j
 import { verifyMfaCode } from '../utils/verifyMfaCode.js';
 
 const consecutiveForSlowDown = makeConsecutiveCache< {countData:number} >(2000, 1000 * 60 * 10);
-export const consecutiveForjti = makeConsecutiveCache< {countData:number} >(2000, 1000 * 60 * 20);
 
 /**
  * @description

@@ -8,7 +8,6 @@ import { getLimiters as getEmailLimiters } from "../utils/limiters/protectedEndp
 import { getConfiguration } from '../config/configuration.js';
 import { schema } from '../types/CustomMfaSchema.js';
 import { generateCustomMfaFlow } from '../utils/customMfaLinks.js';
-import { strangeThings } from '../../anomalies.js';
 import { waitSomeTime } from '../utils/timeEnum.js';
 
   const consecutiveForIp = makeConsecutiveCache< {countData:number} >(2000, 1000 * 24 * 60 * 60);
@@ -117,25 +116,14 @@ export async function initCustomMfaFlow(req: Request, res: Response, next: NextF
     if (!(await guard(emailLimiter, `${validRandom}_${validReason}`, consecutiveForEmail, 2, 'email', log, res))) return;
     if (!(await guard(uniLimiter, compositeKey, consecutiveForCompositeKey, 3, 'ip+random+reason', log, res))) return;
 
-    log.info(`finding valid user to send email...`)
-    const {valid, reason: anomaliesRejectionReason, reqMFA, userId, visitorId} = 
-          await strangeThings(refresh, canary, req.ip!, req.get('User-Agent')!, false);
-    
-  if (!valid && !reqMFA) {
-    log.error({ reason: anomaliesRejectionReason }, "Security block");
-    res.status(401).json({ 
-        ok: false, 
-        date: new Date().toISOString(), 
-        reason: "Invalid session" 
-    });
-    return;
-   }
+    log.info(`Using verified session from protectRoute...`)
+    const { userId, visitor_id: visitorId } = req.user!;
 
     log.info({ userId, visitorId }, `Verified session health, initiating MFA...`);
     const { ok, data } = await generateCustomMfaFlow(
         validRandom,
         validReason, 
-        { userId: userId!, visitor: visitorId! },
+        { userId: Number(userId)!, visitor: Number(visitorId)! },
          refresh,
          req.ip!,
         res)

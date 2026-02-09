@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { getPool } from '../config/dbConnection.js';
+import { PoolConnection } from 'mysql2/promise';
 import { ResultSetHeader, RowDataPacket } from "mysql2";
 import crypto from 'crypto';
 import { code as codeSchema } from '../models/zodSchema.js'
@@ -28,6 +29,7 @@ export const consecutiveForJti = makeConsecutiveCache< {countData:number} >(2000
  * 3. **Database Transaction**:
  *    - Finds a valid, unexpired, and unused code for the given session (JTI).
  *    - Deletes the code upon successful verification (atomic consumption).
+ *    - **Optional Callback**: Executes `onSuccess` logic (e.g. email update) within the same transaction.
  *    - Updates the user's `last_mfa_at` and visitor status.
  * 4. **Token Rotation**: Revokes the current refresh token and generates a new pair (Access + Refresh).
  * 5. **Fingerprint Update**: Updates the visitor's fingerprint using the latest request data.
@@ -38,13 +40,23 @@ export const consecutiveForJti = makeConsecutiveCache< {countData:number} >(2000
  * @param {NextFunction} next - Express next function.
  * @param {string} code - The MFA code submitted by the user.
  * @param {pino.Logger} log - Logger instance for tracing.
+ * @param {Function} [onSuccess] - Optional callback to run custom logic inside the transaction.
  * 
  * @returns {Promise<void>}
  * 
  * @example
- * await verifyMfaCode(req, res, next, '123456', logger);
+ * await verifyMfaCode(req, res, next, '123456', logger, async (conn, userId) => {
+ *   await conn.execute('UPDATE users SET email = ? ...', [newEmail]);
+ * });
  */
-export async function verifyMfaCode(req: Request, res: Response, next: NextFunction, code: string, log: pino.Logger) {
+export async function verifyMfaCode(
+    req: Request, 
+    res: Response, 
+    next: NextFunction, 
+    code: string, 
+    log: pino.Logger,
+    onSuccess?: (connection: PoolConnection, userId: number) => Promise<void>
+) {
 
     const { uniLimiter, ipLimit, usedJtiLimiter  } = getLimiters();
     const { jwt } = getConfiguration();
@@ -125,8 +137,13 @@ export async function verifyMfaCode(req: Request, res: Response, next: NextFunct
           res.status(401).json({ error: 'Invalid or expired code.' });
           return;
           }
-         await ipLimit.block(submittedHash, 60 * 10);
+          await ipLimit.block(submittedHash, 60 * 10);
       
+        if (onSuccess) {
+            log.info("Executing custom onboarding logic inside transaction...");
+            await onSuccess(conn, rows[0].user_id);
+        }
+
         log.info(`Found valid code, updating users and visitors...`)
         const currentVisitorId = req.newVisitorId || visitor;
       

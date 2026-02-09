@@ -10,7 +10,7 @@ import { guard } from "./limiters/utils/guard.js";
 import { getLimiters } from "./limiters/protectedEndpoints/emailMfaFlow/email.js";
 import { makeConsecutiveCache } from "./limiters/utils/consecutiveCache.js";
 import { generateMfaCode } from "./secureRandomCode.js";
-
+import { EmailMetaDataOTP } from "../types/Emails.js";
 const consecutiveForGlobal = makeConsecutiveCache<{countData: number}>(100, 1000 * 60 * 60 * 24);
 const consecutiveForUserId = makeConsecutiveCache<{countData: number}>(2000, 1000 * 60 * 60 * 24);
 const consecutiveForIp = makeConsecutiveCache<{countData: number}>(2000, 1000 * 60 * 60 * 24);
@@ -50,7 +50,8 @@ export async function sendTempMfaLink(
   user: { userId: number; visitor: number },
   sessionToken: string,
   ip: string,
-  res: Response
+  res: Response,
+  meta: EmailMetaDataOTP
 ): Promise<boolean | 'rate_limited'> {
   const { magic_links } = getConfiguration();
   const { globalEmailLimiter, userIdLimiter, ipLimiter } = getLimiters();
@@ -97,7 +98,7 @@ try {
   log.info(`Sending email...`)
   const [rows] = await pool.execute<RowDataPacket[]>(`SELECT name, email FROM users WHERE id = ?`, [user.userId]);
   const { name, email } = rows[0];
-  await mfaEmail(name, Number(code), email, url);
+  await mfaEmail(Number(code), email, url, meta);
   log.info(`email sended.`)
   return true;
 } catch (err) {

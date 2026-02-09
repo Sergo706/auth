@@ -11,6 +11,9 @@ import { verifyCustomMfa } from "../controllers/verifyCustomMfaController.js";
 import { customMfaFlowsVerification } from "../middleware/verifyTempLink.js";
 import { requireRefreshToken } from "../middleware/requireRefreshToken.js";
 import { initCustomMfaFlow } from "../controllers/initCustomMfaFlow.js";
+import { requireAccessToken } from "../middleware/requireAccessToken.js";
+import { protectRoute } from "../middleware/verifyJwt.js";
+import { updateEmailController } from "../controllers/updateEmailController.js";
 
 const router = Router();
 
@@ -37,7 +40,10 @@ router
 
   router.post('/custom/mfa/:reason',
     contentType('application/json'),
+    requireAccessToken,
     requireRefreshToken,
+    getFingerPrint,
+    protectRoute,
     express.json({ 
         limit: '1kb',
         verify: (req, res, buf) => {
@@ -53,10 +59,19 @@ router
 
   router
   .route("/auth/verify-custom-mfa")
-  .get(customMfaFlowsVerification)
+  .get(
+    requireAccessToken,
+    requireRefreshToken,
+    getFingerPrint,
+    protectRoute,
+    customMfaFlowsVerification
+  )
     .post(
-      customMfaFlowsVerification,
       contentType('application/json'),
+      requireAccessToken,
+      requireRefreshToken,
+      getFingerPrint,
+      protectRoute,
         express.json({ 
           limit: '1kb',
           verify: (req, res, buf) => {
@@ -67,11 +82,31 @@ router
             }
           }
         }), 
-        detectBots,
-      getFingerPrint,
+      customMfaFlowsVerification,
+      detectBots,
       verifyCustomMfa
     );
 
+    router.post("/update/email", 
+        contentType('application/json'),
+        requireAccessToken,
+        requireRefreshToken,
+        getFingerPrint,
+        protectRoute,
+        express.json({ 
+          limit: '1kb',
+          verify: (req, res, buf) => {
+            if (!buf.toString()) {
+            const log = getLogger().child({service: 'auth', branch: 'routes', type: 'Json checker'})
+            log.warn('EMPTY_BODY')
+              throw new Error('403');
+            }
+          }
+      }),
+      customMfaFlowsVerification,
+      detectBots,
+      updateEmailController
+    )
   
   router.post(
     "/auth/forgot-password",
@@ -105,6 +140,7 @@ router
         }
       }),   
       detectBots,
+      getFingerPrint,
     verifyNewPassword
   );
 
