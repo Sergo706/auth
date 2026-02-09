@@ -8,6 +8,8 @@ import { validateSchema } from "../utils/validateZodSchema.js";
 import { guard } from "../utils/limiters/utils/guard.js";
 import { getLimiters, resetLimitersUni } from "../utils/limiters/protectedEndpoints/tempPostRoutesLimiter.js";
 import { makeConsecutiveCache } from "../utils/limiters/utils/consecutiveCache.js";
+import { sendEmailNotification } from "../utils/systemEmailMap.js";
+import { getConfiguration } from "../config/configuration.js";
 
 
 const consecutiveForCompositeKey = makeConsecutiveCache< {countData:number} >(2000, 1000 * 60 * 10);
@@ -88,7 +90,7 @@ const conn = await pool.getConnection();
     await conn.beginTransaction();
     const hashedPassword = await hashPassword(password, log);
     const [findUser] = await conn.execute<RowDataPacket[]>(`
-    SELECT id FROM users
+    SELECT id, email, name FROM users
       WHERE visitor_id = ?
       LIMIT 1  
     FOR UPDATE 
@@ -130,6 +132,16 @@ const conn = await pool.getConnection();
     consecutiveForCompositeKey.delete(compositeKey);
     consecutiveForIp.delete(req.ip!);
     await resetLimitersUni(compositeKey);
+    const { magic_links } = getConfiguration()
+
+    await sendEmailNotification(findUser[0].email, findUser[0].name, {
+        title: "Password Reset Successful",
+        action: "Security Notification",
+        subject: "Security Alert: Password Reset Successful",
+        message: `Your account password has been successfully reset. <br/>If you did not authorize this change, please contact support immediately.`,
+        cta: "Go to Login",
+        cta_link: `${magic_links.domain}/accounts`, 
+    })
    res.status(200).json({ success: true });
    return;
 
