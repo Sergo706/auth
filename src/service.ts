@@ -106,12 +106,16 @@ async function startServer() {
         await loadUaPatterns();
         app.use(notFoundHandler);
         app.use(finalUnHandledErrors);
-        try {
-             await fs.unlink(configPath);
-             console.log(`Config file deleted`)
-            } catch (error) {
-                console.error(`Failed to delete config file`);
-                process.exit(1)
+        if (process.env.SKIP_CONFIG_UNLINK !== 'true') {
+            try {
+                 await fs.unlink(configPath);
+                 console.log(`Config file deleted`)
+                } catch (error) {
+                    console.error(`Failed to delete config file`);
+                    process.exit(1)
+            }
+        } else {
+            console.log(`SKIP_CONFIG_UNLINK is set, keeping config file at ${configPath}`);
         }
         app.listen(port, server, () => {
             console.log(`Service is running at ${server}:${port}`)
