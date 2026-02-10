@@ -45,7 +45,7 @@
         "memoryCost": 262144
     },
     "botDetector": {
-        "enableBotDetector": true
+        "enableBotDetector": false
     },
     "htmlSanitizer": {
         "IrritationCount": 50,
