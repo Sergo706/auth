@@ -73,18 +73,18 @@ async function startServer() {
             })
         }
         app.get('/health', (req, res) => res.status(200).send('OK'));
-        if (config.botDetector.enableBotDetector) {
             const defaultConfig = configBotDetector(true);
+
+            const hasSettings = config.botDetector.enableBotDetector && config.botDetector.settings;
             
-            if (defaultConfig && !config.botDetector.settings) {
+            if (defaultConfig && !hasSettings) {
                 initBotDetector(defaultConfig);
             }
 
-            if (config.botDetector.settings) {
+            if (hasSettings) {
                const userSettings = configBotDetector(false)!
                 initBotDetector(userSettings);
-            }
-        };
+            }   
 
         app.use(httpLogger)
         app.disable('x-powered-by')
