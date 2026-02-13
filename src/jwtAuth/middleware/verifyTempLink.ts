@@ -10,6 +10,7 @@ import { validateSchema } from '../utils/validateZodSchema.js';
 import { verificationLink, type VerificationLinkSchema } from "../types/CustomMfaSchema.js";
 import { ensureSha256Hex } from "../utils/hashChecker.js";
 import crypto from "node:crypto"
+import { getConfiguration } from "../config/configuration.js";
 
 const consecutiveForIpPassword = makeConsecutiveCache< {countData:number} >(2000, 1000 * 60 * 30);
 const consecutiveForIpMfa = makeConsecutiveCache< {countData:number} >(2000, 1000 * 60 * 30);
@@ -17,8 +18,7 @@ const consecutiveForIpCustomMfa = makeConsecutiveCache< {countData:number} >(200
 const usageCountPost = makeConsecutiveCache<{count:number}>(1000, 1000 * 60 * 20);
 const usageCountGet = makeConsecutiveCache<{count:number}>(1000, 1000 * 60 * 20);
 
-const allowedPerSuccessfulGet = 5;
-const allowedPerSuccessfulPost = 1;
+
 
 /**
  * Verify MFA magic links (GET to preview, POST to consume) with rate limiting.
@@ -33,6 +33,8 @@ const allowedPerSuccessfulPost = 1;
 export const linkMfaVerification = async (req: Request, res: Response, next: NextFunction) => {
 const log = getLogger().child({service: 'auth', branch: `tempLinks`, linkType: 'mfa'})
 const { usedJtiLimiter } = getLimiters();
+const { magic_links } = getConfiguration()
+const { allowedPerSuccessfulGet, allowedPerSuccessfulPost } = magic_links.thresholds.adaptiveMfa
 const token = req.query.temp;
 
 if (typeof token !== 'string') {
@@ -132,6 +134,8 @@ if (Number(req.params.visitor) !== results.payload.visitor) {
 export const linkPasswordVerification = async (req: Request, res: Response, next: NextFunction) => {
 const log = getLogger().child({service: 'auth', branch: `tempLinks`, linkType: 'password-reset'})
 const { usedJtiLimiter } = getLimiters();
+const { magic_links } = getConfiguration()
+const { allowedPerSuccessfulGet, allowedPerSuccessfulPost } = magic_links.thresholds.linkPasswordVerification
 const token = req.query.temp;
 
 if (typeof token !== 'string') {
@@ -246,6 +250,8 @@ if (Number(req.params.visitor) !== results.payload.visitor) {
 export const customMfaFlowsVerification = async (req: Request, res: Response, next: NextFunction) => {
   const log = getLogger().child({service: 'auth', branch: `tempLinks`, linkType: 'custom-mfa'})
   const { usedJtiLimiter } = getLimiters();
+  const { magic_links } = getConfiguration()
+  const { allowedPerSuccessfulGet, allowedPerSuccessfulPost } = magic_links.thresholds.customMfaFlowsAndEmailChanges
   const data = req.query as unknown as VerificationLinkSchema;
   const result = await validateSchema(verificationLink, data, req, log)
 
