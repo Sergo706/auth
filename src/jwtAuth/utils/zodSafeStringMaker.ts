@@ -43,7 +43,7 @@ let schema = z
 if (opt.pattern) {
     schema = schema.regex(opt.pattern, opt.patternMsg);
   }
-  schema.check((ctx) => {
+ return schema.check((ctx) => {
     const { results } = sanitizeInputString(ctx.value)
     if (results.htmlFound) {
         ctx.issues.push({
@@ -54,5 +54,4 @@ if (opt.pattern) {
     }
 
 }).transform((val) => sanitizeInputString(val).vall);
-return schema;
 }

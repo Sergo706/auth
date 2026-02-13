@@ -163,11 +163,6 @@ export async function initCustomMfaFlow(req: Request, res: Response, next: NextF
      consecutiveForCompositeKey.delete(compositeKey)
      await resetLimitersUni(compositeKey);
      log.info(`MFA flow was started successfully.`)
-    res.status(200).json({
-        ok: true,
-        date: new Date().toISOString(), 
-        data: "success" 
-    })
  } catch(err) {
     log.error({err}, "Unexpected error generating mfa flow.")
  } finally {

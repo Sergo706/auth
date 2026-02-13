@@ -5,6 +5,7 @@ import { RateLimiterMemory, RateLimiterMySQL, RateLimiterRes, RLWrapperBlackAndW
 import pino from "pino";
 import { BlockableUnion } from "../rateLimit.js";
 import { makeConsecutiveCache } from "./consecutiveCache.js";
+import crypto from 'node:crypto';
 
 type Limiter = RateLimiterMemory | RateLimiterMySQL | BlockableUnion
 
@@ -66,27 +67,33 @@ export async function guard(
   res: Response,
   seconds?: number
 ): Promise<boolean> {
+
   
-    if (isBlockedCache.get(key)?.Blocked) {
-    log.warn({ key, label, limiters: limiter.keyPrefix, expires: isBlockedCache.get(key)?.expire}, 'Request blocked by cache');
-    res.set('Retry-After', String(isBlockedCache.get(key)?.expire)).status(429).json(
+  let finalKey = key;
+  if (limiter instanceof RateLimiterMySQL || key.length > 255) {
+     finalKey = crypto.createHash('sha256').update(key).digest('hex');
+  }
+  
+    if (isBlockedCache.get(finalKey)?.Blocked) {
+    log.warn({ key, label, limiters: limiter.keyPrefix, expires: isBlockedCache.get(finalKey)?.expire}, 'Request blocked by cache');
+    res.set('Retry-After', String(isBlockedCache.get(finalKey)?.expire)).status(429).json(
       { error: 'Too many requests',
-        retry: isBlockedCache.get(key)?.expire
+        retry: isBlockedCache.get(finalKey)?.expire
       });
     return false;
   }
 
-  const rlRes = await consumeOrReject(limiter, key, res, log) as RateLimiterRes | null;
+  const rlRes = await consumeOrReject(limiter, finalKey, res, log) as RateLimiterRes | null;
   
   if (rlRes === null) {
-    const entry = (cache.get(key)?.countData ?? 0) + 1;
-    cache.set(key, { countData: entry });
+    const entry = (cache.get(finalKey)?.countData ?? 0) + 1;
+    cache.set(finalKey, { countData: entry });
 
     log.warn({ key, label, entry }, 'Strike recorded');
 
     if (entry >= maxBans) { 
-        await limiter.block(key, seconds ?? 0);
-        isBlockedCache.set(key, {Blocked: true, expire: `${seconds ?? 'permanent'}` })
+        await limiter.block(finalKey, seconds ?? 0);
+        isBlockedCache.set(finalKey, {Blocked: true, expire: `${seconds ?? 'permanent'}` })
         log.warn({ key, label, limiters: limiter.keyPrefix}, `Key added to ${seconds ?? 'permanent'} duration blacklist`);
     }
     return false; 
