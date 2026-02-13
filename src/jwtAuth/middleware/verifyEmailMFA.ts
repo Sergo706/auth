@@ -1,11 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { getLogger } from '../utils/logger.js';
-import { guard } from "../utils/limiters/utils/guard.js";
-import { getLimiters} from "../utils/limiters/protectedEndpoints/tempPostRoutesLimiter.js";
 import { makeConsecutiveCache } from "../utils/limiters/utils/consecutiveCache.js"
 import { verifyMfaCode } from '../utils/verifyMfaCode.js';
-
-const consecutiveForSlowDown = makeConsecutiveCache< {countData:number} >(2000, 1000 * 60 * 10);
 
 /**
  * @description
@@ -39,15 +35,8 @@ const consecutiveForSlowDown = makeConsecutiveCache< {countData:number} >(2000, 
  */
 export async function verifyMFA (req: Request, res: Response, next: NextFunction) {
   const log = getLogger().child({service: 'auth', branch: 'mfa', visitorId: req.newVisitorId ?? req.link.visitor})
-  const { uniLimiter } = getLimiters();
   
   log.info(`Verifying mfa code...`)
-
- if (!req.is('application/json')) {
-    log.warn('Content type is not json!')
-    res.status(400).json({error: 'Bad Request.'})
-    return; 
-  }
 
   if (req.link.purpose !== "MFA" || req.link.subject !== 'MAGIC_LINK_MFA_CHECKS') {
     log.warn('Invalid link purpose')
@@ -55,7 +44,5 @@ export async function verifyMFA (req: Request, res: Response, next: NextFunction
     return;
   }
 
- if (!(await guard(uniLimiter, req.ip!, consecutiveForSlowDown, 2, 'SlowDown', log, res))) return;
- 
  return verifyMfaCode(req, res, next, req.body.code, log);
 }

@@ -95,7 +95,25 @@ export const configurationSchema = z.strictObject({
     * @example https://localhost
     */
     domain: z.url({protocol: /^https?$/, normalize: false}),
-    maxCacheEntries: z.number().optional()
+    maxCacheEntries: z.number().optional(),
+    thresholds: z.object({
+
+         adaptiveMfa: z.object({
+            allowedPerSuccessfulGet: z.number().default(5),
+            allowedPerSuccessfulPost: z.number().default(3)   
+         }).prefault({}),
+
+         linkPasswordVerification: z.object({
+            allowedPerSuccessfulGet: z.number().default(5),
+            allowedPerSuccessfulPost: z.number().default(3)   
+         }).prefault({}),
+
+         customMfaFlowsAndEmailChanges: z.object({
+            allowedPerSuccessfulGet: z.number().default(5),
+            allowedPerSuccessfulPost: z.number().default(3)   
+         }).prefault({}),
+
+    }).prefault({}),
  }),  
     providers: z.array(
       z.union([
