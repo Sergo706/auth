@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction, RequestHandler } from "express";
+import { getLogger } from "../utils/logger.js";
 
 
 /**
@@ -20,8 +21,9 @@ import { Request, Response, NextFunction, RequestHandler } from "express";
  */
 export function contentType(expected: string): RequestHandler {
     return(req: Request, res: Response, next: NextFunction) => {
+        const log = getLogger().child({service: 'auth', branch: 'middleware', type: 'contentType'})
         if (!req.is(expected)) {
-            console.warn('unexpected content type')
+            log.warn('unexpected content type')
             res.status(403).json({error: 'not allowed.'})
             return;
         };
