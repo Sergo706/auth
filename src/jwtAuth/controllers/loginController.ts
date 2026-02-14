@@ -14,6 +14,7 @@ import { makeConsecutiveCache } from "../utils/limiters/utils/consecutiveCache.j
 import { guard } from "../utils/limiters/utils/guard.js";
 import crypto from 'node:crypto'
 import { trustVisitor } from "../models/trustVisitor.js";
+import { isPwned } from "../utils/isPasswordPwned.js";
 
 const consecutiveForIp = makeConsecutiveCache< {countData:number} >(2000, 1000 * 24 * 60 * 60);
 const consecutive429 = makeConsecutiveCache< {countData:number} >(2000, 1000 * 60 * 60);
@@ -126,14 +127,23 @@ log.info(`Data parsed and sanitized, searching for user...`)
             domain: jwt.refresh_tokens.domain,
             path: '/'
             })
+            
+            const { pwned, count, date } = await isPwned(password)
+            let breached = undefined;
 
+            if (pwned) {
+                  log.warn({count, date}, `Password found in data breach`);
+                  breached = `Our system identified this password in ${count.toLocaleString()} data breaches. Please consider changing your password.`
+            }
+            
             log.info({userId: results.id, visitorId: results.visitor_id}, `User logged in successfully`);
             res.status(200).json({ 
             ok: true, 
             receivedAt: new Date().toISOString(),
             accessToken: accessToken,
             banned: false,
-            accessIat: Date.now().toString()
+            accessIat: Date.now().toString(),
+            breached
           });
             return;
 }

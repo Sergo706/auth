@@ -11,7 +11,7 @@ import { isValidDomain } from "../utils/DnsMxLookUp.js";
 import { guard } from "../utils/limiters/utils/guard.js";
 import { makeConsecutiveCache } from "../utils/limiters/utils/consecutiveCache.js";
 import { getLimiters } from "../utils/limiters/protectedEndpoints/signupLimiter.js";
-
+import { isPwned } from "../utils/isPasswordPwned.js";
 
 const consecutiveForIp = makeConsecutiveCache< {countData:number} >(2000, 1000 * 60 * 30);
 const consecutiveForCompositeKey = makeConsecutiveCache< {countData:number} >(2000, 1000 * 60 * 60 * 24);
@@ -70,7 +70,18 @@ if ("valid" in result) {
   if (!(await guard(emailLimiter, email, consecutiveForEmail, 2, 'email', log, res))) return;
 
 let hashedPassword: string;
+
 try { 
+  const { pwned, count, date } = await isPwned(password)
+  if (pwned) {
+      log.warn({count, date}, `Password found in data breach`);
+      res.status(400).json({
+        ok: false,
+        receivedAt: new Date().toISOString(),
+        error: `Our system identified this password in ${count.toLocaleString()} data breaches. Please choose a different password.`
+      })
+    return;
+  }
   hashedPassword = await hashPassword(password, log)
 } catch(err) {
     log.fatal({ err }, 'Password hashing failed')
