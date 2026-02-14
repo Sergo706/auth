@@ -10,6 +10,7 @@ import { getLimiters, resetLimitersUni } from "../utils/limiters/protectedEndpoi
 import { makeConsecutiveCache } from "../utils/limiters/utils/consecutiveCache.js";
 import { sendEmailNotification } from "../utils/systemEmailMap.js";
 import { getConfiguration } from "../config/configuration.js";
+import { isPwned } from "../utils/isPasswordPwned.js";
 
 
 const consecutiveForCompositeKey = makeConsecutiveCache< {countData:number} >(2000, 1000 * 60 * 10);
@@ -80,10 +81,22 @@ if (!req.is('application/json')) {
  const {confirmedPassword, password} = result.data!;
 
  if (confirmedPassword !== password) {
-        log.info(`Passwords didnt match.`)
+        log.info(`Passwords didn't match.`)
         res.status(400).json({error: `Password doesn't match`,  "banned": false })
         return;
  }
+ 
+const { pwned, count, date } = await isPwned(password)
+ if (pwned) {
+   log.warn({count, date}, `Password found in data breach`);
+   res.status(400).json({
+     ok: false,
+     receivedAt: new Date().toISOString(),
+     error: `Our system identified this password in ${count.toLocaleString()} data breaches. Please choose a different password.`
+   })
+  return;
+ }
+
 const pool = getPool()
 const conn = await pool.getConnection();
   try {
