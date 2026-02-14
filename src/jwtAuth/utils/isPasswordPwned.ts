@@ -6,66 +6,53 @@ export interface PwnedResponse {
     count: number,
     date: string,
 }
-
-const cache = makeConsecutiveCache<PwnedResponse>(500, 1000 * 60 * 15)
+const resCache = makeConsecutiveCache<PwnedResponse>(1000, 1000 * 60 * 15)
+const prefixCache = makeConsecutiveCache<Map<string, number>>(1000, 1000 * 60 * 60 * 48)
 
 export async function isPwned(password: string): Promise<PwnedResponse> {
-    
+
    const sha1 = crypto.createHash('sha1').update(password, 'utf-8').digest('hex').toUpperCase()
    const prefix: string = sha1.slice(0, 5) 
    const suffix: string = sha1.slice(5) 
-   const exists = cache.get(suffix)
+   const date = new Date().toISOString()
    
+   const exists = resCache.get(suffix)
    if (exists) return exists;
 
-   const res: Response = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`, {
-    headers: {
-        'Add-Padding': 'true'
-    }
-   })
-    if (!res.ok) {
-        cache.set(suffix, {
-            pwned: false,
-            count: 0,
-            date: new Date().toISOString()
-        })
 
-        return {
-            pwned: false,
-            count: 0,
-            date: new Date().toISOString()
+   let suffixMap: Map<string, number> | undefined = prefixCache.get(prefix)
+
+   if (!suffixMap) {
+       const res: Response = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`, {
+        headers: {
+            'Add-Padding': 'true'
         }
-    }
+       })
 
-    const body: string = await res.text();
-    const data = body.split('\r\n')
-
-    for (const line of data) {
-        const [hashSuffix, countStr] = line.split(':');
-        const count: number = parseInt(countStr, 10);
-
-        if (hashSuffix === suffix && count > 0) {
-                cache.set(suffix, {
-                    pwned: true,
-                    count,
-                    date: new Date().toISOString()
-                })
-                return {
-                    pwned: true,
-                    count,
-                    date: new Date().toISOString()
-                }
+       if (!res.ok) {
+           const result: PwnedResponse = { pwned: false, count: 0, date }
+           resCache.set(suffix, result)
+           return result
         }
-    }
 
-   cache.set(suffix, {
-        pwned: false,
-        count: 0,
-        date: new Date().toISOString()
-    })
-    return {
-        pwned: false,
-        count: 0,
-        date: new Date().toISOString()
+        suffixMap = new Map<string, number>()
+        const body: string = await res.text()
+
+        for (const line of body.split('\r\n')) {
+            const [hashSuffix, countStr] = line.split(':')
+            const count: number = parseInt(countStr, 10)
+            if (count > 0) suffixMap.set(hashSuffix, count)
+        }
+        prefixCache.set(prefix, suffixMap)
+   } 
+
+    const count: number = suffixMap.get(suffix) ?? 0
+    const result: PwnedResponse = {
+        pwned: count > 0,
+        count,
+        date
     }
-}   
+    resCache.set(suffix, result)
+    return result
+  }
+  
