@@ -4,35 +4,11 @@ import { fileURLToPath } from 'node:url';
 import ejs from "ejs";
 import { getConfiguration } from '../config/configuration.js';
 import { getLogger } from './logger.js';
-
+import { EmailData } from '../types/Emails.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 
-export interface EmailData {
-    userName: string;
-    code?: number;
-    message: string;
-    headers: {
-        headerOne: string;
-        headerTwo?: string;
-        headerTree?: string
-    }
-    link?: {
-        label: string;
-        path: string
-    }[],
-    variables?: {
-       variableOne: string;
-       variableTwo: string;
-       variableThree: string;
-    }[]
-    images?: {
-        path: string;
-        name: string;
-        alt: string;
-     }[]
-}
 /**
  * @description
  * Sends emails via your SMTP provider.

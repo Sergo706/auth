@@ -3,26 +3,32 @@ import 'dotenv/config';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import fs from 'node:fs'
+import { config } from 'dotenv';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const csvFilePath = path.resolve(__dirname, '../../src/jwtAuth/models/useragent.csv');
 
-const DB_CONFIG = {
-  host: process.env.DB_HOST,
-  port: Number(process.env.DB_PORT),
-  user: process.env.DB_USER,
-  password: process.env.DB_PASS,
-  database: process.env.DB_NAME,
-  multipleStatements: true,
-  allowLocalInfile: true,
-  infileStreamFactory: (path) => fs.createReadStream(path)
 
+config({ path: path.resolve(__dirname, '../../.env.test') });
+
+const DB_CONFIG = {
+  host: process.env.TEST_DB_HOST || 'localhost',
+  port: Number(process.env.TEST_DB_PORT) || 3306,
+  user: process.env.TEST_DB_USER,
+  password: process.env.TEST_DB_PASSWORD,
+  database: process.env.TEST_DB_NAME || 'my_auth_tests_db',
+  multipleStatements: true,
+  flags: ['+LOCAL_FILES'],
+  infileStreamFactory: (path: string) => fs.createReadStream(path)
 };
+
 
 async function createTablesForTesting() {
   const connection = await mysql2.createConnection(DB_CONFIG);
   
   try {
+    await connection.execute("SET time_zone = '+00:00'");
     console.log('Creating test database tables...');
 
     await connection.execute(`
@@ -50,8 +56,8 @@ async function createTablesForTesting() {
             hosting BOOLEAN,
             hosting_allowed BOOLEAN,
             is_bot BOOLEAN DEFAULT false,
-            first_seen TIMESTAMP DEFAULT UTC_TIMESTAMP(),
-            last_seen TIMESTAMP DEFAULT UTC_TIMESTAMP() ON UPDATE UTC_TIMESTAMP(),
+            first_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            last_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             request_count INT DEFAULT 1,
             deviceVendor VARCHAR(64) DEFAULT 'unknown',
             deviceModel VARCHAR(64) DEFAULT 'unknown',
@@ -118,8 +124,8 @@ async function createTablesForTesting() {
           password_hash   VARCHAR(255) NOT NULL,
           provider        VARCHAR(50),   
           provider_id     VARCHAR(100),
-          created_at      TIMESTAMP NOT NULL DEFAULT UTC_TIMESTAMP(),
-          updated_at      TIMESTAMP NOT NULL DEFAULT UTC_TIMESTAMP() ON UPDATE UTC_TIMESTAMP(),
+          created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          updated_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
           remember_user   BOOLEAN DEFAULT 0,
           terms_and_privacy_agreement   BOOLEAN DEFAULT 0,
           accepts_marketing BOOLEAN DEFAULT 0,
@@ -143,7 +149,7 @@ async function createTablesForTesting() {
           user_id         INT NOT NULL,
           token          VARCHAR(600) NOT NULL UNIQUE,
           valid          BOOLEAN DEFAULT 0,
-         created_at      TIMESTAMP NOT NULL DEFAULT UTC_TIMESTAMP(),
+         created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
          expiresAt       TIMESTAMP NOT NULL,
          usage_count     INT DEFAULT 0,
          session_started_at TIMESTAMP,
@@ -164,7 +170,7 @@ async function createTablesForTesting() {
           code_hash   CHAR(64) NOT NULL UNIQUE,
           expires_at  DATETIME NOT NULL,
           used        BOOLEAN DEFAULT 0,
-          created_at  DATETIME DEFAULT UTC_TIMESTAMP(),
+          created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
           INDEX(user_id), INDEX(code_hash), INDEX(token), INDEX(used),
           
           CONSTRAINT users_mfa

@@ -86,6 +86,22 @@ export const handleLogout = async (req: Request, res: Response) => {
 
 
        log.info('User logged out successfully');
+       
+       res.clearCookie('session', {
+          httpOnly: true,
+          sameSite: "strict", 
+          secure: true,
+          domain: jwt.refresh_tokens.domain,
+          path: '/'
+      });
+      res.clearCookie('iat', {
+          httpOnly: true,
+          sameSite: "strict", 
+          secure: true,
+          domain: jwt.refresh_tokens.domain,
+          path: '/'
+      });
+
        res.status(200).json({ok: true, message: 'Logged out successfully'});
        return;
 
@@ -93,20 +109,5 @@ export const handleLogout = async (req: Request, res: Response) => {
         log.error({err},'Unexpected error type')
         res.status(500).json({ok: false, error: "Server error, can't log user out"})
         return;
-  } finally {
-    res.clearCookie('session', {
-          httpOnly: true,
-          sameSite: "strict", 
-          secure: true,
-          domain: jwt.refresh_tokens.domain,
-          path: '/'
-      });
-    res.clearCookie('iat', {
-          httpOnly: true,
-          sameSite: "strict", 
-          secure: true,
-          domain: jwt.refresh_tokens.domain,
-          path: '/'
-      });
   } 
 }

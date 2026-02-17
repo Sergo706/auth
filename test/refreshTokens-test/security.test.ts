@@ -7,12 +7,20 @@
 import { describe, expect, it } from "vitest";
 import { consumeAndVerifyRefreshToken, generateRefreshToken, revokeRefreshToken, verifyRefreshToken } from "../../src/refreshTokens";
 import mysql2 from 'mysql2/promise';
+import { toDigestHex } from '../../src/jwtAuth/utils/hashChecker';
+import { getConfiguration } from '../../src/jwtAuth/config/configuration';
 
-
+// Helper to compute hashed token from raw
+async function hashToken(raw: string): Promise<string> {
+  const result = await toDigestHex(raw);
+  return result.input;
+}
 
   describe('Security Tests', () => {
+    // Helper to get main pool
+    const mainPool = () => getConfiguration().store.main;
 
-    it('should prevent SQL injection in token parameters', async ({mainPool}) => {
+    it('should prevent SQL injection in token parameters', async () => {
       const maliciousToken = "'; DROP TABLE refresh_tokens; --";
       
       // These should not cause SQL injection
@@ -26,12 +34,13 @@ import mysql2 from 'mysql2/promise';
       });
 
       // Verify table still exists
-      const [rows] = await mainPool.execute('SHOW TABLES LIKE "refresh_tokens"');
+      const [rows] = await mainPool().execute('SHOW TABLES LIKE "refresh_tokens"');
       expect(rows).toHaveLength(1);
     });
 
-    it('should handle concurrent token operations safely', async ({testUserId, mainPool}) => {
+    it('should handle concurrent token operations safely', async ({testUserId}) => {
       const token = await generateRefreshToken(7 * 24 * 60 * 60 * 1000, testUserId);
+      const tokenHash = await hashToken(token.raw);
 
       // Simulate concurrent verification attempts
       const concurrentOps = Array.from({ length: 5 }, () => 
@@ -46,15 +55,16 @@ import mysql2 from 'mysql2/promise';
       });
 
       // Final usage count should be 5
-      const [rows] = await mainPool.execute<mysql2.RowDataPacket[]>(
+      const [rows] = await mainPool().execute<mysql2.RowDataPacket[]>(
         'SELECT usage_count FROM refresh_tokens WHERE token = ?',
-        [token.hashedToken]
+        [tokenHash]
       );
       expect(rows[0].usage_count).toBe(5);
     });
 
-    it('should detect suspicious token reuse patterns', async ({testUserId, mainPool}) => {
+    it('should detect suspicious token reuse patterns', async ({testUserId}) => {
       const token = await generateRefreshToken(7 * 24 * 60 * 60 * 1000, testUserId);
+      const tokenHash = await hashToken(token.raw);
 
       // First consumption should work
       const firstResult = await consumeAndVerifyRefreshToken(token.raw);
@@ -66,9 +76,9 @@ import mysql2 from 'mysql2/promise';
         expect(secondResult.reason).toBe('Token already used, Please login again');
 
       // Verify usage count indicates reuse attempt
-      const [tokenStatus] = await mainPool.execute<mysql2.RowDataPacket[]>(
+      const [tokenStatus] = await mainPool().execute<mysql2.RowDataPacket[]>(
         'SELECT usage_count FROM refresh_tokens WHERE token = ?',
-        [token.hashedToken]
+        [tokenHash]
       );
       expect(tokenStatus[0].usage_count).toBeGreaterThan(0);
     });
@@ -95,3 +105,4 @@ import mysql2 from 'mysql2/promise';
       });
     });
   });
+

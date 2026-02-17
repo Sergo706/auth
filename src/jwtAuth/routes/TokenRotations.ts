@@ -7,6 +7,7 @@ import { handleLogout } from "../controllers/logout.js";
 import { rotateCredentials } from "../controllers/rotateOnEveryUse.js";
 import { getConfiguration } from "../config/configuration.js";
 import { requireAccessToken } from "../middleware/requireAccessToken.js";
+import { getFingerPrint } from "../middleware/fingerPrint.js";
 const router = Router();
 
 
@@ -14,6 +15,7 @@ router.post(
 '/auth/refresh-access',
   requireRefreshToken,
   cookieOnly,
+  getFingerPrint,
 rotateAccessToken
 );
 
@@ -21,6 +23,7 @@ router.post(
 '/auth/user/refresh-session',
   requireRefreshToken,
   cookieOnly,
+  getFingerPrint,
  async (req, res, next) => {
     try {
       const { jwt: { refresh_tokens } } = getConfiguration();
@@ -48,6 +51,7 @@ router.post(
   '/auth/refresh-session/rotate-every',
   requireRefreshToken,
   cookieOnly, 
+  getFingerPrint,
   rotateCredentials
 );
     

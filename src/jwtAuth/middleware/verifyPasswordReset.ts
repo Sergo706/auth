@@ -8,6 +8,9 @@ import { validateSchema } from "../utils/validateZodSchema.js";
 import { guard } from "../utils/limiters/utils/guard.js";
 import { getLimiters, resetLimitersUni } from "../utils/limiters/protectedEndpoints/tempPostRoutesLimiter.js";
 import { makeConsecutiveCache } from "../utils/limiters/utils/consecutiveCache.js";
+import { sendEmailNotification } from "../utils/systemEmailMap.js";
+import { getConfiguration } from "../config/configuration.js";
+import { isPwned } from "../utils/isPasswordPwned.js";
 
 
 const consecutiveForCompositeKey = makeConsecutiveCache< {countData:number} >(2000, 1000 * 60 * 10);
@@ -52,9 +55,9 @@ if (!req.is('application/json')) {
     return; 
   }
   
-  if (req.link.purpose !== "PASSWORD_RESET" && req.link.subject !== 'MAGIC_LINK_Restart') {
-    log.warn('Invalid link purpose/Email is null')
-     res.status(400).json({ error: "Invalid link purpose/Email is null" });
+  if (req.link.purpose !== "PASSWORD_RESET" || req.link.subject !== `PASSWORD_RESET_${req.link.visitor}`) {
+    log.warn('Invalid link purpose or subject mismatch')
+    res.status(400).json({ error: "Invalid link purpose or subject mismatch" });
     return;
   }
 
@@ -78,17 +81,29 @@ if (!req.is('application/json')) {
  const {confirmedPassword, password} = result.data!;
 
  if (confirmedPassword !== password) {
-        log.info(`Passwords didnt match.`)
+        log.info(`Passwords didn't match.`)
         res.status(400).json({error: `Password doesn't match`,  "banned": false })
         return;
  }
+ 
+const { pwned, count, date } = await isPwned(password)
+ if (pwned) {
+   log.warn({count, date}, `Password found in data breach`);
+   res.status(400).json({
+     ok: false,
+     receivedAt: new Date().toISOString(),
+     error: `Our system identified this password in ${count.toLocaleString()} data breaches. Please choose a different password.`
+   })
+  return;
+ }
+
 const pool = getPool()
 const conn = await pool.getConnection();
   try {
     await conn.beginTransaction();
     const hashedPassword = await hashPassword(password, log);
     const [findUser] = await conn.execute<RowDataPacket[]>(`
-    SELECT id FROM users
+    SELECT id, email, name FROM users
       WHERE visitor_id = ?
       LIMIT 1  
     FOR UPDATE 
@@ -130,6 +145,16 @@ const conn = await pool.getConnection();
     consecutiveForCompositeKey.delete(compositeKey);
     consecutiveForIp.delete(req.ip!);
     await resetLimitersUni(compositeKey);
+    const { magic_links } = getConfiguration()
+    const {loginPageLink} = magic_links.notificationEmail
+    await sendEmailNotification(findUser[0].email, findUser[0].name, {
+        title: "Password Reset Successful",
+        action: "Security Notification",
+        subject: "Security Alert: Password Reset Successful",
+        message: `Your account password has been successfully reset. <br/>If you did not authorize this change, please contact support immediately.`,
+        cta: "Go to Login",
+        cta_link: loginPageLink, 
+    })
    res.status(200).json({ success: true });
    return;
 
