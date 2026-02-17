@@ -4,7 +4,7 @@ import { PoolConnection } from 'mysql2/promise';
 import { ResultSetHeader, RowDataPacket } from "mysql2";
 import crypto from 'crypto';
 import { code as codeSchema } from '../models/zodSchema.js'
-import { generateRefreshToken, revokeRefreshToken, verifyRefreshToken } from '../../refreshTokens.js';
+import { generateRefreshToken, revokeAllRefreshTokens, revokeRefreshToken, verifyRefreshToken } from '../../refreshTokens.js';
 import { generateAccessToken } from '../../accessTokens.js';
 import { getConfiguration } from '../config/configuration.js';
 import { makeCookie } from '../utils/cookieGenerator.js';
@@ -55,6 +55,8 @@ export async function verifyMfaCode(
     next: NextFunction, 
     code: string, 
     log: pino.Logger,
+    returnMetaData: boolean = false,
+    revokeAllTokensOnSuccess: boolean = false,
     onSuccess?: (connection: PoolConnection, userId: number) => Promise<void>
 ) {
 
@@ -215,14 +217,23 @@ export async function verifyMfaCode(
            res.status(401).json({ error: result.reason });
           return;
         }
-        
-         const {success} = await revokeRefreshToken(token);
+
+         if (revokeAllTokensOnSuccess) {
+           const {success} = await revokeAllRefreshTokens(userId) 
+            if (!success) {
+                log.error(`Error Revoking refresh token`)
+                res.status(500).json({ error: `Error Revoking refresh token` });
+                return;
+            }
+         } else {
+           const {success} = await revokeRefreshToken(token);
+           if (!success) {
+             log.error(`Error Revoking refresh token`)
+             res.status(500).json({ error: `Error Revoking refresh token` });
+             return;
+            }
+         }
          
-          if (!success) {
-            log.error(`Error Revoking refresh token`)
-          res.status(500).json({ error: `Error Revoking refresh token` });
-          return;
-          }
       
         const accessToken = generateAccessToken({
           id:         userId,
@@ -252,6 +263,21 @@ export async function verifyMfaCode(
            path: '/'
         })
           log.info(`MFA Verified! and new tokens are set`)
+
+          if (returnMetaData && req.user) {
+              res.status(200).json({
+                    authorized: true,
+                    ipAddress: req.ip,
+                    userAgent:  req.get("User-Agent"),
+                    date: new Date().toISOString(),
+                    roles: req.user.roles ?? "No roles added with this token.",
+                    userId: req.user.userId,
+                    visitorId: req.user.visitor_id,
+                    accessToken, 
+                    accessIat: Date.now().toString()
+              })
+              return;
+          }
           res.status(200).json({ accessToken: accessToken, accessIat: Date.now().toString() });
           return;
       

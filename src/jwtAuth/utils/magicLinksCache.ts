@@ -5,7 +5,7 @@ import { getConfiguration } from "../config/configuration.js";
 export type CacheEntry<T extends Record<string, unknown> = Record<string, unknown>> = {
   visitor: number;
   subject: string;
-  purpose: "PASSWORD_RESET" | "MFA" | string;
+  purpose: "PASSWORD_RESET" | "MAGIC_LINK_MFA_CHECKS" | string;
   jti: string;
   valid: boolean;
 } & T;

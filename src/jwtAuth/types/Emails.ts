@@ -27,6 +27,11 @@ export interface OTPEmails {
    * Button Label
    */
   cta: string,
+  banner_image: string,
+  device_image: string,
+  location_image: string,
+  date_image: string,
+  link_to_reset_password: string
 }
 export interface NotificationEmails {
   /**
@@ -66,9 +71,10 @@ export interface NotificationEmails {
    */
   privacy_link: string,
   /**
-   * Link to main website
+   * Link to contact page
    */
-  website_link: string,
+  contact_link: string,
+  main_image: string,
 }
 export type EmailData = OTPEmails | NotificationEmails;
 export interface EmailMetaDataOTP {

@@ -62,12 +62,17 @@ export const rotateCredentials = async (req: Request, res: Response) => {
     try {
       const {valid, reason, reqMFA, userId, visitorId} = 
       await strangeThings(rawRefreshToken, canary_id, req.ip!, req.get('User-Agent')!, true);
-      const { device, os, browser, city, country, browserType} = req.fingerPrint;
+      const { device: devicePrint, os, browser: browserPrint, city, country, browserType, browserVersion, district,region, regionName, timezone,lat,lon } = req.fingerPrint;
+
+      const location = [country ?? 'Unknown Location', timezone, district, city, region, regionName, lat, lon].filter(Boolean).join('-');
+      const device = [ devicePrint ?? 'Unknown Device', os, req.ip].filter(Boolean).join('-');
+      const browser = [browserPrint ?? 'Unknown Browser', browserVersion, browserType].filter(Boolean).join('-');
+      
       const meta: EmailMetaDataOTP = {
-                  device: `${device ?? 'Unknown Device'}-${os ?? ''}-${req.ip!}`.trim(),
-                  browser: `${browser ?? 'Unknown Browser'}-${browserType ?? ''}`.trim(),
-                  location: `${country ?? 'Unknown Location'}-${city ?? ''}`.trim()
-        }
+        device,
+        browser,
+        location
+      }
          if (!valid && reqMFA) {
         log.info({token: '[REDACTED]',valid, reason, reqMFA, userId, visitorId},`mfa is triggered`)
         const mfa = await sendTempMfaLink(

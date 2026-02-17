@@ -8,7 +8,7 @@ const { TokenExpiredError, JsonWebTokenError } = jwt;
 export type LinkTokenPayload<T extends Record<string, unknown> = Record<string, unknown>> = {
   visitor: number;
   subject: string;
-  purpose: "PASSWORD_RESET" | "MFA" | string;
+  purpose: "PASSWORD_RESET" | "MAGIC_LINK_MFA_CHECKS" | string;
   jti: string;
 } & T;
 

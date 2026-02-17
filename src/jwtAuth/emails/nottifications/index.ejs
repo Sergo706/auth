@@ -99,7 +99,7 @@ table, td { color: #000000; } #u_body a { color: #0000ee; text-decoration: under
   <tr>
     <td class="v-text-align" style="padding-right: 0px;padding-left: 0px;" align="center">
       
-      <img align="center" border="0" src="images/image-1.gif" alt="image" title="image" style="outline: none;text-decoration: none;-ms-interpolation-mode: bicubic;clear: both;display: inline-block !important;border: none;height: auto;float: none;width: 30%;max-width: 180px;" width="180" class="v-src-width v-src-max-width"/>
+      <img align="center" border="0" src="<%= main_image %>" alt="image" title="image" style="outline: none;text-decoration: none;-ms-interpolation-mode: bicubic;clear: both;display: inline-block !important;border: none;height: auto;float: none;width: 30%;max-width: 180px;" width="180" class="v-src-width v-src-max-width"/>
       
     </td>
   </tr>
@@ -116,7 +116,7 @@ table, td { color: #000000; } #u_body a { color: #0000ee; text-decoration: under
       <td class="v-container-padding-padding" style="overflow-wrap:break-word;word-break:break-word;padding:10px 10px 0px;font-family:'Raleway',sans-serif;" align="left">
         
   <!--[if mso]><table role="presentation" width="100%"><tr><td><![endif]-->
-    <h1 class="v-text-align v-font-size" style="margin: 0px; line-height: 140%; text-align: center; word-wrap: break-word; font-size: 22px; font-weight: 400;"><strong><% title %></strong></h1>
+    <h1 class="v-text-align v-font-size" style="margin: 0px; line-height: 140%; text-align: center; word-wrap: break-word; font-size: 22px; font-weight: 400;"><strong><%= title %></strong></h1>
   <!--[if mso]></td></tr></table><![endif]-->
 
       </td>
@@ -130,7 +130,7 @@ table, td { color: #000000; } #u_body a { color: #0000ee; text-decoration: under
       <td class="v-container-padding-padding" style="overflow-wrap:break-word;word-break:break-word;padding:5px 10px 50px;font-family:'Raleway',sans-serif;" align="left">
         
   <!--[if mso]><table role="presentation" width="100%"><tr><td><![endif]-->
-    <h1 class="v-text-align v-font-size" style="margin: 0px; color: #5c5c5c; line-height: 140%; text-align: center; word-wrap: break-word; font-size: 14px; font-weight: 400;"><%action%></h1>
+    <h1 class="v-text-align v-font-size" style="margin: 0px; color: #5c5c5c; line-height: 140%; text-align: center; word-wrap: break-word; font-size: 14px; font-weight: 400;"><%=action%></h1>
   <!--[if mso]></td></tr></table><![endif]-->
 
       </td>
@@ -167,7 +167,7 @@ table, td { color: #000000; } #u_body a { color: #0000ee; text-decoration: under
       <td class="v-container-padding-padding" style="overflow-wrap:break-word;word-break:break-word;padding:50px 60px 0px;font-family:'Raleway',sans-serif;" align="left">
         
   <!--[if mso]><table role="presentation" width="100%"><tr><td><![endif]-->
-    <h1 class="v-text-align v-font-size" style="margin: 0px; line-height: 140%; text-align: left; word-wrap: break-word; font-size: 20px; font-weight: 400;"><strong>Subject: <% subject %></strong></h1>
+    <h1 class="v-text-align v-font-size" style="margin: 0px; line-height: 140%; text-align: left; word-wrap: break-word; font-size: 20px; font-weight: 400;"><strong>Subject: <%= subject %></strong></h1>
   <!--[if mso]></td></tr></table><![endif]-->
 
       </td>
@@ -201,14 +201,14 @@ table, td { color: #000000; } #u_body a { color: #0000ee; text-decoration: under
       <td class="v-container-padding-padding" style="overflow-wrap:break-word;word-break:break-word;padding:10px 60px 50px;font-family:'Raleway',sans-serif;" align="left">
         
   <div class="v-text-align v-font-size" style="font-size: 14px; line-height: 140%; text-align: justify; word-wrap: break-word;">
-    <p style="line-height: 140%; margin: 0px;">Dear <% username %>,</p>
+    <p style="line-height: 140%; margin: 0px;">Dear <%= username %>,</p>
 <p style="line-height: 140%; margin: 0px;"></p>
 <p style="line-height: 140%; margin: 0px;"><%- message %></p>
 <p style="line-height: 140%; margin: 0px;"></p>
 <p style="line-height: 140%; margin: 0px;">If you did not request this change, please contact us immediately.</p>
 <p style="line-height: 140%; margin: 0px;"></p>
 <p style="line-height: 140%; margin: 0px;">Best regards,</p>
-<p style="line-height: 140%; margin: 0px;"><% websiteName %></p>
+<p style="line-height: 140%; margin: 0px;"><%= websiteName %></p>
   </div>
 
       </td>
@@ -223,8 +223,8 @@ table, td { color: #000000; } #u_body a { color: #0000ee; text-decoration: under
         
   <!--[if mso]><style>.v-button {background: transparent !important;}</style><![endif]-->
 <div class="v-text-align" align="center">
-  <!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="<%cta_link%>" style="height:37px; v-text-anchor:middle; width:155px;" arcsize="11%"  stroke="f" fillcolor="#316b94"><w:anchorlock/><center style="color:#FFFFFF;"><![endif]-->
-    <a href="<%cta_link%>" target="_blank" class="v-button v-size-width v-font-size" style="box-sizing: border-box; display: inline-block; text-decoration: none; text-size-adjust: none; text-align: center; color: rgb(255, 255, 255); background: rgb(49, 107, 148); border-radius: 4px; width: auto; max-width: 100%; word-break: break-word; overflow-wrap: break-word; font-size: 14px; line-height: inherit;"><span style="display:block;padding:10px 20px;line-height:120%;"><span style="line-height: 16.8px;"><%cta%></span></span>
+  <!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="<%=cta_link%>" style="height:37px; v-text-anchor:middle; width:155px;" arcsize="11%"  stroke="f" fillcolor="#316b94"><w:anchorlock/><center style="color:#FFFFFF;"><![endif]-->
+    <a href="<%=cta_link%>" target="_blank" class="v-button v-size-width v-font-size" style="box-sizing: border-box; display: inline-block; text-decoration: none; text-size-adjust: none; text-align: center; color: rgb(255, 255, 255); background: rgb(49, 107, 148); border-radius: 4px; width: auto; max-width: 100%; word-break: break-word; overflow-wrap: break-word; font-size: 14px; line-height: inherit;"><span style="display:block;padding:10px 20px;line-height:120%;"><span style="line-height: 16.8px;"><%=cta%></span></span>
     </a>
     <!--[if mso]></center></v:roundrect><![endif]-->
 </div>
@@ -263,7 +263,7 @@ table, td { color: #000000; } #u_body a { color: #0000ee; text-decoration: under
       <td class="v-container-padding-padding" style="overflow-wrap:break-word;word-break:break-word;padding:10px 100px 30px;font-family:'Raleway',sans-serif;" align="left">
         
   <div class="v-text-align v-font-size" style="font-size: 14px; line-height: 170%; text-align: center; word-wrap: break-word;">
-    <p style="font-size: 14px; line-height: 170%; margin: 0px;"><%privacy_link%> &nbsp; | &nbsp; <%website_link%></p>
+    <p style="font-size: 14px; line-height: 170%; margin: 0px;"><a href="<%=privacy_link%>">Privacy Policy</a> &nbsp; | &nbsp; <a href="<%=contact_link%>">Contact</a></p>
   </div>
 
       </td>

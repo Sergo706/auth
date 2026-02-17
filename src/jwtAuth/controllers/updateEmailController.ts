@@ -25,22 +25,24 @@ export async function updateEmailController(req: Request, res: Response, next: N
     res.status(400).json({error: 'Bad Request.'})
     return; 
   }
+     const { visitor_id, userId } = req.user!;
+
+     if (!visitor_id || !userId) {
+         log.info('Session is invalid')
+         res.status(400).json({
+             ok:false,
+             date: new Date().toISOString(), 
+             reason: 'Invalid email or password'
+         })
+         return;
+     }
+
      const { uniLimiter } = getLimiters();
-     if (!(await guard(uniLimiter, req.ip!, consecutiveForSlowDown, 2, 'SlowDown', log, res))) return;
+     if (!(await guard(uniLimiter, userId, consecutiveForSlowDown, 2, 'SlowDown', log, res))) return;
 
-    const { visitor_id, userId } = req.user!;
 
-    if (!visitor_id || !userId) {
-        log.info('Session is invalid')
-        res.status(400).json({
-            ok:false,
-            date: new Date().toISOString(), 
-            reason: 'Invalid email or password'
-        })
-        return;
-    }
 
-  if (req.link.purpose !== "email_update" && visitor_id === String(req.link.visitor)) {
+  if (req.link.purpose !== "change_email" || visitor_id === String(req.link.visitor)) {
     log.warn('Invalid link purpose/Email is null')
      res.status(400).json({ 
         ok: false, 
@@ -76,14 +78,12 @@ export async function updateEmailController(req: Request, res: Response, next: N
  const pool = getPool();
 
  try {
-    const hashedPassword = await hashPassword(password, log);
     const [user] = await pool.execute<RowDataPacket[]>(`
         SELECT email, password_hash AS hashed_password, name FROM users
          WHERE email = ?
-            AND password_hash = ?
             AND visitor_id = ?
             AND id = ?
-        `,[email, hashedPassword, visitor_id, userId]) ;
+        `,[email, visitor_id, userId]) ;
 
         if (!user || user.length === 0) {
             log.info(`User doesn't exists..`)
@@ -121,7 +121,7 @@ export async function updateEmailController(req: Request, res: Response, next: N
       return;
   }
 
- return verifyMfaCode(req, res, next, req.body.code, log, async (conn, userId) => {
+ return verifyMfaCode(req, res, next, req.body.code, log, false, true, async (conn, userId) => {
     const [results] = await conn.execute<ResultSetHeader>(`
                 UPDATE users
                   SET email = ?
@@ -131,21 +131,16 @@ export async function updateEmailController(req: Request, res: Response, next: N
     if (results.affectedRows !== 1) {
         throw new Error('Failed to update email')  
     }
-    const {success} = await revokeAllRefreshTokens(userId) 
 
-    if (!success) {
-        throw new Error('Failed to revoke user sessions')  
-    }
     const { magic_links } = getConfiguration()
+    const {contactPageLink} = magic_links.notificationEmail
     await sendEmailNotification(email, name, {
         title: "Your Email Has Changed",
         action: "Notice of Change",
         subject: "Security Alert: Email Address Updated",
         message: `Your account's email address has been updated to <b>${newEmail}</b>. <br/>If you did not authorize this change, please contact support immediately to secure your account.`,
         cta: "Contact Support",
-        cta_link: `${magic_links.domain}/contact`,
-        website_link: `<a href="${magic_links.domain}/contact">Contact Support</a>`,
-        privacy_link: `<a href="${magic_links.domain}/privacy">Privacy Policy</a>`
+        cta_link: contactPageLink,
     })
  });
 }

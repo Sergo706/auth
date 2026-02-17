@@ -55,9 +55,9 @@ if (!req.is('application/json')) {
     return; 
   }
   
-  if (req.link.purpose !== "PASSWORD_RESET" && req.link.subject !== 'MAGIC_LINK_Restart') {
-    log.warn('Invalid link purpose/Email is null')
-     res.status(400).json({ error: "Invalid link purpose/Email is null" });
+  if (req.link.purpose !== "PASSWORD_RESET" || req.link.subject !== `PASSWORD_RESET_${req.link.visitor}`) {
+    log.warn('Invalid link purpose or subject mismatch')
+    res.status(400).json({ error: "Invalid link purpose or subject mismatch" });
     return;
   }
 
@@ -146,14 +146,14 @@ const conn = await pool.getConnection();
     consecutiveForIp.delete(req.ip!);
     await resetLimitersUni(compositeKey);
     const { magic_links } = getConfiguration()
-
+    const {loginPageLink} = magic_links.notificationEmail
     await sendEmailNotification(findUser[0].email, findUser[0].name, {
         title: "Password Reset Successful",
         action: "Security Notification",
         subject: "Security Alert: Password Reset Successful",
         message: `Your account password has been successfully reset. <br/>If you did not authorize this change, please contact support immediately.`,
         cta: "Go to Login",
-        cta_link: `${magic_links.domain}/accounts`, 
+        cta_link: loginPageLink, 
     })
    res.status(200).json({ success: true });
    return;

@@ -25,7 +25,7 @@ declare global {
       link: {     
       visitor: number,  
       subject: string,
-      purpose: 'PASSWORD_RESET' | 'MFA' | string,
+      purpose: 'PASSWORD_RESET' | 'MAGIC_LINK_MFA_CHECKS' | string,
       jti?: string;
       }
       newVisitorId?: number;

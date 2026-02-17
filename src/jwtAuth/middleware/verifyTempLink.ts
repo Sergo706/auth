@@ -8,10 +8,10 @@ import { getLimiters } from "../utils/limiters/protectedEndpoints/tempPostRoutes
 import { magicLinksCache } from "../utils/magicLinksCache.js";
 import { validateSchema } from '../utils/validateZodSchema.js';
 import { verificationLink, type VerificationLinkSchema } from "../types/CustomMfaSchema.js";
-import { ensureSha256Hex } from "../utils/hashChecker.js";
+import { toDigestHex } from "../utils/hashChecker.js";
 import crypto from "node:crypto"
 import { getConfiguration } from "../config/configuration.js";
-
+import { buildInMfaFlows, type BuildInMfaFlowsSchema } from "../types/MfaAndPasswordResetSchema.js";
 const consecutiveForIpPassword = makeConsecutiveCache< {countData:number} >(2000, 1000 * 60 * 30);
 const consecutiveForIpMfa = makeConsecutiveCache< {countData:number} >(2000, 1000 * 60 * 30);
 const consecutiveForIpCustomMfa = makeConsecutiveCache< {countData:number} >(2000, 1000 * 60 * 30);
@@ -35,26 +35,36 @@ const log = getLogger().child({service: 'auth', branch: `tempLinks`, linkType: '
 const { usedJtiLimiter } = getLimiters();
 const { magic_links } = getConfiguration()
 const { allowedPerSuccessfulGet, allowedPerSuccessfulPost } = magic_links.thresholds.adaptiveMfa
-const token = req.query.temp;
+const data = req.query as unknown as BuildInMfaFlowsSchema;
+const result = await validateSchema(buildInMfaFlows, data, req, log)
 
-if (typeof token !== 'string') {
-    log.warn('invalid token type');
-    res.status(400).json({error: 'invalid token type'});
-    return;
-}
+if ("valid" in result) { 
+    if (!result.valid && result.errors !== 'XSS attempt') {
+       res.status(400).json(Object.assign({error: result.errors,  "banned": false }))
+       return;
+   }
+        res.status(403).json({"banned": true})
+        return; 
+    } 
+  if (!result.success) {
+          log.error({ errors: result.error }, "Zod validation failed")
+          res.status(400).json({ 
+              ok: false,
+              date: new Date().toISOString(), 
+              reason: "Zod validation failed malformed link"
+           })
+          return;
+  }
+
+const { token, random, reason, visitor } = result.data;
+
 
 log.info({ method: req.method }, 'Verifying link...')
 
 
 if (!(await guard(getUniLimiter(), req.ip!, consecutiveForIpMfa, 1, 'ip', log, res))) return;
 
-if (!token) {
-    log.warn('Link not provided');
-    res.status(400).json({error: 'Link not provided'});
-    return;
-}
-
-const results = verifyTempJwtLink(token);
+const results = verifyTempJwtLink<{ randomHashed: string }>(token);
 
 if (!results.valid || !results.payload) {
     log.warn({details: results.errorType},'Link is not valid or expired');
@@ -62,18 +72,41 @@ if (!results.valid || !results.payload) {
     return;
 }
 
-if (Number(req.params.visitor) !== results.payload.visitor) {
+if (visitor !== results.payload.visitor) {
   log.warn('Invalid link URL');
    res.status(400).json({ error: 'Invalid link URL' });
   return;
 }
     const raw = results.payload;
-    
-  if (typeof raw.visitor !== 'number') {
-    log.warn('Malformed token payload');
-     res.status(401).json({ error: 'Malformed token payload' })
+    const { input: providedRandom } = await toDigestHex(random)
+    const signedProvidedRandom = Buffer.from(providedRandom, 'hex')
+    const signedRandom = Buffer.from(raw.randomHashed, 'hex');
+  
+  if (typeof raw.visitor !== 'number' || 
+       raw.purpose !== reason || 
+       raw.subject !== `${reason}_${visitor}` ||
+       signedProvidedRandom.length !== signedRandom.length 
+      ) {
+     log.warn('Malformed token payload');
+     res.status(401).json({ 
+      ok: false,
+      date: new Date().toISOString(), 
+      reason: 'Malformed token payload' 
+    })
      return;
   }
+
+
+  if (!crypto.timingSafeEqual(signedProvidedRandom, signedRandom)) {
+    log.warn('Malformed token payload: hash mismatch');
+    res.status(401).json({ 
+      ok: false,
+      date: new Date().toISOString(), 
+      reason: 'Malformed token payload' 
+     })
+    return;
+  }
+
     req.link = {     
       visitor: raw.visitor,  
       subject: raw.subject,
@@ -103,7 +136,13 @@ if (Number(req.params.visitor) !== results.payload.visitor) {
     log.info('link verified');
      consecutiveForIpMfa.delete(req.ip!);
      await resetLimitersUni(req.ip!)
-     res.status(200).json({link: 'MFA Code'});
+     res.status(200).json({      
+      ok: true,
+      date: new Date().toISOString(), 
+      data: {
+        link: 'MFA Code',
+        reason: raw.purpose 
+      }});
     return;  
   }
 
@@ -135,27 +174,40 @@ export const linkPasswordVerification = async (req: Request, res: Response, next
 const log = getLogger().child({service: 'auth', branch: `tempLinks`, linkType: 'password-reset'})
 const { usedJtiLimiter } = getLimiters();
 const { magic_links } = getConfiguration()
-const { allowedPerSuccessfulGet, allowedPerSuccessfulPost } = magic_links.thresholds.linkPasswordVerification
-const token = req.query.temp;
+const { allowedPerSuccessfulGet, allowedPerSuccessfulPost } = magic_links.thresholds.linkPasswordVerification;
 
-if (typeof token !== 'string') {
-    log.warn('invalid token type');
-    res.status(400).json({error: 'invalid token type'});
-    return;
-}
+
+const data = req.query as unknown as BuildInMfaFlowsSchema;
+const result = await validateSchema(buildInMfaFlows, data, req, log)
+
+if ("valid" in result) { 
+    if (!result.valid && result.errors !== 'XSS attempt') {
+       res.status(400).json(Object.assign({error: result.errors,  "banned": false }))
+       return;
+   }
+        res.status(403).json({"banned": true})
+        return; 
+    } 
+  if (!result.success) {
+          log.error({ errors: result.error }, "Zod validation failed")
+          res.status(400).json({ 
+              ok: false,
+              date: new Date().toISOString(), 
+              reason: "Zod validation failed malformed link"
+           })
+          return;
+  }
+
+const { token, random, reason, visitor } = result.data;
+
 
 log.info('Verifying link...')
 
 
 if (!(await guard(getUniLimiter(), req.ip!, consecutiveForIpPassword, 1, 'ip', log, res))) return;
 
-if (!token) {
-  log.warn('Link not provided');
-    res.status(400).json({error: 'Link not provided'});
-    return;
-}
 
-const results = verifyTempJwtLink(token);
+const results = verifyTempJwtLink<{ randomHashed: string }>(token);
 
 
 if (!results.valid || !results.payload) {
@@ -164,18 +216,42 @@ if (!results.valid || !results.payload) {
     return;
 }
 
-if (Number(req.params.visitor) !== results.payload.visitor) {
+if (visitor !== results.payload.visitor) {
   log.warn('Invalid link URL');
    res.status(400).json({ error: 'Invalid link URL' });
   return;
 }
     const raw = results.payload;
-    
-  if (typeof raw.visitor !== 'number') {
-    log.warn('Malformed token payload');
-     res.status(401).json({ error: 'Malformed token payload' })
+    const { input: providedRandom } = await toDigestHex(random)
+    const signedProvidedRandom = Buffer.from(providedRandom, 'hex')
+    const signedRandom = Buffer.from(raw.randomHashed, 'hex');
+  
+  if (typeof raw.visitor !== 'number' || 
+       raw.purpose !== reason || 
+       raw.subject !== `${reason}_${visitor}` ||
+       signedProvidedRandom.length !== signedRandom.length 
+      ) {
+     log.warn('Malformed token payload');
+     res.status(401).json({ 
+      ok: false,
+      date: new Date().toISOString(), 
+      reason: 'Malformed token payload' 
+    })
      return;
   }
+
+
+  if (!crypto.timingSafeEqual(signedProvidedRandom, signedRandom)) {
+    log.warn('Malformed token payload: hash mismatch');
+    res.status(401).json({ 
+      ok: false,
+      date: new Date().toISOString(), 
+      reason: 'Malformed token payload' 
+     })
+    return;
+  }
+
+  
     req.link = {        
       visitor: raw.visitor,  
       subject: raw.subject,
@@ -206,7 +282,13 @@ if (Number(req.params.visitor) !== results.payload.visitor) {
       log.info('link verified')
       consecutiveForIpPassword.delete(req.ip!);
       await resetLimitersUni(req.ip!)
-     res.status(200).json({link: 'Password Reset'});
+      res.status(200).json({      
+      ok: true,
+      date: new Date().toISOString(), 
+      data: {
+        link: 'Password Reset',
+        reason: raw.purpose 
+      }});
     return;  
   }
 
@@ -287,7 +369,7 @@ export const customMfaFlowsVerification = async (req: Request, res: Response, ne
       return;
   }
 
-  if (Number(visitor) !== results.payload.visitor) {
+  if (visitor !== results.payload.visitor) {
     log.warn('Invalid link URL');
     res.status(400).json({ 
       ok: false,
@@ -298,13 +380,14 @@ export const customMfaFlowsVerification = async (req: Request, res: Response, ne
   }
 
   const raw = results.payload;
-  const providedRandom = Buffer.from(ensureSha256Hex(random), 'hex')
+  const { input: providedRandom } = await toDigestHex(random)
+  const signedProvidedRandom = Buffer.from(providedRandom, 'hex')
   const signedRandom = Buffer.from(raw.randomHashed, 'hex');
   
   if (typeof raw.visitor !== 'number' || 
        raw.purpose !== reason || 
        raw.subject !== `${reason}_${visitor}` ||
-       providedRandom.length !== signedRandom.length 
+       signedProvidedRandom.length !== signedRandom.length 
       ) {
      log.warn('Malformed token payload');
      res.status(401).json({ 
@@ -316,7 +399,7 @@ export const customMfaFlowsVerification = async (req: Request, res: Response, ne
   }
 
 
-  if (!crypto.timingSafeEqual(providedRandom, signedRandom)) {
+  if (!crypto.timingSafeEqual(signedProvidedRandom, signedRandom)) {
     log.warn('Malformed token payload: hash mismatch');
     res.status(401).json({ 
       ok: false,
@@ -361,7 +444,7 @@ export const customMfaFlowsVerification = async (req: Request, res: Response, ne
       };
 
     log.info('link verified');
-     consecutiveForIpMfa.delete(req.ip!);
+     consecutiveForIpCustomMfa.delete(req.ip!);
      await resetLimitersUni(req.ip!)
      res.status(200).json({ 
       ok: true,
