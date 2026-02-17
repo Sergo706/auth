@@ -43,7 +43,7 @@
     "helmet": "8.1.0",
     "ip-range-check": "0.2.0",
     "jsonwebtoken": "9.0.2",
-    "lru-cache": "11.1.0",
+    "lru-cache": "11.2.6",
     "mysql2": "3.14.0",
     "pino": "10.0.0",
     "pino-http": "10.5.0",
