@@ -10,6 +10,7 @@ import { getLimiters} from "../utils/limiters/protectedEndpoints/tokensLimiters.
 import { makeConsecutiveCache } from "../utils/limiters/utils/consecutiveCache.js";
 import { resetLimiters } from "../utils/limiters/utils/resetLimiters.js";
 import { getConfiguration } from "../config/configuration.js";
+import { EmailMetaDataOTP } from "../types/Emails.js";
 
 const consecutiveForIp = makeConsecutiveCache< {countData:number} >(2000, 1000 * 60 * 10);
 const consecutiveForCompositeKey = makeConsecutiveCache< {countData:number} >(2000, 1000 * 60 * 10);
@@ -55,7 +56,17 @@ export const rotateAccessToken =  async (req: Request, res: Response) => {
         try {
       const {valid, reason, reqMFA, userId, visitorId} = 
       await strangeThings(rawRefreshToken, canary_id, req.ip!, req.get('User-Agent')!, false);
+      const { device: devicePrint, os, browser: browserPrint, city, country, browserType, browserVersion, district,region, regionName, timezone,lat,lon } = req.fingerPrint;
 
+      const location = [country ?? 'Unknown Location', timezone, district, city, region, regionName, lat, lon].filter(Boolean).join('-');
+      const device = [ devicePrint ?? 'Unknown Device', os, req.ip].filter(Boolean).join('-');
+      const browser = [browserPrint ?? 'Unknown Browser', browserVersion, browserType].filter(Boolean).join('-');
+      
+      const meta: EmailMetaDataOTP = {
+        device,
+        browser,
+        location
+      }
          if (!valid && reqMFA) {
           log.info({token: '[REDACTED]',valid, reason, reqMFA, userId, visitorId},`mfa is triggered`)
         const mfa = await sendTempMfaLink(
@@ -65,7 +76,8 @@ export const rotateAccessToken =  async (req: Request, res: Response) => {
           }, 
             rawRefreshToken,
             req.ip!,
-            res
+            res,
+            meta
           )
             if (mfa === 'rate_limited') return;
             

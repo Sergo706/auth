@@ -377,3 +377,39 @@ export async function revokeRefreshToken(clientToken: string): Promise<{success:
         return {success: true}
 }
 
+/**
+ * @description
+ * Revoke *ALL* user current valid refresh tokens. 
+ *
+ * @function revokeRefreshToken
+ * @param {string} userId - The id of the user.
+ *
+ * @returns {Promise<{success: boolean}>} An object indicating whether revocation succeeded.
+ *
+ * @example
+ * revokeRefreshToken('clientToken');
+ */
+export async function revokeAllRefreshTokens(userId: string | number): Promise<{success: boolean}> {
+    const log = getLogger().child({service: 'auth', branch: 'refresh tokens'})
+    log.info('revokeAllRefreshTokens entered. revoking ALL user tokens...')
+
+    const pool = getPool()
+   try { 
+    
+        await pool.execute<RowDataPacket[]>
+        (`
+          UPDATE refresh_tokens
+            SET valid = 0
+            WHERE user_id = ?
+              AND valid = 1
+              AND user_id IS NOT NULL
+          `, [userId]
+        );
+
+        } catch(err) {
+            log.error({err}, 'Error revoking a refresh tokens')
+            return {success: false}
+        }
+          log.info('revoked all refresh tokens.')
+        return {success: true}
+}

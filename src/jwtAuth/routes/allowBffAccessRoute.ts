@@ -1,6 +1,7 @@
 import { allowBffAccess } from "../controllers/allowBffAccess.js";
 import { getAccessTokenPayload } from "../controllers/getPayloadMeta.js";
 import { getRefreshTokenMetaData } from "../controllers/getRefreshTokenMetaData.js";
+import { getFingerPrint } from "../middleware/fingerPrint.js";
 import { cookieOnly } from "../middleware/postGuard.js";
 import { requireAccessToken } from "../middleware/requireAccessToken.js";
 import { requireRefreshToken } from "../middleware/requireRefreshToken.js";
@@ -25,12 +26,14 @@ const router = Router();
 router.get('/secret/data', 
   requireAccessToken,
   requireRefreshToken,
+  getFingerPrint,
   protectRoute,
   allowBffAccess
 )
 router.get('/secret/accesstoken/metadata', 
   requireAccessToken,
   requireRefreshToken,
+  getFingerPrint,
   protectRoute,
   cookieOnly,
   getAccessTokenPayload
@@ -39,6 +42,7 @@ router.get('/secret/accesstoken/metadata',
 router.get('/secret/refreshtoken/metadata', 
   requireRefreshToken,
   cookieOnly,
+  getFingerPrint,
   getRefreshTokenMetaData
 )
 export default router;

@@ -11,30 +11,53 @@ need age
 need age-keygen
 need docker
 
-echo "Setting up SSH agent..."
-eval "$(ssh-agent -s)" || die "ssh-agent failed"
+if [ -z "${SSH_AUTH_SOCK:-}" ]; then
+    echo "Setting up SSH agent..."
+    eval "$(ssh-agent -s)" || die "ssh-agent failed"
+else
+    echo "Using existing SSH agent..."
+fi
 
 
-printf "Enter path to SSH key (default: %s): " "$HOME/.ssh/id_rsa_gh"
-read -r ssh_key
-ssh_key=${ssh_key:-"$HOME/.ssh/id_rsa_gh"}
+if [ -n "${SSH_KEY_PATH:-}" ]; then
+    ssh_key="$SSH_KEY_PATH"
+else
+    if [ -t 0 ]; then
+        printf "Enter path to SSH key (default: %s): " "$HOME/.ssh/id_rsa_gh"
+        read -r ssh_key
+    fi
+    ssh_key=${ssh_key:-"$HOME/.ssh/id_rsa_gh"}
+fi
 
 [ -f "$ssh_key" ] || die "SSH key not found at: $ssh_key"
 
-echo "Adding SSH key to agent (enter passphrase if prompted)..."
-ssh-add "$ssh_key" </dev/tty || die "Failed to add SSH key (bad path or passphrase)."
-
-CONFIG_FILE="config.json"
-if [ -f "config.dev.json" ]; then
-  CONFIG_FILE="config.dev.json"
-  echo "Using dev config: $CONFIG_FILE (plaintext will be kept)."
-elif [ -f "config.json" ]; then
-  echo "Using config.json"
+echo "Adding SSH key to agent..."
+if [ -t 0 ]; then
+    ssh-add "$ssh_key" < /dev/tty || die "Failed to add SSH key"
 else
-  die "Missing config.json (or config.dev.json) in project root."
+    ssh-add "$ssh_key" < /dev/null || die "Failed to add SSH key"
+fi
+
+CONFIG_FILE=${1:-}
+SERVICE_NAME=${2:-"auth"}
+
+if [ -n "$CONFIG_FILE" ]; then
+    if [ ! -f "$CONFIG_FILE" ]; then
+        die "Config file not found: $CONFIG_FILE"
+    fi
+    echo "Using provided config: $CONFIG_FILE"
+elif [ -f "config.dev.json" ]; then
+    CONFIG_FILE="config.dev.json"
+    echo "Using dev config: $CONFIG_FILE"
+elif [ -f "config.json" ]; then
+    CONFIG_FILE="config.json"
+    echo "Using default config.json"
+else
+    die "Missing config.json (or config.dev.json) in project root."
 fi
 
 echo "generating secrets..."
+rm -f age_key public_key
 age-keygen -o age_key || die "age-keygen failed"
 age-keygen -y age_key > public_key || die "failed to derive public key"
 
@@ -44,19 +67,37 @@ age -a -e -r "$(cat public_key)" -o config.json.age "$CONFIG_FILE" || die "encry
 echo "changing permissions config..."
 chmod 750 age_key || die "chmod age_key failed"
 
-echo "starting docker"
+echo "starting docker service: $SERVICE_NAME"
 mkdir -p app-logs detector-logs || die "mkdir logs failed"
 chmod 777 age_key ./app-logs ./detector-logs || die "chmod logs failed"
 
-docker compose up --build -d --force-recreate || die "docker compose failed"
+COMPOSE_FILE="docker-compose.yml"
+ENV_ARGS=""
+if echo "$SERVICE_NAME" | grep -q "test"; then
+    if [ -f "docker-compose.test.yml" ]; then
+        COMPOSE_FILE="docker-compose.test.yml"
+        echo "Using test compose file: $COMPOSE_FILE"
+        if [ -f ".env.test" ]; then
+           ENV_ARGS="--env-file .env.test"
+        fi
+    fi
+fi
+
+docker compose $ENV_ARGS -f "$COMPOSE_FILE" up --build -d --force-recreate "$SERVICE_NAME" || die "docker compose failed"
+
+if echo "$SERVICE_NAME" | grep -q "test"; then
+    echo "Waiting for MySQL to be ready..."
+    sleep 5
+    echo "Initializing test database schema..."
+    npx ts-node test/setup/setupTestDB.ts || die "setupTestDB.ts failed"
+fi
 
 chmod 600 age_key || true
 rm -f public_key
 
 if [ "$CONFIG_FILE" = "config.json" ]; then
   rm -f config.json
+  echo "Deleted sensitive config.json"
 else
-  echo "Keeping $CONFIG_FILE (dev)."
+  echo "Keeping config file: $CONFIG_FILE"
 fi
-
-exec "$@"

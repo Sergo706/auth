@@ -1,14 +1,22 @@
 import mysql from 'mysql2';
 import mysql2 from 'mysql2/promise';
 import { configuration } from '../../src/jwtAuth/config/configuration.js';
-import 'dotenv/config';
+import { config } from 'dotenv';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+
+config({ path: path.resolve(__dirname, '../../.env.test') });
 
 const TEST_DB_CONFIG = {
-  host: process.env.DB_HOST!,
-  port: Number(process.env.DB_PORT!),
-  user: process.env.DB_USER!,
-  password: process.env.DB_PASS!,
-  database: process.env.DB_NAME!,
+  host: process.env.TEST_DB_HOST || 'localhost',
+  port: Number(process.env.TEST_DB_PORT) || 3306,
+  user: process.env.TEST_DB_USER,
+  password: process.env.TEST_DB_PASSWORD,
+  database: process.env.TEST_DB_NAME || 'my_auth_tests_db',
   multipleStatements: true
 };
 
@@ -16,8 +24,7 @@ const TEST_DB_CONFIG = {
 let pools: { mainPool: mysql2.Pool; rateLimiterPool: mysql.Pool } | null = null;
 
 export function createTestPools() {
-  console.log(process.env.VITE_DB_HOST)
-    console.log('Creating test pools');
+  console.log('Creating test pools');
   if (!pools) {
     pools = {
       mainPool: mysql2.createPool({
@@ -35,7 +42,7 @@ export function createTestPools() {
     };
     console.log('New pools created');
   }  else {
-    console.log('Reusing existing pools');
+   console.log('Reusing existing pools');
   }
   return pools;
 }
@@ -60,7 +67,7 @@ export function setupTestConfiguration() {
       main: mainPool,
       rate_limiters_pool: {
         store: rateLimiterPool,
-        dbName: 'myapp'
+        dbName: 'my_auth_tests_db'
       }
     },
     telegram: {
@@ -70,17 +77,17 @@ export function setupTestConfiguration() {
       pepper: 'test-pepper-secret-key'
     },
     magic_links: {
-      jwt_secret_key: 'test-magic-links-secret',
-      domain: 'https://example.com'
+      jwt_secret_key: 'super_long_secret',
+      domain: 'http://localhost:10000'
     },
     jwt: {
-      jwt_secret_key: 'test-jwt-secret-key',
+      jwt_secret_key: 'super_long_secret',
       access_tokens: {
         expiresIn: '15m'
       },
       refresh_tokens: {
-        rotateOnEveryAccessExpiry: true,
-        refresh_ttl: 7 * 24 * 60 * 60 * 1000, 
+        rotateOnEveryAccessExpiry: false,
+        refresh_ttl: 259200000, 
         domain: 'localhost',
         MAX_SESSION_LIFE: 30 * 24 * 60 * 60 * 1000, 
         maxAllowedSessionsPerUser: 5,
@@ -88,19 +95,30 @@ export function setupTestConfiguration() {
       }
     },
     email: {
-      resend_key: 'test-resend-key',
-      email: 'test@example.com'
+      resend_key: 're_FKjU5k87_A3xQS9wtERAcLiu6wFdQpuUk',
+      email: 'noreply@riavzon.com'
     },
-    logLevel: 'info'
+    logLevel: 'info',
+    trustUserDeviceOnAuth: false,
+    botDetector: {
+        enableBotDetector: false
+    },
+    htmlSanitizer: {
+        IrritationCount: 50,
+        maxAllowedInputLength: 50000
+    }
   });
 
   return { mainPool, rateLimiterPool };
 }
 
-export async function cleanupTestDatabase() {
+export async function cleanupTestDatabase(): Promise<void> {
   const { mainPool } = createTestPools();
   
   try {
+    // Delete in order respecting foreign key constraints (children first)
+    await mainPool.execute('DELETE FROM refresh_tokens WHERE user_id IN (SELECT id FROM users WHERE email LIKE "%test%")');
+    await mainPool.execute('DELETE FROM mfa_codes WHERE user_id IN (SELECT id FROM users WHERE email LIKE "%test%")');
     await mainPool.execute('DELETE FROM users WHERE email LIKE "%test%"');
     await mainPool.execute('DELETE FROM visitors WHERE canary_id LIKE "test-canary-%"');
   } catch (error) {

@@ -1,25 +1,28 @@
-// vitest.config.ts
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
+    name: "auth",
+    coverage: {
+      enabled: true,
+      reporter: ['html'],
+      cleanOnRerun: true,
+      all: true,
+      include: ['src/**/*'],
+    },
     environment: 'node',
     include: ["test/**/*.{test,spec}.ts"],
-    setupFiles: ['dotenv/config', './test/setup/test.setup.ts'], 
-    globals: true,
+    setupFiles: ['./test/setup/test.setup.ts'], 
+    env: {
+      DOTENV_CONFIG_PATH: '.env.test',
+    },
     testTimeout: 30_000,
     hookTimeout: 30_000,
     fileParallelism: false,
-    // maxWorkers: 2,
-    // minWorkers: 1,
     pool: 'threads',
     sequence: {
       hooks: 'list',
       setupFiles: 'list'
-    },
-     coverage: {
-      enabled: true,
-      reporter: ['html'],
     },
       poolOptions: {
       threads: {
@@ -29,3 +32,4 @@ export default defineConfig({
     exclude: ["test/setup/**", "node_modules/**", "dist/**"],
   },
 });
+

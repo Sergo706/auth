@@ -296,6 +296,38 @@ sequenceDiagram
     A->>C: Return tokens + cookies
 ```
 
+### Custom MFA Flow
+
+```mermaid
+sequenceDiagram
+    participant C as Client/BFF
+    participant A as Auth Service
+    participant D as Database
+    participant E as Email Service
+    
+    C->>A: POST /custom/mfa:reason?rand=...
+    A->>A: Rate limit check
+    A->>A: Session validation
+    A->>A: Verify BFF client IP
+    A->>A: Generate MFA code + Magic Link JWT
+    A->>D: Store hashed code in mfa_codes
+    A->>E: Send MFA email with link
+    A->>C: Return {ok: true}
+    
+    Note over C,A: User clicks magic link
+    
+    C->>A: GET /auth/verify-custom-mfa?visitor=...&temp=...&random=...
+    A->>A: Validate JWT signature
+    A->>A: Compare random hash (timingSafeEqual)
+    A->>C: Return {link: "Custom MFA"}
+    
+    C->>A: POST /auth/verify-custom-mfa?visitor=...&... {code}
+    A->>D: Verify code_hash against mfa_codes
+    A->>D: Delete code (atomic consumption)
+    A->>D: Rotate session tokens
+    A->>C: Return new access token + cookies
+```
+
 ## Scalability Considerations
 
 ### Horizontal Scaling

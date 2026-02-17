@@ -95,7 +95,50 @@ export const configurationSchema = z.strictObject({
     * @example https://localhost
     */
     domain: z.url({protocol: /^https?$/, normalize: false}),
-    maxCacheEntries: z.number().optional()
+    maxCacheEntries: z.number().optional(),
+    thresholds: z.object({
+
+         adaptiveMfa: z.object({
+            allowedPerSuccessfulGet: z.number().default(5),
+            allowedPerSuccessfulPost: z.number().default(3)   
+         }).prefault({}),
+
+         linkPasswordVerification: z.object({
+            allowedPerSuccessfulGet: z.number().default(5),
+            allowedPerSuccessfulPost: z.number().default(3)   
+         }).prefault({}),
+
+         customMfaFlowsAndEmailChanges: z.object({
+            allowedPerSuccessfulGet: z.number().default(5),
+            allowedPerSuccessfulPost: z.number().default(3)   
+         }).prefault({}),
+      }).prefault({}),
+
+      linkToResetPasswordPage: z.url().default('https://localhost/accounts'),
+      emailImages: z.object({
+         otp: z.object({
+            bannerImage: z.url().default('https://media.riavzon.com/otp/image-1.png'),
+            device_image: z.url().default('https://media.riavzon.com/otp/image-2.png'),
+            location_image: z.url().default('https://media.riavzon.com/otp/image-3.png'),
+            date_image: z.url().default('https://media.riavzon.com/otp/image-4.png'),
+         }).prefault({}),
+
+         notificationBanner: z.url().default('https://media.riavzon.com/notifications/image-1.gif')
+      }).prefault({}),
+      
+    paths: z.object({
+       pathForCustomFlow: z.string().default('/auth/bounce'),
+       pathForPasswordResetLink: z.string().default('/auth/bounce'),
+       pathForAdaptiveMfaLink: z.string().default('/auth/bounce')
+    }).prefault({}),
+
+    notificationEmail: z.object({
+         websiteName: z.string().default('Security Service'),
+         privacyPolicyLink: z.url(),
+         contactPageLink: z.url(),
+         changePasswordPageLink: z.url(),
+         loginPageLink: z.url()
+    })
  }),  
     providers: z.array(
       z.union([
@@ -127,9 +170,9 @@ export const configurationSchema = z.strictObject({
     /**
      * Trust the user device on successful logins.
      * Preventing the user to go through an MFA flow on login and expired canary_id Cookie.
-     * @default true
+     * @default false
      */
-   trustUserDeviceOnAuth: z.boolean().default(true),
+   trustUserDeviceOnAuth: z.boolean().default(false),
      
  jwt: z.object({
     jwt_secret_key: z.string(),

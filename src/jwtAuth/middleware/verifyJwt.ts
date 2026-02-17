@@ -6,6 +6,7 @@ import { sendTempMfaLink } from "../utils/emailMFA.js";
 import { getLimiters } from '../utils/limiters/protectedEndpoints/tokensLimiters.js'
 import { makeConsecutiveCache } from "../utils/limiters/utils/consecutiveCache.js";
 import { guard } from "../utils/limiters/utils/guard.js";
+import { EmailMetaDataOTP } from "../types/Emails.js";
 
 const consecutiveForJti = makeConsecutiveCache< {countData:number} >(2000, 1000 * 60 * 60 * 24);
 
@@ -73,6 +74,18 @@ const { blackList } = getLimiters();
   
       const {valid, reason, reqMFA, userId, visitorId} = await
     strangeThings(session, canary, req.ip!, req.get('User-Agent')!, false);
+    
+      const { device: devicePrint, os, browser: browserPrint, city, country, browserType, browserVersion, district,region, regionName, timezone,lat,lon } = req.fingerPrint;
+
+      const location = [country ?? 'Unknown Location', timezone, district, city, region, regionName, lat, lon].filter(Boolean).join('-');
+      const device = [ devicePrint ?? 'Unknown Device', os, req.ip].filter(Boolean).join('-');
+      const browser = [browserPrint ?? 'Unknown Browser', browserVersion, browserType].filter(Boolean).join('-');
+      
+      const meta: EmailMetaDataOTP = {
+        device,
+        browser,
+        location
+      }
 
       if (!valid && reqMFA) {
         log.info({token: '[REDACTED]',valid, reason, reqMFA, userId, visitorId},`mfa is triggered`)
@@ -83,7 +96,8 @@ const { blackList } = getLimiters();
           }, 
             session,
             req.ip!,
-            res
+            res,
+            meta
           )
             if (mfa === 'rate_limited') return;
             

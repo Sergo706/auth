@@ -17,8 +17,9 @@ import { generateRefreshToken, verifyRefreshToken } from "../../src/refreshToken
       try {
         await verifyRefreshToken(fakeToken);
       } catch (error) {
-        // Should handle gracefully
-        expect(typeof error.message).toBe('string');
+        if (error instanceof Error) {
+          expect(typeof error.message).toBe('string');
+        }
       }
     });
 

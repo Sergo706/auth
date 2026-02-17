@@ -6,6 +6,7 @@ import { RowDataPacket } from "mysql2";
 import crypto from 'crypto'
 import { getLogger } from "../utils/logger.js";
 import { getConfiguration } from "../config/configuration.js";
+import { toDigestHex } from "./hashChecker.js";
 
 /**
  * @description
@@ -54,19 +55,26 @@ const { id, name, user_email, visitor_id, password_hash } = results[0];
     }
 
 const jti = `${crypto.randomUUID()}${crypto.randomBytes(64).toString('hex')}`;
+const random = crypto.randomBytes(128).toString('hex');
+const { input: randomHashed } = await toDigestHex(random);
 
 const payload: LinkTokenPayload = {
     visitor: visitor_id,
-    subject: "MAGIC_LINK_Restart",
+    subject: `PASSWORD_RESET_${visitor_id}`,
     purpose: "PASSWORD_RESET",
-    jti: jti
+    randomHashed,
+    jti: jti,
   };
 
   const tempToken = tempJwtLink(payload);
-  const path = "/auth/reset-password";
-  const url = `${magic_links.domain}${path}/${visitor_id}?temp=${encodeURIComponent(tempToken)}`
-
-  await resetPasswordEmail(name, user_email, url)
+  const { pathForPasswordResetLink } = magic_links.paths;
+  const url = new URL(pathForPasswordResetLink, magic_links.domain);
+  url.searchParams.set('visitor', String(visitor_id));
+  url.searchParams.set('token', tempToken);
+  url.searchParams.set('random', random);
+  url.searchParams.set('reason', 'PASSWORD_RESET');
+  
+  await resetPasswordEmail(name, user_email, url.toString())
   log.info({userId: id},'An email for password reset was send to user')
  return {
     valid: true
