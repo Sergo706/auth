@@ -62,7 +62,7 @@
     "@rollup/plugin-terser": "0.4.4",
     "@types/jsonwebtoken": "9.0.9",
     "@types/sanitize-html": "2.16.0",
-    "@types/date-fns": "2.5.3",
+    "@types/date-fns": "2.6.3",
     "@types/ejs": "3.1.5",
     "@types/he": "1.2.3",
     "@types/cookie-parser": "1.4.9",
