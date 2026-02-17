@@ -18,7 +18,7 @@ import { updateEmailController } from "../controllers/updateEmailController.js";
 const router = Router();
 
 router
-.route("/auth/verify-mfa/:visitor")
+.route("/auth/verify-mfa")
 .get(linkMfaVerification)
   .post(
     linkMfaVerification,
@@ -124,7 +124,7 @@ router
       initPasswordReset
 )
 
-  router.route("/auth/reset-password/:visitor")
+  router.route("/auth/reset-password")
   .get(linkPasswordVerification)
     .post(
     linkPasswordVerification,

@@ -11,6 +11,7 @@ import { getLimiters } from "./limiters/protectedEndpoints/emailMfaFlow/email.js
 import { makeConsecutiveCache } from "./limiters/utils/consecutiveCache.js";
 import { generateMfaCode } from "./secureRandomCode.js";
 import { EmailMetaDataOTP } from "../types/Emails.js";
+import { toDigestHex } from "./hashChecker.js";
 const consecutiveForGlobal = makeConsecutiveCache<{countData: number}>(100, 1000 * 60 * 60 * 24);
 const consecutiveForUserId = makeConsecutiveCache<{countData: number}>(2000, 1000 * 60 * 60 * 24);
 const consecutiveForIp = makeConsecutiveCache<{countData: number}>(2000, 1000 * 60 * 60 * 24);
@@ -70,16 +71,24 @@ export async function sendTempMfaLink(
   }
 
   const jti = `${crypto.randomUUID()}${crypto.randomBytes(64).toString('hex')}`;
+  const random = crypto.randomBytes(128).toString('hex');
+  const { input: randomHashed } = await toDigestHex(random);
+  
   const tempToken = tempJwtLink({
     visitor: user.visitor,
-    subject: 'MAGIC_LINK_MFA_CHECKS',
-    purpose: 'MFA',
+    subject: `MAGIC_LINK_MFA_CHECKS_${user.visitor}`,
+    purpose: 'MAGIC_LINK_MFA_CHECKS',
+    randomHashed,
     jti: jti
   });
 
   log.info(`Entered mfa, generating temp link...`);
-  const path = "/auth/verify-mfa";
-  const url = `${magic_links.domain}${path}/${user.visitor}?temp=${encodeURIComponent(tempToken)}`;
+  const { pathForAdaptiveMfaLink } = magic_links.paths;
+  const url = new URL(pathForAdaptiveMfaLink, magic_links.domain);
+  url.searchParams.set('visitor', String(user.visitor));
+  url.searchParams.set('token', tempToken);
+  url.searchParams.set('random', random);
+  url.searchParams.set('reason', 'MAGIC_LINK_MFA_CHECKS');
 
 try {
   const { ok, data, code, date } = await generateMfaCode(log, sessionToken, user.userId, jti)
@@ -98,7 +107,7 @@ try {
   log.info(`Sending email...`)
   const [rows] = await pool.execute<RowDataPacket[]>(`SELECT name, email FROM users WHERE id = ?`, [user.userId]);
   const { name, email } = rows[0];
-  await mfaEmail(Number(code), email, url, meta);
+  await mfaEmail(Number(code), email, url.toString(), meta);
   log.info(`email sended.`)
   return true;
 } catch (err) {

@@ -31,3 +31,4 @@ detector-logs
 app-logs
 config.dev.json
 .vscode/
+.tokeignore

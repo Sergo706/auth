@@ -54,7 +54,14 @@
     "magic_links": {
         "jwt_secret_key": "super_long_secret",
         "expiresIn": "20m",
-        "domain": "http://localhost:10000"
+        "domain": "http://localhost:10000",
+        "notificationEmail": {
+            "websiteName": "tekStuff",
+            "privacyPolicyLink": "https://localhost/privacy",
+            "contactPageLink": "https://localhost/contact",
+            "changePasswordPageLink": "https://localhost/accounts",
+            "loginPageLink": "https://localhost/accounts"
+        }
     },
     "providers": [
             {

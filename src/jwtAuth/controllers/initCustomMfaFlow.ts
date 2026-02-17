@@ -121,13 +121,17 @@ export async function initCustomMfaFlow(req: Request, res: Response, next: NextF
     const { userId, visitor_id: visitorId } = req.user!;
 
     log.info({ userId, visitorId }, `Verified session health, initiating MFA...`);
-    const { device, os, browser, city, country, browserType} = req.fingerPrint;
+      const { device: devicePrint, os, browser: browserPrint, city, country, browserType, browserVersion, district,region, regionName, timezone,lat,lon } = req.fingerPrint;
 
-    const meta: EmailMetaDataOTP = {
-        device: `${device ?? 'Unknown Device'}-${os ?? ''}-${req.ip!}`.trim(),
-        browser: `${browser ?? 'Unknown Browser'}-${browserType ?? ''}`.trim(),
-        location: `${country ?? 'Unknown Location'}-${city ?? ''}`.trim()
-    }
+      const location = [country ?? 'Unknown Location', timezone, district, city, region, regionName, lat, lon].filter(Boolean).join('-');
+      const device = [ devicePrint ?? 'Unknown Device', os, req.ip].filter(Boolean).join('-');
+      const browser = [browserPrint ?? 'Unknown Browser', browserVersion, browserType].filter(Boolean).join('-');
+      
+      const meta: EmailMetaDataOTP = {
+        device,
+        browser,
+        location
+      }
     const { ok, data } = await generateCustomMfaFlow(
         validRandom,
         validReason, 

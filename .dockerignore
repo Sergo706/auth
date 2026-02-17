@@ -45,3 +45,4 @@ app-logs
 start.sh
 config.dev.json
 *.md
+.tokeignore

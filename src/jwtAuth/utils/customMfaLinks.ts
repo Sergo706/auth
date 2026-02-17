@@ -63,7 +63,7 @@ export async function generateCustomMfaFlow(
       const { globalEmailLimiter, userIdLimiter, ipLimiter } = getLimiters();
       const log = getLogger().child({ service: 'auth', branch: 'mfa', visitorId: user.visitor, reason });
 
-      if (reason === "MFA" || reason === "PASSWORD_RESET" || reason === "PASSWORD_RESET_FLOW" || reason === "EMAIL_MFA_FLOW") {
+      if (reason === "MAGIC_LINK_MFA_CHECKS" || reason === "PASSWORD_RESET" || reason === "PASSWORD_RESET_FLOW" || reason === "EMAIL_MFA_FLOW") {
         return {
             ok: false,
             date: new Date().toISOString(),
@@ -105,8 +105,12 @@ export async function generateCustomMfaFlow(
           jti: jti
         });
     log.info(`Entered mfa, generating temp link...`);
-    const path = "/auth/verify-custom-mfa";
-    const url = `${magic_links.domain}${path}?visitor=${user.visitor}&temp=${encodeURIComponent(tempToken)}&random=${encodeURIComponent(random)}&reason=${reason}`;
+    const { pathForCustomFlow } = magic_links.paths
+    const url = new URL(pathForCustomFlow, magic_links.domain)
+    url.searchParams.set('visitor', String(user.visitor))
+    url.searchParams.set('token', tempToken);
+    url.searchParams.set('random', random);
+    url.searchParams.set('reason', reason);
     
     try {
         const { ok, data, date, code } = await generateMfaCode(log, sessionToken, user.userId, jti);
@@ -142,7 +146,7 @@ export async function generateCustomMfaFlow(
         }
 
         const { email } = rows[0];
-        await mfaEmail(Number(code), email, url, meta) 
+        await mfaEmail(Number(code), email, url.toString(), meta) 
         log.info(`Email sended.`)
         return {
             ok: true,

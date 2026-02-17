@@ -1,6 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
 import { getLogger } from '../utils/logger.js';
-import { makeConsecutiveCache } from "../utils/limiters/utils/consecutiveCache.js"
 import { verifyMfaCode } from '../utils/verifyMfaCode.js';
 
 /**
@@ -38,9 +37,9 @@ export async function verifyMFA (req: Request, res: Response, next: NextFunction
   
   log.info(`Verifying mfa code...`)
 
-  if (req.link.purpose !== "MFA" || req.link.subject !== 'MAGIC_LINK_MFA_CHECKS') {
-    log.warn('Invalid link purpose')
-     res.status(400).json({ error: "Invalid link purpose" });
+  if (req.link.purpose !== "MAGIC_LINK_MFA_CHECKS" || req.link.subject !== `MAGIC_LINK_MFA_CHECKS_${req.link.visitor}`) {
+    log.warn('Invalid link purpose or subject mismatch')
+    res.status(400).json({ error: "Invalid link purpose or subject mismatch" });
     return;
   }
 
