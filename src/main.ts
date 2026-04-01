@@ -105,7 +105,6 @@ export { default as sanitizeInput } from "./jwtAuth/utils/htmlSanitizer.js";
 export { validateSchema as validateZodSchema } from "./jwtAuth/utils/validateZodSchema.js";
 export { makeSafeString as makeSanitizedZodString } from "./jwtAuth/utils/zodSafeStringMaker.js";
 export { waitSomeTime as timeEnumeration } from "./jwtAuth/utils/timeEnum.js";
-export { sendLog as sendTelegramMessage } from "./jwtAuth/utils/telegramLogger.js";
 export { sendSystemEmail } from "./jwtAuth/utils/systemEmails.js";
 export { isDisposable } from "./jwtAuth/utils/isEmailDisposable.js";
 export { sendTempMfaLink } from "./jwtAuth/utils/emailMFA.js";
@@ -130,7 +129,8 @@ export { makeRateLimiter, unionLimiter } from './jwtAuth/utils/limiters/rateLimi
 export { getLogger } from './jwtAuth/utils/logger.js';
 export { tokenCache } from './jwtAuth/utils/accessTokentCache.js';
 export {  magicLinksCache  } from './jwtAuth/utils/magicLinksCache.js'
-export { getGeoData, parseUA, BotDetectorConfig, initBotDetector, loadUaPatterns, detectBots, ApiResponse, warmUp } from '@riavzon/botdetector';
+export { getGeoData, parseUA, detectBots, ApiResponse, warmUp, defineConfiguration } from '@riavzon/bot-detector';
+export type { BotDetectorConfig, BotDetectorConfigInput } from '@riavzon/bot-detector';
 export { makeEmailTemplate, deleteTemplate, listTemplates } from './jwtAuth/utils/emailTemplateMaker.js';
 export { getFingerPrint } from './jwtAuth/middleware/fingerPrint.js';
 export {allowBffAccess} from "./jwtAuth/controllers/allowBffAccess.js";
@@ -144,16 +144,3 @@ export { generateMfaCode } from "./jwtAuth/utils/secureRandomCode.js";
 export { initCustomMfaFlow } from "./jwtAuth/controllers/initCustomMfaFlow.js";
 export { verifyCustomMfa } from "./jwtAuth/controllers/verifyCustomMfaController.js";
 export { customMfaFlowsVerification } from "./jwtAuth/middleware/verifyTempLink.js";
-/**
- * The Zod schema‐validation library, v4.
- *
- * @see {@link https://github.com/colinhacks/zod}
- * @example
- * import { z } from 'jwtAuth';
- * const userSchema = z.object({
- *   email: z.string().email(),
- *   age:   z.number().int().positive(),
- * });
- * type User = z.infer<typeof userSchema>;
- */
-export { z } from 'zod/v4';

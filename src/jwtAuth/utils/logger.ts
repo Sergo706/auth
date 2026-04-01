@@ -2,12 +2,11 @@ import pinoNS, { Logger } from 'pino';
 import { existsSync, mkdirSync } from 'fs';
 import path from 'path';
 import { getConfiguration } from '../config/configuration.js';
-import { fileURLToPath } from 'url';
+import { getRoot } from '@riavzon/utils/server';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const root = getRoot(process.cwd())
+const LOG_DIR = process.env.LOG_DIR || path.resolve(root, 'auth-logs');
 
-const LOG_DIR = path.resolve(__dirname, '..', '..', '..', 'logs');
 if (!existsSync(LOG_DIR)) mkdirSync(LOG_DIR, { recursive: true });
 
 const transport = pinoNS.transport({

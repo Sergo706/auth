@@ -1,6 +1,6 @@
 import { hashPassword } from "../utils/hash.js";
 import { Request, Response, NextFunction } from "express";
-import { getPool } from "../config/dbConnection.js";
+import { getPool } from "../config/configuration.js";
 import { passwords } from "../models/zodSchema.js";
 import { ResultSetHeader, RowDataPacket } from "mysql2";
 import { getLogger } from "../utils/logger.js";

@@ -1,7 +1,7 @@
 import { tempJwtLink } from "../../tempLinks.js";
 import { LinkTokenPayload } from "../../tempLinks.js";
 import { resetPasswordEmail } from "../utils/systemEmailMap.js";
-import { getPool } from "../config/dbConnection.js";
+import { getPool } from "../config/configuration.js";
 import { RowDataPacket } from "mysql2";
 import crypto from 'crypto'
 import { getLogger } from "../utils/logger.js";

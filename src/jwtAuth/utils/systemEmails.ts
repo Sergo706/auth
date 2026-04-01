@@ -1,14 +1,15 @@
 import { Resend } from 'resend';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import ejs from "ejs";
 import { getConfiguration } from '../config/configuration.js';
 import { getLogger } from './logger.js';
 import { EmailData } from '../types/Emails.js';
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import { getRoot, resolvePath } from '@riavzon/utils/server';
+import { fileURLToPath } from 'url';
+import path from 'path';
 
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const root = getRoot(__dirname)
 /**
  * @description
  * Sends emails via your SMTP provider.
@@ -56,12 +57,17 @@ export async function sendSystemEmail(
     const renderData = {
         ...userData
     }
+    const templateFile = `${template}.ejs`;
 
  try {
-        const filePath = path.join(__dirname, '..', "emails", `${template}.ejs`)
+      const filePath = resolvePath(templateFile, [
+            'emails',
+            'dist/emails', 
+            'src/jwtAuth/emails'
+        ], [], root);
         html = await ejs.renderFile(filePath, renderData)
    } catch(err) {
-         log.error({err},`Failed to render template '${template}.ejs'`);
+         log.error({err},`Failed to render template '${templateFile}'`);
          throw err;
    }
 

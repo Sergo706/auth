@@ -1,10 +1,11 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { getRoot, resolvePath } from '@riavzon/utils/server';
+import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const root = getRoot(__dirname)
 /**
  * @description
  * Generate a custom ejs template.
@@ -29,16 +30,21 @@ const __dirname = path.dirname(__filename);
 */
 export async function makeEmailTemplate(html: string, templateName: string) {
     const name = `${templateName}.ejs`;
-    const filePath = path.join(__dirname, '..', 'emails');
+    
+    const dirPath = resolvePath('', [
+            'emails',
+            'dist/emails', 
+            'src/jwtAuth/emails'
+    ], [], root);
 
     try {
-        const files = await fs.readdir(filePath, { recursive: true });
+        const pathToWrite = path.join(dirPath, name);
 
-        if (files.includes(name)) {
+
+        if (existsSync(pathToWrite)) {
             throw new Error(`This template already exists: ${name}`);
         }
 
-        const pathToWrite = path.join(filePath, name);
         await fs.appendFile(pathToWrite, html);
     } catch (err: any) {
         throw new Error(`Unexpected error creating a new template: ${err?.message || err}`);
@@ -55,13 +61,19 @@ export async function makeEmailTemplate(html: string, templateName: string) {
  * 
 */
 export async function listTemplates() {
-    const filePath = path.join(__dirname, '..', 'emails');
+
+    const fullPath = resolvePath('', [
+        'emails',
+        'dist/emails', 
+        'src/jwtAuth/emails'
+    ], [], root);
+
     try {
-      const files = await fs.readdir(filePath, {recursive: true})
+       const files = await fs.readdir(fullPath, { recursive: true });
        console.log(files)
        return files;     
     } catch (err: any) {
-        throw new Error(`Unexpected error creating a new template: ${err?.message || err}`);
+        throw new Error(`Failed to list templates in ${fullPath}: ${err.message}`);
     }
      
 }
@@ -76,12 +88,17 @@ export async function listTemplates() {
  * 
 */
 export async function deleteTemplate(templateName: string) {
-    const filePath = path.join(__dirname, '..', 'emails');
     const name = `${templateName}.ejs`;
-    const pathToDelete = path.join(filePath, name);
+
+    const pathToDelete = resolvePath(name, [
+            'emails',
+            'dist/emails', 
+            'src/jwtAuth/emails'
+    ], [], root);
+
     try {
         await fs.rm(pathToDelete)
     } catch (err: any) {
-        throw new Error(`Unexpected error creating a new template: ${err?.message || err}`);
+        throw new Error(`Error deleting template: ${err.message}`);
     }
 }

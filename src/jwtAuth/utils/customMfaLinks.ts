@@ -1,5 +1,5 @@
 import { tempJwtLink } from "../../tempLinks.js";
-import { getPool } from "../config/dbConnection.js";
+import { getPool } from "../config/configuration.js";
 import { RowDataPacket } from "mysql2";
 import crypto from 'crypto'
 import { getLogger } from "../utils/logger.js";
@@ -53,7 +53,7 @@ const consecutiveForIp = makeConsecutiveCache<{countData: number}>(2000, 1000 * 
 export async function generateCustomMfaFlow(
     random: string,
     reason: string,
-    user: { userId: number; visitor: number },
+    user: { userId: number; visitor: string },
     sessionToken: string,
     ip: string,
     res: Response,

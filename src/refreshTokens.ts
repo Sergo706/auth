@@ -1,5 +1,5 @@
 import crypto from 'crypto'
-import { getPool } from "./jwtAuth/config/dbConnection.js";
+import { getPool } from "./jwtAuth/config/configuration.js";
 import { ResultSetHeader, RowDataPacket } from 'mysql2';
 import { getLogger } from './jwtAuth/utils/logger.js';
 import { ensureSha256Hex, toDigestHex } from './jwtAuth/utils/hashChecker.js';
@@ -7,7 +7,7 @@ import { ensureSha256Hex, toDigestHex } from './jwtAuth/utils/hashChecker.js';
 interface token {
   id:         number;
   user_id:    number;
-  visitor_id: number;
+  visitor_id: string;
   token: string;
   valid:      boolean       
   expiresAt:  Date;     
@@ -84,7 +84,7 @@ export async function generateRefreshToken(ttl: number, userId: number): Promise
  */
 export async function consumeAndVerifyRefreshToken(clientToken: string): 
 Promise<
-  { valid: boolean; userId?: number; visitor_id?: number;  reason?: string, sessionTTL?: Date}
+  { valid: boolean; userId?: number; visitor_id?: string;  reason?: string, sessionTTL?: Date}
   > {
 const strictAuth = getLogger().child({service: 'auth', branch: 'strict auth'})
 strictAuth.info('consumeAndVerifyRefreshToken entered, verifying token...')
@@ -234,7 +234,7 @@ if (info.affectedRows === 0) {
  */
 export async function verifyRefreshToken(clientToken: string): 
 Promise<
-  { valid: boolean; userId?: number; visitor_id?: number;  reason?: string, sessionStartedAt?:Date, expiresAt?:Date }
+  { valid: boolean; userId?: number; visitor_id?: string;  reason?: string, sessionStartedAt?:Date, expiresAt?:Date }
   > {
     const log = getLogger().child({service: 'auth', branch: 'refresh tokens'})
 

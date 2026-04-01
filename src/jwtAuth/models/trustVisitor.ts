@@ -1,10 +1,10 @@
-import { updateVisitors } from "@riavzon/botdetector";
+import { updateVisitors } from "@riavzon/bot-detector";
 import { FingerPrint } from "../types/fingerprint.js";
-import { getPool } from '../config/dbConnection.js';
+import { getPool } from '../config/configuration.js';
 import type { ResultSetHeader } from "mysql2";
 import pino from "pino";
 
-export async function trustVisitor(userId: number, visitorIdToTrust: number, canaryId: string, fingerprints: FingerPrint, log: pino.Logger): Promise<{
+export async function trustVisitor(userId: number, visitorIdToTrust: string, canaryId: string, fingerprints: FingerPrint, log: pino.Logger): Promise<{
     ok: boolean,
     date: string
     data: string | unknown
@@ -34,22 +34,22 @@ export async function trustVisitor(userId: number, visitorIdToTrust: number, can
                 regionName: fingerprints.regionName ?? '',
                 city: fingerprints.city ?? '',
                 district: fingerprints.district ?? '',
-                lat: fingerprints.lat !== undefined ? String(fingerprints.lat) : '',
-                lon: fingerprints.lon !== undefined ? String(fingerprints.lon) : '',
+                lat: fingerprints.lat ?? '',
+                lon: fingerprints.lon ?? '',
                 timezone: fingerprints.timezone ?? '',
                 currency: fingerprints.currency ?? '',
                 isp: fingerprints.isp ?? '',
                 org: fingerprints.org ?? '',
                 as: fingerprints.as_org ?? '',
                 device_type: fingerprints.device,
-                browser: fingerprints.browser,
+                browser: fingerprints.browser ?? '',
                 proxy: fingerprints.proxy ?? false,
                 hosting: fingerprints.hosting ?? false,
-                deviceVendor: fingerprints.deviceVendor,
-                deviceModel: fingerprints.deviceModel,
-                browserType: fingerprints.browserType,
-                browserVersion: fingerprints.browserVersion,
-                os: fingerprints.os
+                deviceVendor: fingerprints.deviceVendor ?? '',
+                deviceModel: fingerprints.deviceModel ?? '',
+                browserType: fingerprints.browserType ?? '',
+                browserVersion: fingerprints.browserVersion ?? '',
+                os: fingerprints.os ?? ''
             },
             canaryId,
             visitorIdToTrust

@@ -23,12 +23,12 @@ declare global {
               payload: JwtPayload
       };
       link: {     
-      visitor: number,  
+      visitor: string,
       subject: string,
       purpose: 'PASSWORD_RESET' | 'MAGIC_LINK_MFA_CHECKS' | string,
       jti?: string;
       }
-      newVisitorId?: number;
+      newVisitorId?: string;
     }
   }
 }

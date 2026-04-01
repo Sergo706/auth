@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { verifyPassword } from "../utils/hash.js";
 import { validateSchema } from "../utils/validateZodSchema.js";
 import { login } from "../models/zodLoginSchema.js";
-import { getPool } from "../config/dbConnection.js";
+import { getPool } from "../config/configuration.js";
 import { getConfiguration } from "../config/configuration.js";
 import { getLogger } from "../utils/logger.js";
 import { RowDataPacket } from "mysql2";

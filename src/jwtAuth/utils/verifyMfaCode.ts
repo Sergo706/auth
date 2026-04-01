@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { getPool } from '../config/dbConnection.js';
+import { getPool } from '../config/configuration.js';
 import { PoolConnection } from 'mysql2/promise';
 import { ResultSetHeader, RowDataPacket } from "mysql2";
 import crypto from 'crypto';
@@ -12,7 +12,7 @@ import { validateSchema } from '../utils/validateZodSchema.js';
 import { guard } from "../utils/limiters/utils/guard.js";
 import { getLimiters, resetLimitersUni } from "../utils/limiters/protectedEndpoints/tempPostRoutesLimiter.js";
 import { makeConsecutiveCache } from "../utils/limiters/utils/consecutiveCache.js"
-import { updateVisitors } from '@riavzon/botdetector';
+import { updateVisitors } from '@riavzon/bot-detector';
 import pino from 'pino';
 
 const consecutiveForSubmittedHash = makeConsecutiveCache< {countData:number} >(2000, 1000 * 60 * 10);
@@ -192,14 +192,14 @@ export async function verifyMfaCode(
             org: fingerprints.org ?? '',
             as: fingerprints.as_org ?? '',
             device_type: fingerprints.device,
-            browser: fingerprints.browser,
+            browser: fingerprints.browser ?? '',
             proxy: fingerprints.proxy ?? false,
             hosting: fingerprints.hosting ?? false,
-            deviceVendor: fingerprints.deviceVendor,
-            deviceModel: fingerprints.deviceModel,
-            browserType: fingerprints.browserType,
-            browserVersion: fingerprints.browserVersion,
-            os: fingerprints.os
+            deviceVendor: fingerprints.deviceVendor ?? '',
+            deviceModel: fingerprints.deviceModel ?? '',
+            browserType: fingerprints.browserType ?? '',
+            browserVersion: fingerprints.browserVersion ?? '',
+            os: fingerprints.os ?? ''
           }, req.cookies.canary_id, currentVisitorId);
         
           if (!updateFingerPrint.success) {

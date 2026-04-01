@@ -1,8 +1,26 @@
-import type { Configuration }  from "../types/configSchema.js";
+import type { Configuration, ConfigurationInput }  from "../types/configSchema.js";
 import { configurationSchema } from "../types/configSchema.js";
-import z from "zod";
+import { createConfigManager } from "@riavzon/utils";
+import { getRoot, resolvePath } from '@riavzon/utils/server';
+import { type EmailListRecord } from "@riavzon/shield-base";
+import { open, RootDatabase } from 'lmdb';
+import { fileURLToPath } from "url";
+import path from "path";
+import type { Pool as PromisePool } from 'mysql2/promise';
+import type { Pool as CallbackPool } from 'mysql2';
+import mysql from 'mysql2';
+import mysql2 from 'mysql2/promise';
 
-let cfg: Configuration | undefined;
+let mainPool: PromisePool | undefined;
+let limiterPool: CallbackPool | undefined;
+let emailListDb: RootDatabase<EmailListRecord, string>  | undefined;
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+const {
+  defineConfiguration,
+  getConfiguration
+} = createConfigManager<Configuration>(configurationSchema, "Auth");
+
 
 // // @ts-check
 // main routes and middlewares// The ones that make the lib usable, the "Default"
@@ -14,34 +32,79 @@ let cfg: Configuration | undefined;
  * @module jwtAuth/config
  * @see {@link ./jwtAuth/types/configSchema.js}
  */
-export function configuration(config: Configuration): void {
-  try {
-    const sch = configurationSchema.parse(config);
-    cfg = Object.freeze(sch);        
-  } catch(err) {
-    if (err instanceof z.ZodError) {
-    const details = err.issues.map(issue => {
-        const path     = issue.path.length ? issue.path.join(".") : "(root)";
-        const received = JSON.stringify(issue.input);
-        const code = issue.code
-        return `• Path: ${path}\n  Message: ${issue.message}\n  Received: ${received}\n Code: ${code}\n`;
-      }).join("\n");
-       const pretty = z.prettifyError(err)
-      throw new Error(`Configuration validation failed with ${err.issues.length} error(s):\n${details}\n Pretty Print: ${pretty}\n`);
 
-    } else {
-      throw new Error(`Configuration: Please configure the library properly ${err}`);
-   }
+export async function configuration(config: ConfigurationInput): Promise<void>  {
+
+  const initMainPoolTask = () => {
+    if (!mainPool) {
+         mainPool = mysql2.createPool(config.store.main)
+    }
+    if (mainPool) console.log("Auth: Main DB pool ready");
+  };
+
+  const initEmailListTask = () => {
+     if (!emailListDb) {
+        const path = resolvePath('disposable-emails.mdb', [
+            'email-db',
+            'dist/email-db', 
+            'src/jwtAuth/email-db'
+        ], [], getRoot(__dirname))
+
+        const listDb = open<EmailListRecord, string>({
+            path,
+            name: 'email',
+            compression: true,
+            readOnly: true,
+            useVersions: true,
+            sharedStructuresKey: Symbol.for('structures'),
+            pageSize: 4096,
+            cache: {
+                validated: true
+            },
+            noReadAhead: true,
+            maxReaders: 2024,
+        });
+        emailListDb = listDb;
+        console.log("Auth: emailList DB ready");
+     }
   }
+  
+  const initLimiterPoolTask = () => {
+      if (!limiterPool) {
+          limiterPool = mysql.createPool(config.store.rate_limiters_pool.store)
+      }
+      if (limiterPool) console.log("Auth: Limiter pool ready");
+    };
+
+  await defineConfiguration(config, [
+    initMainPoolTask,
+    initLimiterPoolTask,
+    initEmailListTask
+  ]);
 }
 
-
-export function getConfiguration(): Configuration {
-  if (!cfg) {
-    console.trace("Premature getConfiguration() call");
-    throw new Error(`##### Must be called once #####
-      Auth System: configuration() must be called once in top level app start-up`
-    );
+export function getPool(): PromisePool {
+  if (!mainPool) {
+    console.trace("Premature getPool() call");
+    throw new Error('Auth: Main DB pool not ready. Call configuration() first.');
   }
-  return cfg;
-};
+  return mainPool;
+}
+
+export function poolForLibrary(): CallbackPool {
+  if (!limiterPool) {
+    console.trace("Premature poolForLibrary() call");
+    throw new Error('Auth: Limiter pool not ready. Call configuration() first.');
+  }
+  return limiterPool;
+}
+
+export function getDisposableEmailList(): RootDatabase<EmailListRecord, string> {
+   if (!emailListDb) {
+       console.trace('Premature getDisposableEmailList() call')
+       throw new Error('Auth: emailList not ready. Call configuration() first.');
+   }
+   return emailListDb;
+}
+
+export { getConfiguration };

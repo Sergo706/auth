@@ -1,6 +1,6 @@
-import { getPool } from "./jwtAuth/config/dbConnection.js";
+import { getPool } from "./jwtAuth/config/configuration.js";
 import { RowDataPacket } from 'mysql2';
-import { getGeoData, parseUA } from '@riavzon/botdetector'
+import { getGeoData, parseUA } from '@riavzon/bot-detector';
 import ipRangeCheck from 'ip-range-check' 
 import { revokeRefreshToken } from "./refreshTokens.js";
 import { createHash } from "crypto";
@@ -14,7 +14,7 @@ interface RefreshRow {
   expiresAt:           Date;
   created_at:          Date;
   usage_count:         number;
-  visitor_id:          number;
+  visitor_id:          string;
   last_mfa_at:         Date;
   canary_id:           string;
   userAgent:           string;
@@ -90,7 +90,7 @@ Promise <{
   reason: string;
   reqMFA: boolean;
   userId?: number;
-  visitorId?: number;
+  visitorId?: string;
 }>
 
 {
@@ -241,9 +241,13 @@ if (tokenResults.canary_id !== cookie) {
     }  
     };
 
+    const config = getConfiguration()
 
-    if (tokenResults.suspicious_activity_score >= 9) { 
-            log.info(`Suspicion score to high`)  
+      // @ts-ignore
+    const maxScore = Number(config.botDetector.settings?.banScore ?? 100);
+    
+    if (tokenResults.suspicious_activity_score >= (maxScore * 0.25)) { 
+        log.info(`Suspicion score to high`)  
         return {
           valid: false,
           reason: 'Suspicion score to high',

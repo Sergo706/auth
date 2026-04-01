@@ -5,38 +5,9 @@ set -eu
 die() { echo "Error: $*" >&2; exit 1; }
 need() { command -v "$1" >/dev/null 2>&1 || die "Missing dependency: $1"; }
 
-need ssh-agent
-need ssh-add
 need age
 need age-keygen
 need docker
-
-if [ -z "${SSH_AUTH_SOCK:-}" ]; then
-    echo "Setting up SSH agent..."
-    eval "$(ssh-agent -s)" || die "ssh-agent failed"
-else
-    echo "Using existing SSH agent..."
-fi
-
-
-if [ -n "${SSH_KEY_PATH:-}" ]; then
-    ssh_key="$SSH_KEY_PATH"
-else
-    if [ -t 0 ]; then
-        printf "Enter path to SSH key (default: %s): " "$HOME/.ssh/id_rsa_gh"
-        read -r ssh_key
-    fi
-    ssh_key=${ssh_key:-"$HOME/.ssh/id_rsa_gh"}
-fi
-
-[ -f "$ssh_key" ] || die "SSH key not found at: $ssh_key"
-
-echo "Adding SSH key to agent..."
-if [ -t 0 ]; then
-    ssh-add "$ssh_key" < /dev/tty || die "Failed to add SSH key"
-else
-    ssh-add "$ssh_key" < /dev/null || die "Failed to add SSH key"
-fi
 
 CONFIG_FILE=${1:-}
 SERVICE_NAME=${2:-"auth"}
@@ -89,7 +60,7 @@ if echo "$SERVICE_NAME" | grep -q "test"; then
     echo "Waiting for MySQL to be ready..."
     sleep 5
     echo "Initializing test database schema..."
-    npx ts-node test/setup/setupTestDB.ts || die "setupTestDB.ts failed"
+    npx tsx test/setup/setupTestDB.ts || die "setupTestDB.ts failed"
 fi
 
 chmod 600 age_key || true

@@ -7,8 +7,8 @@ export interface FingerPrint {
     regionName?: string;
     city?:       string;
     district?:   string;
-    lat?:        number;
-    lon?:        number;
+    lat?:        string;
+    lon?:        string;
     timezone?:   string;
     currency?:   string;
     isp?:        string;
@@ -17,12 +17,12 @@ export interface FingerPrint {
     proxy?:      boolean;
     hosting?:    boolean;
     device: string;
-    deviceVendor: string;
-    deviceModel: string;
-    browser: string;
-    browserType: string;
-    browserVersion: string;
-    os: string;
+    deviceVendor?: string;
+    deviceModel?: string;
+    browser?: string;
+    browserType?: string;
+    browserVersion?: string;
+    os?: string;
     botAI: boolean;
     bot: boolean;
 }

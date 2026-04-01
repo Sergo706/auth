@@ -57,7 +57,7 @@ if (!local || !domain) {
      }
  } catch (err: any) {
     if (err.code !== 'ENODATA' && err.code !== 'ENOTFOUND') {
-      log.fatal({ err }, 'Transient DNS failure – allowing user email');
+      log.fatal({ err }, 'Transient DNS failure - allowing user email');
       return true;           
     }
     log.info('No MX record found');

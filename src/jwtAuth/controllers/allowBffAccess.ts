@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { getLogger } from "../utils/logger.js";
 import { RowDataPacket } from "mysql2";
-import { getConfiguration } from "../config/configuration.js";
+import { getConfiguration, getPool } from "../config/configuration.js";
 
 
 /**
@@ -33,10 +33,9 @@ import { getConfiguration } from "../config/configuration.js";
  */
 export const allowBffAccess = async (req: Request, res: Response, next: NextFunction) => {
   const log = getLogger();
-  const config = getConfiguration();
 
   const { userId, visitor_id, } = req.user!;
-  const pool = config.store.main
+  const pool = getPool()
 
   const baseLog = log.child({
     ipAddress:  req.ip,

@@ -1,17 +1,16 @@
 import { NextFunction, Request, Response } from "express";
 import { getLogger } from "../utils/logger.js";
 import { verifyMfaCode } from "../utils/verifyMfaCode.js";
-import { getPool } from "../config/dbConnection.js";
+import { getPool } from "../config/configuration.js";
 import { validateSchema } from "../utils/validateZodSchema.js";
 import { guard } from "../utils/limiters/utils/guard.js";
 import { dataSchema } from "../types/UpdateEmail.js";
-import { hashPassword, verifyPassword } from "../utils/hash.js";
+import { verifyPassword } from "../utils/hash.js";
 import { ResultSetHeader, RowDataPacket } from "mysql2";
-import { revokeAllRefreshTokens } from "../../refreshTokens.js";
 import { sendEmailNotification } from "../utils/systemEmailMap.js";
 import { getConfiguration } from "../config/configuration.js";
 import { getLimiters} from "../utils/limiters/protectedEndpoints/tempPostRoutesLimiter.js";
-import { makeConsecutiveCache } from "../../main.js";
+import { makeConsecutiveCache } from "../utils/limiters/utils/consecutiveCache.js";
 
 const consecutiveForSlowDown = makeConsecutiveCache< {countData:number} >(2000, 1000 * 60 * 10);
 

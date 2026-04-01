@@ -1,5 +1,4 @@
-import { sendLog } from "./telegramLogger.js";
-import { banIp, updateIsBot, updateBannedIP } from "@riavzon/botdetector"
+import { banIp, updateIsBot, updateBannedIP } from '@riavzon/bot-detector';
 import { Request } from "express";
 /**
  * @description
@@ -26,7 +25,6 @@ import { Request } from "express";
  */
 export async function handleXSS(req: Request, message: string, log: any) {
     log.warn(` XSS attempt banning visitor...`)
-    await sendLog('XSS attempt', message);
     await banIp(req.ip!, { score: 10, reasons: ['XSS SCRIPTING ATTEMPT'] });
     await Promise.all([
      updateBannedIP(

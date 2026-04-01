@@ -15,7 +15,7 @@ export const schema = z.object({
 
 export const buildInMfaFlows = z.object({
     ...schema.shape,
-    visitor: z.coerce.number(),
+    visitor: z.coerce.string(),
     token: z.string()
 })
 
