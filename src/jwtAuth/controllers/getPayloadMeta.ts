@@ -1,5 +1,5 @@
 import { RowDataPacket } from "mysql2";
-import { getConfiguration } from "../config/configuration.js";
+import { getConfiguration, getPool } from "../config/configuration.js";
 import { getLogger } from "../utils/logger.js";
 import { Request, Response } from "express";
 
@@ -27,7 +27,7 @@ import { Request, Response } from "express";
             const log = getLogger().child({service: 'auth', branch: "access token", type: 'getAccessTokenPayload'});
             const config = getConfiguration();
             const { userId, visitor_id, payload} = req.user!;
-            const pool = config.store.main
+            const pool = getPool()
 
         if (!req.user) {
             log.warn(`Unauthorized access attempt`);

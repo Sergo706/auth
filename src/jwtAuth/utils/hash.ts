@@ -1,6 +1,5 @@
 import * as argon2 from 'argon2'
 import { getConfiguration } from '../config/configuration.js';
-import { sendLog } from './telegramLogger.js';
 import pino from 'pino';
 
 /**
@@ -39,7 +38,6 @@ export async function hashPassword(passwords: string, log: pino.Logger) {
     return hashed;
   } catch (err) {
     log.fatal({err},'Password hashing failed')
-    sendLog('Hash failed\n', `Failed to create a hashed password.\n Error: ${err}`)
     throw err;
   }
 }

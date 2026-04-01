@@ -1,5 +1,5 @@
 import { ResultSetHeader } from "mysql2";
-import { getPool } from "../config/dbConnection.js";
+import { getPool } from "../config/configuration.js";
 import { generateAccessToken } from "../../accessTokens.js";
 import { generateRefreshToken, IssuedRefreshToken } from "../../refreshTokens.js";
 import { getConfiguration } from "../config/configuration.js";
@@ -37,7 +37,7 @@ export async function findUserByProvider(provider: string, provider_id: string):
     accessToken?: string;
     refreshToken?: IssuedRefreshToken;
     id?: number;
-    visitor_id?: number;
+    visitor_id?: string;
 }> {
     const log = getLogger().child({service: 'auth', branch: 'oauth'});
     const { jwt } = getConfiguration();
@@ -57,7 +57,7 @@ export async function findUserByProvider(provider: string, provider_id: string):
    
         const {id, visitor_id} = findUser[0] as unknown as {
             id: number;
-            visitor_id: number;
+            visitor_id: string;
         };
 
         if (id && visitor_id) {

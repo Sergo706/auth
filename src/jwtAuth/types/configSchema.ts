@@ -1,30 +1,29 @@
 import * as z from "zod";
-import type { Pool as PromisePool } from 'mysql2/promise'
-import { Pool as CallbackPool } from 'mysql2';
 import { ZodType } from 'zod/v4';
-import {configurationSchema as botDetectorConfig} from "@riavzon/botdetector"
+import type { BotDetectorConfigInput } from "@riavzon/bot-detector"
+import mysql from "mysql2/promise";
 
-let mainPool: PromisePool;
-let limiterPool: CallbackPool;
+let mainPool: mysql.PoolOptions;
+let limiterPool: mysql.PoolOptions;
 
 
 const store = z.strictObject({
- main: z.custom<PromisePool>(
+ main: z.custom<mysql.PoolOptions>(
     (val): val is typeof mainPool =>
       typeof val === 'object' &&
       val !== null &&
-      typeof (val as PromisePool).getConnection === 'function',
-    { message: 'Expected a mysql2/promise Pool (must have getConnection())' }
+      typeof (val as mysql.PoolOptions).host === 'string',
+    { message: 'Expected a mysql2 config' }
   ),
 
  rate_limiters_pool: z.object({
-    store: z.custom<CallbackPool>((val): val is typeof limiterPool => { 
+    store: z.custom<mysql.PoolOptions>((val): val is typeof limiterPool => { 
         return (
             typeof val === 'object' &&
             val !== null &&
-            typeof (val as CallbackPool).getConnection === 'function'
+            typeof (val as mysql.PoolOptions).host === 'string'
         );
-    }, { message: 'Expected a mysql2 Pool (callback API)' }),
+    }, { message: 'Expected a mysql2 config' }),
 
     dbName: z.string(),
 }).required().strict(), 
@@ -53,11 +52,6 @@ export const configurationSchema = z.strictObject({
       clientIp: z.string().optional(),
     }).optional(),
 
-   telegram: z.object({
-       token: z.string(),
-       allowedUser: z.string().optional(),
-       chatID: z.string().optional(),
-    }),
     password: z.object({
       pepper: z.string(),
       hashLength: z.number().optional(),
@@ -71,9 +65,7 @@ export const configurationSchema = z.strictObject({
       }),
       z.object({
          enableBotDetector: z.literal(true),
-            settings: z.object({
-               botDetectorConfig
-            }).optional(),
+         settings: z.custom<BotDetectorConfigInput>().optional()
       })
  ]),
  htmlSanitizer: z.object({
@@ -509,3 +501,4 @@ logLevel: z.enum(['trace' , 'debug' , 'info' , 'warn' , 'error' , 'fatal']).opti
 }).strict()
 
 export type Configuration = z.infer<typeof configurationSchema>;
+export type ConfigurationInput = z.input<typeof configurationSchema>;

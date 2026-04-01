@@ -1,6 +1,5 @@
 import { ResultSetHeader, RowDataPacket } from "mysql2/promise";
-import { getPool } from "../config/dbConnection.js";
-import { sendLog } from "../utils/telegramLogger.js";
+import { getPool } from "../config/configuration.js";
 import { OauthUser } from "../types/newUser.js";
 import { generateAccessToken } from "../../accessTokens.js";
 import { generateRefreshToken } from "../../refreshTokens.js";
@@ -129,7 +128,6 @@ const pool = getPool()
     const refresh = await generateRefreshToken(jwt.refresh_tokens.refresh_ttl,  newUserId);
     const accessToken = generateAccessToken({id: newUserId, visitor_id: results.visitor_id, jti: crypto.randomUUID()});
      log.info(`New User created successfully!`)        
-    sendLog('New User created', `New User created successfully!`);
 
      return {
      success: true,
@@ -144,7 +142,6 @@ const pool = getPool()
              return { success: false, duplicate: true };
          }
         log.error({err},`Failed to Create New User`) 
-        sendLog('Failed to Create New User', `Error: ${err}`)
         return {success: false};
     }
 

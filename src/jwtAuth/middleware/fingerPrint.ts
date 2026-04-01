@@ -1,5 +1,4 @@
-import { getGeoData } from "@riavzon/botdetector";
-import { parseUA } from "@riavzon/botdetector";
+import { getGeoData, parseUA } from '@riavzon/bot-detector';
 import type { FingerPrint } from '../types/fingerprint.js'
 import { Request, Response, NextFunction } from "express";
 import { getLogger } from "../utils/logger.js";

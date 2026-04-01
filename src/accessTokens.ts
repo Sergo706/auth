@@ -8,7 +8,7 @@ const { TokenExpiredError, JsonWebTokenError } = jwt;
 
 export interface AccessTokenPayload {
     id: number,
-    visitor_id: number,
+    visitor_id: string,
     jti: string,
     role?: string[]
   }

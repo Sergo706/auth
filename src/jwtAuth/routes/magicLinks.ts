@@ -4,7 +4,7 @@ import { verifyMFA } from "../middleware/verifyEmailMFA.js";
 import { contentType } from "../middleware/validateContentType.js";
 import { verifyNewPassword } from "../middleware/verifyPasswordReset.js";
 import { initPasswordReset } from "../controllers/initPasswordReset.js";
-import { detectBots } from "@riavzon/botdetector"; 
+import { detectBots } from '@riavzon/bot-detector';
 import { getLogger } from "../utils/logger.js";
 import { getFingerPrint } from "../middleware/fingerPrint.js";
 import { verifyCustomMfa } from "../controllers/verifyCustomMfaController.js";

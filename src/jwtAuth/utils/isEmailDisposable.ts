@@ -1,12 +1,6 @@
-import fs from 'node:fs/promises';
-import path from 'node:path';
 import pino from 'pino';
-import { fileURLToPath } from 'node:url';
+import { getDisposableEmailList } from '../config/configuration.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const listCache = new Map<string, Set<string>>();
 /**
  * @description
  * Detects whether a given email address belongs to a disposable‐email provider.
@@ -39,27 +33,15 @@ export async function isDisposable(addr: string, log: pino.Logger): Promise<bool
     return false;
   }
 
-  const listPath = path.join(__dirname, 'disposable_email_blocklist.conf');
+  log.info('Reading disposable list...');
 
-  let blocked: Set<string>;
-  if (listCache.has(listPath)) {
-    blocked = listCache.get(listPath)!;
-  } else {
-    try {
-      log.info('Reading disposable list...');
-      const raw = await fs.readFile(listPath, 'utf-8');
-      blocked = new Set(raw.split(/\r?\n/).map(l => l.trim().toLowerCase()).filter(Boolean));
-      listCache.set(listPath, blocked);
-    } catch (err) {
-      log.error({ err }, 'Failed to read disposable list');
-      return false;
-    }
-  }
+  const exists = getDisposableEmailList().get(domain);
+  const isBlocked = Boolean(exists?.domain);
 
-  const isBlocked = blocked.has(domain);
   log.info(
     { domain, isBlocked },
     `Domain ${isBlocked ? 'is' : 'is NOT'} disposable`
   );
+
   return isBlocked;
 }

@@ -39,7 +39,7 @@ export const schema = z.object({
  */
 export const verificationLink = z.object({
     ...schema.shape,
-    visitor: z.coerce.number(),
+    visitor: z.coerce.string(),
     token: z.string()
 })
 export type VerificationLinkSchema = z.infer<typeof verificationLink>

@@ -1,6 +1,6 @@
 import { ResultSetHeader } from "mysql2";
 import { generateRefreshToken, revokeRefreshToken, verifyRefreshToken } from "../../refreshTokens.js";
-import { getPool } from "../config/dbConnection.js";
+import { getPool } from "../config/configuration.js";
 import { ensureSha256Hex, toDigestHex } from "./hashChecker.js";
 import { getLogger } from "./logger.js";
 import crypto from 'node:crypto'

@@ -1,4 +1,4 @@
-import { poolForLibrary } from '../../../config/dbConnection.js';
+import { poolForLibrary } from '../../../config/configuration.js';
 import { getConfiguration } from '../../../config/configuration.js';
 import {BlockableUnion, makeRateLimiter, unionLimiter} from '../rateLimit.js'
 import { RLWrapperBlackAndWhite } from 'rate-limiter-flexible';

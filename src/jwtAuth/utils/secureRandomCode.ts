@@ -1,6 +1,6 @@
 import crypto from 'node:crypto'
 import pino from 'pino';
-import { getPool } from '../config/dbConnection.js';
+import { getPool } from '../config/configuration.js';
 import { RowDataPacket } from 'mysql2';
 
 /**

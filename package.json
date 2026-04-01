@@ -5,38 +5,37 @@
   "license": "ISC",
   "author": "",
   "type": "module",
+  "main": "./dist/main.mjs",
+  "types": "./dist/main.d.mts",
   "files": [
-    "dist/**/*",
-    "README.md"
+    "dist"
   ],
   "exports": {
     ".": {
-      "types": "./dist/main.d.ts",
-      "import": "./dist/main.js",
-      "default": "./dist/main.js"
-    },
-    "./package.json": "./package.json"
+      "types": {
+        "import": "./dist/main.d.mts",
+        "require": "./dist/main.d.cts"
+      },
+      "import": "./dist/main.mjs",
+      "require": "./dist/main.cjs"
+    }
   },
-  "types": "./dist/main.d.ts",
   "scripts": {
-    "build": "tsc -p tsconfig.json && cp -R src/jwtAuth/emails dist/jwtAuth && cp src/jwtAuth/utils/disposable_email_blocklist.conf dist/jwtAuth/utils && cp src/jwtAuth/models/useragent.csv dist/jwtAuth/models",
-    "build:prod": "tsc -p tsconfig.prod.json && cp -R src/jwtAuth/emails dist/jwtAuth && cp src/jwtAuth/utils/disposable_email_blocklist.conf dist/jwtAuth/utils && cp src/jwtAuth/models/useragent.csv dist/jwtAuth/models",
+    "build": "tsdown && npx @riavzon/shield-base --email --path=dist",
+    "start": "node dist/service.mjs",
     "build:createTables": "node dist/jwtAuth/models/schema.js",
-    "validate-config": "node validate-config.cjs",
+    "test": "vitest run --coverage",
     "docs:start": "typedoc --options ./typedoc.json && typedoc --options ./typedoc.botdetector.json && vitepress dev",
-    "prepack": "npm run build",
-    "test": "vitest",
-    "test:ui": "vitest --ui",
-    "test:coverage": "vitest run --coverage",
     "docs:dev": "vitepress dev",
     "docs:build": "typedoc --options ./typedoc.json && typedoc --options ./typedoc.botdetector.json && vitepress build",
     "docs:preview": "vitepress preview"
   },
   "dependencies": {
-    "@riavzon/botdetector": "github:Sergo706/botDetector#71a1c78e65cdd609c0a389496be84eb8797fac33",
+    "@riavzon/bot-detector": "^1.0.21",
+    "@riavzon/shield-base": "^2.0.4",
+    "@riavzon/utils": "^1.1.0",
     "argon2": "0.44.0",
     "cookie-parser": "1.4.7",
-    "date-fns": "4.1.0",
     "ejs": "4.0.1",
     "express": "5.1.0",
     "he": "1.2.0",
@@ -50,8 +49,6 @@
     "rate-limiter-flexible": "9.0.1",
     "resend": "6.0.1",
     "sanitize-html": "2.17.0",
-    "telegraf": "4.16.3",
-    "ts-node": "10.9.2",
     "zod": "^4.0.14"
   },
   "overrides": {
@@ -59,18 +56,21 @@
     "ua-parser-js": "2.0.3"
   },
   "devDependencies": {
+    "@arethetypeswrong/core": "^0.18.2",
     "@rollup/plugin-terser": "0.4.4",
-    "@types/jsonwebtoken": "9.0.9",
-    "@types/sanitize-html": "2.16.0",
-    "@types/date-fns": "2.5.3",
-    "@types/ejs": "3.1.5",
-    "@types/he": "1.2.3",
     "@types/cookie-parser": "1.4.9",
+    "@types/ejs": "3.1.5",
     "@types/express": "5.0.3",
+    "@types/he": "1.2.3",
+    "@types/jsonwebtoken": "9.0.9",
     "@types/node": "25.1.0",
+    "@types/sanitize-html": "2.16.0",
+    "@types/supertest": "^7.2.0",
     "@vitest/coverage-v8": "4.0.18",
-    "@vitest/ui": "4.0.18",
     "dotenv": "17.2.2",
+    "publint": "^0.3.18",
+    "supertest": "^7.2.2",
+    "tsdown": "^0.21.7",
     "typedoc": "0.28.13",
     "typedoc-plugin-markdown": "4.8.1",
     "vitepress": "1.6.4",

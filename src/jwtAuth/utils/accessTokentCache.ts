@@ -3,7 +3,7 @@ import { getConfiguration } from "../config/configuration.js";
 
 export interface TokenCacheEntry {
     jti: string,
-    visitorId: number,
+    visitorId: string,
     userId: number,
     roles?: string[],
     valid: boolean

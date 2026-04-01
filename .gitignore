@@ -14,7 +14,6 @@ node_modules/
 dist/
 .env.*
 !.env.example
-package-lock.json
 *.tsbuildinfo
 riavzon-jwtauth-1.0.0.tgz
 docs/

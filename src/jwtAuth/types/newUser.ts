@@ -5,14 +5,14 @@ export interface User extends NewUser  {
     country: string | null;
     city: string  | null;
     district: string  | null;
-    visitor_id: number;
+    visitor_id: string;
     
 }
 export interface OauthUser extends StandardProfile    {
     country: string | null;
     city: string  | null;
     district: string  | null;
-    visitor_id: number;
+    visitor_id: string;
     
 }
 
