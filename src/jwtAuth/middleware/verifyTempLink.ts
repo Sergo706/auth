@@ -82,7 +82,7 @@ if (visitor !== results.payload.visitor) {
     const signedProvidedRandom = Buffer.from(providedRandom, 'hex')
     const signedRandom = Buffer.from(raw.randomHashed, 'hex');
   
-  if (typeof raw.visitor !== 'number' || 
+  if (typeof raw.visitor !== 'string' || 
        raw.purpose !== reason || 
        raw.subject !== `${reason}_${visitor}` ||
        signedProvidedRandom.length !== signedRandom.length 
@@ -226,7 +226,7 @@ if (visitor !== results.payload.visitor) {
     const signedProvidedRandom = Buffer.from(providedRandom, 'hex')
     const signedRandom = Buffer.from(raw.randomHashed, 'hex');
   
-  if (typeof raw.visitor !== 'number' || 
+  if (typeof raw.visitor !== 'string' || 
        raw.purpose !== reason || 
        raw.subject !== `${reason}_${visitor}` ||
        signedProvidedRandom.length !== signedRandom.length 
@@ -384,7 +384,7 @@ export const customMfaFlowsVerification = async (req: Request, res: Response, ne
   const signedProvidedRandom = Buffer.from(providedRandom, 'hex')
   const signedRandom = Buffer.from(raw.randomHashed, 'hex');
   
-  if (typeof raw.visitor !== 'number' || 
+  if (typeof raw.visitor !== 'string' || 
        raw.purpose !== reason || 
        raw.subject !== `${reason}_${visitor}` ||
        signedProvidedRandom.length !== signedRandom.length 
