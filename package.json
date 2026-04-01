@@ -31,7 +31,7 @@
     "docs:preview": "vitepress preview"
   },
   "dependencies": {
-    "@riavzon/bot-detector": "^1.0.21",
+    "@riavzon/bot-detector": "^1.0.22",
     "@riavzon/shield-base": "^2.0.4",
     "@riavzon/utils": "^1.1.0",
     "argon2": "0.44.0",
