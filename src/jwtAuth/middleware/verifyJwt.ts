@@ -65,7 +65,7 @@ const { blackList } = getLimiters();
 
   const raw = result.payload;
 
-  if (Number.isNaN(Number(result.payload.sub)) || typeof raw.visitor !== 'number') {
+  if (Number.isNaN(Number(result.payload.sub)) || typeof raw.visitor !== 'string') {
     log.warn(`Malformed token payload`)
     res.status(401).json({ error: 'Malformed token payload' })
     return;
