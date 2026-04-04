@@ -47,8 +47,6 @@ RUN mkdir -p /app/bot-detector-logs && \
 
 COPY decrypt.sh .
 COPY healthcheck.js .
-COPY config.json.age .
-
 
 RUN chmod +x decrypt.sh && \
     chown appuser:appuser decrypt.sh healthcheck.js

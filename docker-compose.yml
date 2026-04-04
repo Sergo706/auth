@@ -21,9 +21,11 @@ services:
       - "10000:10000"
     secrets:
       - age_key
+      - encrypted_config
     security_opt: 
       - "no-new-privileges:true"
 secrets:
   age_key:
     file: ./age_key
-    
+  encrypted_config:
+    file: ./config.json.age

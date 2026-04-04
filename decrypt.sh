@@ -1,9 +1,15 @@
 #!/bin/sh
 set -e
 
-KEY_FILE="/run/secrets/age_key"
 OUT=${CONFIG_PATH:-"/run/app/config.json"}
-FILE=${ENCRYPTED_SOURCE:-"config.json.age"}
+
+if [ -f "$OUT" ]; then
+    echo "Config already present at $OUT, skipping decryption."
+    exec "$@"
+fi
+
+KEY_FILE="/run/secrets/age_key"
+FILE="/run/secrets/encrypted_config"
 
 if [ ! -f "$KEY_FILE" ]; then
     echo "ERROR: Secret key file not found at $KEY_FILE"
@@ -16,7 +22,7 @@ if [ ! -f "$FILE" ]; then
 fi
 
 echo "Decrypting secrets..."
-age -d -i "$KEY_FILE" -o "$OUT" $FILE
+age -d -i "$KEY_FILE" -o "$OUT" "$FILE"
 chmod 0400 "$OUT"
 
 echo "Secrets decrypted and loaded into environment."

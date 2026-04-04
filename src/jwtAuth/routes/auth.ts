@@ -23,7 +23,6 @@ const router = Router();
  * app.use(authenticationRoutes);
  */
 
-
 router.post(
   '/signup',
   contentType('application/json'),
@@ -39,11 +38,10 @@ router.post(
   }), 
   (req, res, next) => {
     const cookie = req.cookies.canary_id
-  if (!cookie) {
-      res.status(400).json({error: `Cookie not provided`});
-      return;
-    };
-    const ip = req.ip
+    if (!cookie) {
+        res.status(400).json({error: `Cookie not provided`});
+        return;
+      };
     next()
   },
 handleSignUp
@@ -63,7 +61,10 @@ router.post(
   }), 
   (req, res, next) => {
     const cookie = req.cookies.canary_id
-    const ip = req.ip
+    if (!cookie) {
+      res.status(400).json({error: `Cookie not provided`});
+      return;
+    };
     next()
   },
 handleLogin
@@ -88,7 +89,6 @@ router.post(
       res.status(400).json({error: `Cookie not provided`});
       return;
      };
-    const ip = req.ip;
     next()
   },
 

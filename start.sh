@@ -10,7 +10,6 @@ need age-keygen
 need docker
 
 CONFIG_FILE=${1:-}
-SERVICE_NAME=${2:-"auth"}
 
 if [ -n "$CONFIG_FILE" ]; then
     if [ ! -f "$CONFIG_FILE" ]; then
@@ -35,33 +34,14 @@ age-keygen -y age_key > public_key || die "failed to derive public key"
 echo "encrypting config..."
 age -a -e -r "$(cat public_key)" -o config.json.age "$CONFIG_FILE" || die "encryption failed"
 
-echo "changing permissions config..."
+echo "changing permissions..."
 chmod 750 age_key || die "chmod age_key failed"
 
-echo "starting docker service: $SERVICE_NAME"
+echo "starting docker service..."
 mkdir -p app-logs detector-logs || die "mkdir logs failed"
 chmod 777 age_key ./app-logs ./detector-logs || die "chmod logs failed"
 
-COMPOSE_FILE="docker-compose.yml"
-ENV_ARGS=""
-if echo "$SERVICE_NAME" | grep -q "test"; then
-    if [ -f "docker-compose.test.yml" ]; then
-        COMPOSE_FILE="docker-compose.test.yml"
-        echo "Using test compose file: $COMPOSE_FILE"
-        if [ -f ".env.test" ]; then
-           ENV_ARGS="--env-file .env.test"
-        fi
-    fi
-fi
-
-docker compose $ENV_ARGS -f "$COMPOSE_FILE" up --build -d --force-recreate "$SERVICE_NAME" || die "docker compose failed"
-
-if echo "$SERVICE_NAME" | grep -q "test"; then
-    echo "Waiting for MySQL to be ready..."
-    sleep 5
-    echo "Initializing test database schema..."
-    npx tsx test/setup/setupTestDB.ts || die "setupTestDB.ts failed"
-fi
+docker compose up --build -d --force-recreate auth || die "docker compose failed"
 
 chmod 600 age_key || true
 rm -f public_key
