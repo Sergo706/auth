@@ -2,7 +2,6 @@
 
 FROM node:lts-slim AS base
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    age \
     libatomic1 \
     && rm -rf /var/lib/apt/lists/*
 
@@ -29,10 +28,14 @@ RUN ARCH=$(dpkg --print-architecture) && \
     chmod +x /usr/local/bin/mmdbctl && \
     rm -rf "mmdbctl_1.4.9_${PLAT}.tar.gz" ./mmdb-temp
 
+RUN ARCH=$(dpkg --print-architecture) && \
+    curl -fsSL "https://github.com/FiloSottile/age/releases/download/v1.3.1/age-v1.3.1-linux-${ARCH}.tar.gz" -o /tmp/age.tgz && \
+    tar -xzf /tmp/age.tgz -C /usr/local/bin --strip-components=1 age/age age/age-keygen && \
+    rm -f /tmp/age.tgz
 
 COPY package*.json ./
 RUN npm ci
-RUN npx @riavzon/bot-detector init --contact="Riavzon - contact@riavzon.com"
+RUN ./node_modules/.bin/bot-detector init --contact="Riavzon - contact@riavzon.com"
 
 COPY . .
 RUN npm run build
@@ -52,12 +55,15 @@ RUN chmod +x decrypt.sh && \
     chown appuser:appuser decrypt.sh healthcheck.js
 
 COPY --from=builder /usr/local/bin/mmdbctl /usr/local/bin/mmdbctl
-RUN chmod +x /usr/local/bin/mmdbctl
+COPY --from=builder /usr/local/bin/age /usr/local/bin/age
+COPY --from=builder /usr/local/bin/age-keygen /usr/local/bin/age-keygen
+RUN chmod +x /usr/local/bin/mmdbctl /usr/local/bin/age /usr/local/bin/age-keygen
 
 COPY --from=builder --chown=appuser:appuser /app/package.json ./package.json
 COPY --from=builder --chown=appuser:appuser /app/package-lock.json ./package-lock.json
-COPY --from=builder --chown=appuser:appuser /app/node_modules ./node_modules
 COPY --from=builder --chown=appuser:appuser /app/dist ./dist
+RUN npm ci --omit=dev --ignore-scripts
+COPY --from=builder --chown=appuser:appuser /app/node_modules/@riavzon/bot-detector/dist/_data-sources ./node_modules/@riavzon/bot-detector/dist/_data-sources
 ENV NODE_ENV=production
 
 USER appuser
