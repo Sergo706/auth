@@ -19,6 +19,7 @@ import allowBff from "./jwtAuth/routes/allowBffAccessRoute.js"
 import { finalUnHandledErrors } from './jwtAuth/middleware/finalErrorHandler.js';
 import { sendOperationalConfig } from './jwtAuth/controllers/sendOprConfig.js';
 import fs, { access, constants } from 'node:fs/promises';
+import { refreshData } from '~~/utils/refreshData.js';
 
 export async function bootstrapApp(config: ConfigurationInput) { 
 
@@ -122,6 +123,11 @@ export async function startServer() {
         }
         app.listen(port, server, () => {
             console.log(`Service is running at ${server}:${port}`)
+            refreshData(
+                1000 * 60 * 60 * 24,
+                1000 * 60 * 60 * 24 * 3,
+                1000 * 60 * 60 * 24 * 7,
+            )
         })
 
     } catch(error) {
