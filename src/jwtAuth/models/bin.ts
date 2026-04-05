@@ -22,7 +22,10 @@ export async function initAuthData(config: ConfigurationInput) {
 }
 
 if (process.argv[1]?.endsWith('bin.mjs') || process.argv[1]?.endsWith('bin.ts')) {
-    const configPath = process.argv[2] || process.env.CONFIG_PATH || './config.json';
-    const config = JSON.parse(await fs.readFile(configPath, 'utf-8')) as ConfigurationInput;
-    await initAuthData(config);
+    (async () => {
+        const configPath = process.argv[2] || process.env.CONFIG_PATH || './config.json';
+        const data = await fs.readFile(configPath, 'utf-8')
+        const config = JSON.parse(data) as ConfigurationInput;
+        await initAuthData(config);
+    })();
 }

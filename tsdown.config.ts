@@ -26,13 +26,14 @@ export default defineConfig([
     },
     attw: {
       level: 'error',
+      profile: 'node16'
     },
   },
   {
     ...shared,
     entry: ['./src/service.ts'],
-    dts: false,
-    format: ['esm'],
+    dts: true,
+    format: ['esm', 'cjs'],
   },
   {
     ...shared,

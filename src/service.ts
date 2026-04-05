@@ -136,4 +136,8 @@ export async function startServer() {
     }
 }
 
-if (process.env.NODE_ENV !== 'test') await startServer();
+if (process.env.NODE_ENV !== 'test') {
+    (async () => {
+        await startServer();
+    })();
+}

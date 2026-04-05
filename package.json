@@ -5,6 +5,9 @@
   "license": "ISC",
   "author": "",
   "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "bin": {
     "auth": "./dist/bin.mjs"
   },
@@ -13,19 +16,32 @@
   "files": [
     "dist"
   ],
-  "exports": {
-    ".": {
-      "types": {
-        "import": "./dist/main.d.mts",
-        "require": "./dist/main.d.cts"
-      },
-      "import": "./dist/main.mjs",
-      "require": "./dist/main.cjs"
+"exports": {
+  ".": {
+    "import": {
+      "types": "./dist/main.d.mts",
+      "default": "./dist/main.mjs"
     },
-    "./service": {
-      "import": "./dist/service.mjs"
+    
+    "require": {
+      "types": "./dist/main.d.cts",
+      "default": "./dist/main.cjs"
     }
   },
+
+  "./service": {
+    "import": {
+      "types": "./dist/service.d.mts",
+      "default": "./dist/service.mjs"
+    },
+
+    "require": {
+      "types": "./dist/service.d.cts",
+      "default": "./dist/service.cjs"
+    }
+
+  }
+},
   "scripts": {
     "build": "tsdown && npx @riavzon/shield-base --email --path=dist",
     "start": "node dist/service.mjs",
