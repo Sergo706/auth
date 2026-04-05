@@ -30,11 +30,8 @@ import { getLogger } from '../utils/logger.js';
  * @param res Express Response
  * @param next Express NextFunction
  * @example
- * // Rotate access token (requires refresh cookie only)
- * app.post('/auth/refresh-access', requireRefreshToken, cookieOnly, rotateAccessToken);
- * @example
- * // Rotate refresh+access on every use
- * app.post('/auth/refresh-session/rotate-every', requireRefreshToken, cookieOnly, rotateCredentials);
+ * // Rotate refresh+access tokens
+ * app.post('/auth/user/refresh-session', requireRefreshToken, cookieOnly, rotateCredentials);
  * @example
  * // Logout requires both tokens
  * app.post('/auth/logout', requireRefreshToken, requireAccessToken, cookieOnly, handleLogout);

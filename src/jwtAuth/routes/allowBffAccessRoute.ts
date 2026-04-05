@@ -1,6 +1,5 @@
 import { allowBffAccess } from "../controllers/allowBffAccess.js";
 import { getAccessTokenPayload } from "../controllers/getPayloadMeta.js";
-import { getRefreshTokenMetaData } from "../controllers/getRefreshTokenMetaData.js";
 import { getFingerPrint } from "../middleware/fingerPrint.js";
 import { cookieOnly } from "../middleware/postGuard.js";
 import { requireAccessToken } from "../middleware/requireAccessToken.js";
@@ -12,7 +11,7 @@ import { Router } from "express";
  * @summary BFF authorization and token metadata routes.
  * @description
  * - `GET /secret/data` returns protected resource after access checks.
- * - `GET /secret/metadata` returns decoded access token payload and TTL hints.
+ * - `GET /secret/accesstoken/metadata` returns decoded access token payload and TTL hints.
  *
  * Both routes are protected by `requireAccessToken`, `requireRefreshToken`,
  * and `protectRoute`.
@@ -23,14 +22,14 @@ import { Router } from "express";
 const router = Router();
 
 
-router.get('/secret/data', 
+router.get('/secret/data',
   requireAccessToken,
   requireRefreshToken,
   getFingerPrint,
   protectRoute,
   allowBffAccess
 )
-router.get('/secret/accesstoken/metadata', 
+router.get('/secret/accesstoken/metadata',
   requireAccessToken,
   requireRefreshToken,
   getFingerPrint,
@@ -39,10 +38,4 @@ router.get('/secret/accesstoken/metadata',
   getAccessTokenPayload
 )
 
-router.get('/secret/refreshtoken/metadata', 
-  requireRefreshToken,
-  cookieOnly,
-  getFingerPrint,
-  getRefreshTokenMetaData
-)
 export default router;

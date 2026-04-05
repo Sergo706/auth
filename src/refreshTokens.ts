@@ -309,24 +309,6 @@ const conn = await pool.getConnection();
             }
         };
 
-        const [upd] = await conn.execute<ResultSetHeader>(
-        `UPDATE refresh_tokens
-            SET usage_count = usage_count + 1
-            WHERE token = ?
-            AND valid = 1
-            AND expiresAt > UTC_TIMESTAMP()`,
-        [hashedClientToken]
-        );
-
-        if (upd.affectedRows !== 1) {
-              log.warn(
-                { userId: results.user_id, affectedRows: upd.affectedRows },
-                'Token validation passed but UPDATE failed - possible clock skew or race condition'
-            );
-            await conn.rollback();
-            return { valid: false, reason: 'Invalid or expired', userId: results.user_id };
-        }
-
      await conn.commit();
     log.info({userId: results.user_id},'Verified token successfully')
     return {

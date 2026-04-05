@@ -1,10 +1,13 @@
 {
-  "name": "@riavzon/jwtauth",
+  "name": "@riavzon/auth",
   "version": "1.0.0",
   "description": "",
   "license": "ISC",
   "author": "",
   "type": "module",
+  "bin": {
+    "auth": "./dist/bin.mjs"
+  },
   "main": "./dist/main.mjs",
   "types": "./dist/main.d.mts",
   "files": [
@@ -18,12 +21,15 @@
       },
       "import": "./dist/main.mjs",
       "require": "./dist/main.cjs"
+    },
+    "./service": {
+      "import": "./dist/service.mjs"
     }
   },
   "scripts": {
     "build": "tsdown && npx @riavzon/shield-base --email --path=dist",
     "start": "node dist/service.mjs",
-    "build:createTables": "node dist/jwtAuth/models/schema.js",
+    "build:createTables": "node dist/bin.mjs",
     "test": "vitest run --coverage",
     "docs:start": "typedoc --options ./typedoc.json && typedoc --options ./typedoc.botdetector.json && vitepress dev",
     "docs:dev": "vitepress dev",

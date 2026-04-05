@@ -41,10 +41,8 @@ import tokenRotationRoutesDefault from './jwtAuth/routes/TokenRotations.js';
  * @see {@link ./jwtAuth/routes/TokenRotations.js}
  * @example
  * // Mounted under "/token":
- * // "/auth/refresh-access" — rotates an access token.
- * // "/auth/user/refresh-session" — validates, rotates, and issues a new refresh token (revoking the old one if configured).
+ * // "/auth/user/refresh-session" — consumes the current refresh token, issues new access and refresh tokens.
  * // "/auth/logout" — logs the user out and invalidates their current refresh token.
- * // "/auth/refresh-session/rotate-every" — rotates both access and refresh tokens.
  * app.use('/token', tokenRotationRoutes);
  */
 export const tokenRotationRoutes: Router = tokenRotationRoutesDefault;
@@ -137,10 +135,10 @@ export {allowBffAccess} from "./jwtAuth/controllers/allowBffAccess.js";
 export {ensureSha256Hex, toDigestHex} from "./jwtAuth/utils/hashChecker.js";
 export {getAccessTokenPayload} from "./jwtAuth/controllers/getPayloadMeta.js";
 export {sendOperationalConfig} from "./jwtAuth/controllers/sendOprConfig.js";
-export {getRefreshTokenMetaData} from "./jwtAuth/controllers/getRefreshTokenMetaData.js"
 export { generateCustomMfaFlow } from "./jwtAuth/utils/customMfaLinks.js";
 export { verifyMfaCode } from "./jwtAuth/utils/verifyMfaCode.js";
 export { generateMfaCode } from "./jwtAuth/utils/secureRandomCode.js";
 export { initCustomMfaFlow } from "./jwtAuth/controllers/initCustomMfaFlow.js";
 export { verifyCustomMfa } from "./jwtAuth/controllers/verifyCustomMfaController.js";
 export { customMfaFlowsVerification } from "./jwtAuth/middleware/verifyTempLink.js";
+export {initAuthData} from './jwtAuth/models/bin.js'

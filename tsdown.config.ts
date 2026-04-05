@@ -34,5 +34,11 @@ export default defineConfig([
     dts: false,
     format: ['esm'],
   },
+  {
+    ...shared,
+    entry: ['./src/jwtAuth/models/bin.ts'],
+    dts: false,
+    format: ['esm'],
+  },
 ])
 

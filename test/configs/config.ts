@@ -97,7 +97,6 @@ export const config: ConfigurationInput = {
             algorithm: "HS512"
         },
         refresh_tokens: {
-            rotateOnEveryAccessExpiry: false,
             refresh_ttl: 259200000,
             domain: "localhost",
             MAX_SESSION_LIFE: 2592000000,

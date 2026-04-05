@@ -92,7 +92,6 @@ if (config.jwt) {
     }
     
     if (config.jwt.refresh_tokens) {
-        isValid &= validateRequired(config.jwt.refresh_tokens, 'jwt.refresh_tokens', 'rotateOnEveryAccessExpiry');
         isValid &= validateRequired(config.jwt.refresh_tokens, 'jwt.refresh_tokens', 'refresh_ttl');
         isValid &= validateRequired(config.jwt.refresh_tokens, 'jwt.refresh_tokens', 'domain');
         isValid &= validateRequired(config.jwt.refresh_tokens, 'jwt.refresh_tokens', 'MAX_SESSION_LIFE');
@@ -102,7 +101,6 @@ if (config.jwt) {
         console.log(`   Refresh Token TTL: ${config.jwt.refresh_tokens.refresh_ttl}ms`);
         console.log(`   Max Sessions per User: ${config.jwt.refresh_tokens.maxAllowedSessionsPerUser}`);
         console.log(`   Max Session Life: ${config.jwt.refresh_tokens.MAX_SESSION_LIFE}ms`);
-        console.log(`   Auto-rotate: ${config.jwt.refresh_tokens.rotateOnEveryAccessExpiry}`);
         console.log(`   Bypass Anomalies For: ${config.jwt.refresh_tokens.byPassAnomaliesFor}ms`);
     } else {
         console.error('𐄂 Missing: jwt.refresh_tokens configuration');

@@ -180,12 +180,7 @@ export const configurationSchema = z.strictObject({
       payload: z.record(z.string(), z.unknown()).optional(),
     }),
     refresh_tokens: z.object({
-        /** 
-       * When true, every attempt to get a new access token when expired, will verify, and invalidate the refresh token, 
-       * and produce fresh access and refresh token.
-       */
-       rotateOnEveryAccessExpiry: z.boolean(),
-             /** 
+             /**
        * Time in ms for the token to be considered valid.
        */
        refresh_ttl: z.number(),
