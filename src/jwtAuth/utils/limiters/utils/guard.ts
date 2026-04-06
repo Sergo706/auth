@@ -1,7 +1,7 @@
 import { LRUCache } from "lru-cache";
 import { consumeOrReject } from "./consumeOrReject.js";
 import { Response } from "express";
-import { RateLimiterMemory, RateLimiterMySQL, RateLimiterRes, RLWrapperBlackAndWhite, RateLimiterUnion } from 'rate-limiter-flexible';
+import { RateLimiterMemory, RateLimiterMySQL, RateLimiterRes } from 'rate-limiter-flexible';
 import pino from "pino";
 import { BlockableUnion } from "../rateLimit.js";
 import { makeConsecutiveCache } from "./consecutiveCache.js";
@@ -13,7 +13,7 @@ interface CacheEntry {
   countData: number;
 }
 
-const isBlockedCache =  makeConsecutiveCache<{Blocked: boolean, expire: Date | string}>(1000, 1000 * 60 * 60 * 24 * 7);
+const isBlockedCache = makeConsecutiveCache<{Blocked: boolean, expire: Date | string}>(1000, 1000 * 60 * 60 * 24 * 7);
 /**
  * @description
  * Guard an endpoint using the provided rate limiter and an LRU cache to track ban strikes.

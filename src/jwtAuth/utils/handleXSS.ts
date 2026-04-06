@@ -1,5 +1,6 @@
 import { banIp, updateIsBot, updateBannedIP } from '@riavzon/bot-detector';
 import { Request } from "express";
+import { getConfiguration } from '~~/config/configuration.js';
 /**
  * @description
  * Punish a detected XSS attempt by banning the client at the firewall level and sending a Telegram alert.
@@ -25,7 +26,9 @@ import { Request } from "express";
  */
 export async function handleXSS(req: Request, message: string, log: any) {
     log.warn(` XSS attempt banning visitor...`)
-    await banIp(req.ip!, { score: 10, reasons: ['XSS SCRIPTING ATTEMPT'] });
+    const config = getConfiguration();
+    // @ts-ignore
+    await banIp(req.ip!, { score: config.botDetector.settings?.banScore ?? 100, reasons: ['XSS SCRIPTING ATTEMPT'] });
     await Promise.all([
      updateBannedIP(
     req.cookies.canary_id, 

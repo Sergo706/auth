@@ -47,7 +47,7 @@ export function generateAccessToken(user: AccessTokenPayload): string {
     audience: access_tokens.audience ?? refresh_tokens.domain,
     issuer:   access_tokens.issuer ?? refresh_tokens.domain,
     subject: access_tokens.subject ?? user.id.toString(),
-    jwtid:   access_tokens.jwtid ?? user.jti,
+    jwtid:   user.jti,
   })
   
 tokenCache().set(token, { jti: user.jti, visitorId: user.visitor_id, userId: user.id,  roles: user.role ?? [], valid: true })

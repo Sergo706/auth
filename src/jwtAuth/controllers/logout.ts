@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { revokeRefreshToken, verifyRefreshToken } from "../../refreshTokens.js";
+import { consumeAndVerifyRefreshToken, revokeRefreshToken } from "../../refreshTokens.js";
 import { getConfiguration } from "../config/configuration.js";
 import { getLogger } from "../utils/logger.js";
 import { getLimiters } from "../utils/limiters/protectedEndpoints/tokensLimiters.js";
@@ -47,7 +47,7 @@ export const handleLogout = async (req: Request, res: Response) => {
 
  try {
   log.info('logging user out...')
-  const result = await verifyRefreshToken(rawRefreshToken);
+  const result = await consumeAndVerifyRefreshToken(rawRefreshToken);
 
         if (!result.valid) {
           log.warn(`Couldn't revoke a refresh token, because it's not a valid one.`);

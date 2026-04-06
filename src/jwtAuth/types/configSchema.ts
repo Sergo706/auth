@@ -175,7 +175,6 @@ export const configurationSchema = z.strictObject({
       audience: z.string().optional(),
       issuer: z.string().optional(),
       subject: z.string().optional(),
-      jwtid:   z.string().optional(),
       maxCacheEntries: z.number().optional(),
       payload: z.record(z.string(), z.unknown()).optional(),
     }),
