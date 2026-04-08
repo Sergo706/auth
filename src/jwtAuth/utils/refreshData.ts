@@ -3,7 +3,7 @@ import { promisify } from "util";
 
 const execFileAsync = promisify(execFile);
 
-function scheduleTask(name: string, cmd: string, args: string[], interval: number) {
+export function scheduleTask(name: string, cmd: string, args: string[], interval: number) {
     setTimeout(async () => {
         try {
             await execFileAsync('nice', ['-n', '19', cmd, ...args], { 
