@@ -191,14 +191,14 @@ export const configurationSchema = z.strictObject({
       /** 
        * The maximum allowed active and valid refresh tokens (sessions) for a user.
        */
-       MAX_SESSION_LIFE: z.number(),
-       maxAllowedSessionsPerUser: z.number(),
+       MAX_SESSION_LIFE: z.number().default(1000 * 60 * 60 * 24 * 30),
+       maxAllowedSessionsPerUser: z.number().default(5),
        /** 
        * Bypass MFA for the specified period of time in ml,
        * if maxAllowedSessionsPerUser is exceeded for a certain user, and if a user.
        *
        */
-       byPassAnomaliesFor: z.number(),
+       byPassAnomaliesFor: z.number().default(1000 * 60 * 60 * 3),
     })
  }),
     email: z.object({

@@ -33,7 +33,7 @@ export interface IssuedRefreshToken {
  * @example
  * generateRefreshToken(1000 * 60 * 60 * 24 * 3, 14);
  */
-export async function generateRefreshToken(ttl: number, userId: number): Promise<IssuedRefreshToken> {
+export async function generateRefreshToken(ttl: number, userId: number, prevTs?: Date): Promise<IssuedRefreshToken> {
     const log = getLogger().child({service: 'auth', branch: 'refresh tokens'})
     log.info({userId},'generating a new refresh token...')
     const token = crypto.randomBytes(64).toString('hex');
@@ -44,10 +44,10 @@ export async function generateRefreshToken(ttl: number, userId: number): Promise
     const mainStm = `
     INSERT INTO refresh_tokens
     (user_id, token, valid, expiresAt, session_started_at)
-    VALUES (?, ?, ?,  DATE_ADD(UTC_TIMESTAMP(), INTERVAL ? SECOND), UTC_TIMESTAMP())
+    VALUES (?, ?, ?,  DATE_ADD(UTC_TIMESTAMP(), INTERVAL ? SECOND), COALESCE(?, UTC_TIMESTAMP()))
     `;
 
-    const mainParams = [userId, hashedToken, true, Math.floor(ttl / 1000)];
+    const mainParams = [userId, hashedToken, true, Math.floor(ttl / 1000), prevTs || null];
     await pool.execute(mainStm, mainParams); 
 
     } catch (err) {

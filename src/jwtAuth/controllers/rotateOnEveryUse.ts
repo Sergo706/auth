@@ -155,7 +155,8 @@ export const rotateCredentials = async (req: Request, res: Response) => {
 
     const newRefresh = await generateRefreshToken(
       jwt.refresh_tokens.refresh_ttl,
-      result.userId!
+      result.userId!,
+      result.sessionTTL ? result.sessionTTL : undefined
     );
 
     const newAccess  = generateAccessToken({

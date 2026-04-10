@@ -143,3 +143,5 @@ export { verifyCustomMfa } from "./jwtAuth/controllers/verifyCustomMfaController
 export { customMfaFlowsVerification } from "./jwtAuth/middleware/verifyTempLink.js";
 export {initAuthData} from './jwtAuth/models/bin.js'
 export { refreshData, scheduleTask } from './jwtAuth/utils/refreshData.js'
+export { isPwned } from './jwtAuth/utils/isPasswordPwned.js'
+export { compareRoles } from '~~/utils/compareRoles.js';
