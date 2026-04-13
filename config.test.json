@@ -1,0 +1,111 @@
+{
+    "store": {
+        "main": {
+            "host": "mysql-test",
+            "port": 3306,
+            "user": "sergio",
+            "password": "very_secure_password_for_tests",
+            "database": "my_auth_tests_db"
+        },
+        "rate_limiters_pool": {
+            "store": {
+                "host": "mysql-test",
+                "port": 3306,
+                "user": "sergio",
+                "database": "my_auth_tests_db",
+                "password": "very_secure_password_for_tests"
+            },
+            "dbName": "my_auth_tests_db"
+        }
+    },
+    "service": {
+    "Hmac": {
+        "sharedSecret": "1234567890",
+        "clientId": "1234",
+        "maxClockSkew": 300000
+        },
+        "proxy": {
+            "trust": true,
+            "ipToTrust": "172.20.5.4",
+            "server": "172.20.5.4"
+        },
+        "port": 10000,
+        "ipAddress": "0.0.0.0",
+        "clientIp": "172.20.5.4"
+    },
+    "password": {
+        "pepper": "test-pepper-secret-key-for-integration-tests",
+        "hashLength": 50,
+        "timeCost": 4,
+        "memoryCost": 262144
+    },
+    "botDetector": {
+        "enableBotDetector": false
+    },
+    "htmlSanitizer": {
+        "IrritationCount": 50,
+        "maxAllowedInputLength": 20000
+    },
+    "magic_links": {
+        "jwt_secret_key": "super_long_secret",
+        "expiresIn": "20m",
+        "domain": "http://localhost:10000",
+        "notificationEmail": {
+            "websiteName": "tekStuff",
+            "privacyPolicyLink": "https://localhost/privacy",
+            "contactPageLink": "https://localhost/contact",
+            "changePasswordPageLink": "https://localhost/accounts",
+            "loginPageLink": "https://localhost/accounts"
+        }
+    },
+    "providers": [
+            {
+                "name": "google",
+                "fields": {
+                    "iss": "safeString?",
+                    "azp": "safeString?",
+                    "sub": "string",
+                    "email": "safeString",
+                    "email_verified": "boolean",
+                    "name": "safeString",
+                    "given_name": "safeString",
+                    "picture": "safeString",
+                    "family_name": "safeString?",
+                    "locale": "safeString?"
+                }
+            },
+            {
+                "name": "github",
+                "useStandardProfile": true
+            },
+            {
+                "name": "x",
+                "useStandardProfile": true
+            },
+            {
+                "name": "linkedin",
+                "useStandardProfile": true
+            }
+    ],
+    
+    "jwt": {
+        "jwt_secret_key": "super_long_secret",
+        "access_tokens": {
+            "expiresIn": "15m",
+            "expiresInMs": 900000,
+            "algorithm": "HS512"
+        },
+        "refresh_tokens": {
+            "refresh_ttl": 259200000,
+            "domain": "localhost",
+            "MAX_SESSION_LIFE": 2592000000,
+            "maxAllowedSessionsPerUser": 5,
+            "byPassAnomaliesFor": 10800000
+        }
+    },
+    "email": {
+        "\"resend_key\": \"REDACTED\"",
+        "email": "noreply@test.com"
+    },
+    "logLevel": "debug"
+}
