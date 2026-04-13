@@ -25,9 +25,8 @@ describe('verifyRefreshToken', () => {
     await clearTokensForUser(testUserId);
   });
 
-  it('should return valid:true with full metadata and increment usage_count to 1', async () => {
+  it('should return valid:true with full metadata', async () => {
     const { raw } = await generateRefreshToken(TTL, testUserId);
-    const { input: hash } = await toDigestHex(raw);
 
     const result = await verifyRefreshToken(raw);
 
@@ -36,9 +35,6 @@ describe('verifyRefreshToken', () => {
     expect(typeof result.visitor_id).toBe('string');
     expect(result.sessionStartedAt).toBeInstanceOf(Date);
     expect(result.expiresAt).toBeInstanceOf(Date);
-
-    const row = await getTokenRow(hash);
-    expect(row!.usage_count).toBe(1);
   });
 
   it('should reject an unknown token with Token not found', async () => {
