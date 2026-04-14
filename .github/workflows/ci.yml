@@ -35,10 +35,7 @@ jobs:
         run: curl -Ls https://github.com/ipinfo/mmdbctl/releases/download/mmdbctl-1.4.9/deb.sh | sh
 
       - name: Dependencies
-        run: npm install
-        
-      - name: Install email deb
-        run: npx @riavzon/shield-base --email --path=src/jwtAuth
+        run: npm install && npx @riavzon/shield-base --email --path=src/jwtAuth
 
       - name: Typecheck
         run: npx tsc -p tsconfig.prod.json --noEmit

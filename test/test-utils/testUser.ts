@@ -32,6 +32,7 @@ export async function createTestUser(email: string = 'test@example.com'): Promis
 
     return userResult.insertId;
   } finally {
+    await mainPool.end();
   }
   
 }

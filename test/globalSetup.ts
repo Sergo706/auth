@@ -36,7 +36,7 @@ async function waitForDatabase() {
     }
     throw new Error('Database failed to start in time');
 }
-
+let botDb;
 export async function setup(project: TestProject) {
     try {
         await run ('rm -rf auth-logs')
@@ -47,8 +47,8 @@ export async function setup(project: TestProject) {
         await run('npx @riavzon/bot-detector init --contact="Riavzon - contact@riavzon.com"')
         const botConfig = configBotDetector(true) as BotDetectorConfigInput;
         await defineConfiguration(botConfig)
-        const db = getDb();
-        await createTables(db);
+        botDb = getDb();
+        await createTables(botDb);
 
 
         await makeTables();
@@ -69,4 +69,7 @@ export async function setup(project: TestProject) {
 
 export async function teardown() {
     await run('docker compose -f docker-compose.test.yml down -v')
+    const db = getDb();
+    if (db) await db.dispose();
+    process.exit(0);
 }
