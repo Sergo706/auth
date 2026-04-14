@@ -1,6 +1,6 @@
 {
     "name": "@riavzon/auth",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "author": "Sergio contact@riavzon.com",
     "type": "module",
     "main": "./dist/main.mjs",
@@ -8,115 +8,111 @@
     "license": "Apache-2.0",
     "description": "Authentication middleware and utilities for Express/Node.js",
     "repository": {
-      "type": "git",
-      "url": "https://github.com/Sergo706/auth"
+        "type": "git",
+        "url": "https://github.com/Sergo706/auth"
     },
     "homepage": "https://github.com/Sergo706/auth#readme",
     "bugs": {
-      "url": "https://github.com/Sergo706/auth/issues"
+        "url": "https://github.com/Sergo706/auth/issues"
     },
     "keywords": [
-      "auth",
-      "authentication",
-      "express",
-      "nodejs",
-      "magic-link",
-      "oauth",
-      "jwt",
-      "mfa",
-      "middleware",
-      "hmac",
-      "mtls",
-      "rate-limit",
-      "session",
-      "email",
-      "secure",
-      "token",
-      "user-management"
+        "auth",
+        "authentication",
+        "express",
+        "nodejs",
+        "magic-link",
+        "oauth",
+        "jwt",
+        "mfa",
+        "middleware",
+        "hmac",
+        "mtls",
+        "rate-limit",
+        "session",
+        "email",
+        "secure",
+        "token",
+        "user-management"
     ],
-  "engines": {
-    "node": ">=18.0.0"
-  },
-  "bin": {
-    "auth": "./dist/bin.mjs"
-  },
-  "files": [
-    "dist"
-  ],
-"exports": {
-  ".": {
-    "import": {
-      "types": "./dist/main.d.mts",
-      "default": "./dist/main.mjs"
+    "engines": {
+        "node": ">=18.0.0"
     },
-    
-    "require": {
-      "types": "./dist/main.d.cts",
-      "default": "./dist/main.cjs"
-    }
-  },
-
-  "./service": {
-    "import": {
-      "types": "./dist/service.d.mts",
-      "default": "./dist/service.mjs"
+    "bin": {
+        "auth": "./dist/bin.mjs"
     },
-
-    "require": {
-      "types": "./dist/service.d.cts",
-      "default": "./dist/service.cjs"
+    "files": [
+        "dist"
+    ],
+    "exports": {
+        ".": {
+            "import": {
+                "types": "./dist/main.d.mts",
+                "default": "./dist/main.mjs"
+            },
+            "require": {
+                "types": "./dist/main.d.cts",
+                "default": "./dist/main.cjs"
+            }
+        },
+        "./service": {
+            "import": {
+                "types": "./dist/service.d.mts",
+                "default": "./dist/service.mjs"
+            },
+            "require": {
+                "types": "./dist/service.d.cts",
+                "default": "./dist/service.cjs"
+            }
+        }
+    },
+    "scripts": {
+        "build": "tsdown && npx @riavzon/shield-base --email --path=dist",
+        "start": "node dist/service.mjs",
+        "build:createTables": "node dist/bin.mjs",
+        "test": "vitest run --no-coverage",
+        "prepublishOnly": "npm run build"
+    },
+    "dependencies": {
+        "@riavzon/bot-detector": "^1.0.26",
+        "@riavzon/shield-base": "^2.0.5",
+        "@riavzon/utils": "^1.1.0",
+        "argon2": "0.44.0",
+        "cookie-parser": "1.4.7",
+        "ejs": "4.0.1",
+        "express": "5.1.0",
+        "he": "1.2.0",
+        "helmet": "8.1.0",
+        "ip-range-check": "0.2.0",
+        "jsonwebtoken": "9.0.2",
+        "lru-cache": "11.1.0",
+        "mysql2": "3.14.0",
+        "pino": "10.0.0",
+        "pino-http": "10.5.0",
+        "rate-limiter-flexible": "9.0.1",
+        "resend": "6.0.1",
+        "sanitize-html": "2.17.0",
+        "zod": "^4.0.14"
+    },
+    "overrides": {
+        "pino": "10.0.0",
+        "ua-parser-js": "2.0.3"
+    },
+    "devDependencies": {
+        "@arethetypeswrong/core": "^0.18.2",
+        "@rollup/plugin-terser": "0.4.4",
+        "@types/cookie-parser": "1.4.9",
+        "@types/ejs": "3.1.5",
+        "@types/express": "5.0.3",
+        "@types/he": "1.2.3",
+        "@types/jsonwebtoken": "9.0.9",
+        "@types/node": "25.1.0",
+        "@types/sanitize-html": "2.16.0",
+        "@types/supertest": "^7.2.0",
+        "@vitest/coverage-v8": "4.0.18",
+        "dotenv": "17.2.2",
+        "publint": "^0.3.18",
+        "supertest": "^7.2.2",
+        "tsdown": "^0.21.7",
+        "vitest": "4.0.18"
     }
-
-  }
-},
-  "scripts": {
-    "build": "tsdown && npx @riavzon/shield-base --email --path=dist",
-    "start": "node dist/service.mjs",
-    "build:createTables": "node dist/bin.mjs",
-    "test": "vitest run --no-coverage",
-    "prepublishOnly": "npm run build"
-  },
-  "dependencies": {
-    "@riavzon/bot-detector": "^1.0.26",
-    "@riavzon/shield-base": "^2.0.5",
-    "@riavzon/utils": "^1.1.0",
-    "argon2": "0.44.0",
-    "cookie-parser": "1.4.7",
-    "ejs": "4.0.1",
-    "express": "5.1.0",
-    "he": "1.2.0",
-    "helmet": "8.1.0",
-    "ip-range-check": "0.2.0",
-    "jsonwebtoken": "9.0.2",
-    "lru-cache": "11.1.0",
-    "mysql2": "3.14.0",
-    "pino": "10.0.0",
-    "pino-http": "10.5.0",
-    "rate-limiter-flexible": "9.0.1",
-    "resend": "6.0.1",
-    "sanitize-html": "2.17.0",
-    "zod": "^4.0.14"
-  },
-  "overrides": {
-    "pino": "10.0.0",
-    "ua-parser-js": "2.0.3"
-  },
-  "devDependencies": {
-    "@arethetypeswrong/core": "^0.18.2",
-    "@rollup/plugin-terser": "0.4.4",
-    "@types/cookie-parser": "1.4.9",
-    "@types/ejs": "3.1.5",
-    "@types/express": "5.0.3",
-    "@types/he": "1.2.3",
-    "@types/jsonwebtoken": "9.0.9",
-    "@types/node": "25.1.0",
-    "@types/sanitize-html": "2.16.0",
-    "@types/supertest": "^7.2.0",
-    "@vitest/coverage-v8": "4.0.18",
-    "dotenv": "17.2.2",
-    "publint": "^0.3.18",
-    "supertest": "^7.2.2",
-    "tsdown": "^0.21.7",
-    "vitest": "4.0.18"
-  }
 }
