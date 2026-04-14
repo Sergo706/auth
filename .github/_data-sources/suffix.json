@@ -1,0 +1,98 @@
+{
+    "yandex": {
+        "suffix": ["yandex.ru", "yandex.net", "yandex.com"],
+        "description": "Yandex is a Russian multinational corporation specializing in Internet-related products and services, including a search engine, online advertising, and more.",
+        "docs": "https://yandex.com/support/webmaster/robot-workings/check-yandex-robots.html?lang=en",
+        "useragent": "YandexBot"
+    },
+    "mj12bot": {
+        "suffix": ["mj12bot.com", "majestic.com"],
+        "description": "MJ12bot is a web crawler used for SEO and data analysis.",
+        "docs": "https://mj12bot.com/",
+        "useragent": "MJ12bot"
+    },
+    "discord": {
+        "suffix": "discord.com",
+        "description": "Discord is a VoIP, instant messaging and digital distribution platform.",
+        "docs": "https://discord.com/",
+        "useragent": "Discordbot"
+    },
+    "baidu": {
+        "suffix": ["baidu.com", "baidu.jp"],
+        "description": "Baidu is a Chinese multinational technology company specializing in Internet-related services and products.",
+        "docs": "https://www.baidu.com/",
+        "useragent": "Baiduspider"
+    },
+    "yahoo": {
+        "suffix": ["yahoo.com", "crawl.yahoo.net"],
+        "description": "Yahoo is a web services provider and a subsidiary of Verizon Communications.",
+        "docs": "https://www.yahoo.com/",
+        "useragent": "Yahoo! Slurp"
+    },
+    "google": {
+        "suffix": ["googlebot.com", "googleusercontent.com", "google.com", "googlezip.net"],
+        "description": "Allow google search engine and other related services of google to index your site.",
+        "docs": "https://developers.google.com/search/docs/crawling-indexing/verifying-googlebot",
+        "useragent": "Googlebot"
+    },
+    "bing": {
+        "suffix": "msn.com",
+        "description": "Bing is a web search engine owned and operated by Microsoft.",
+        "docs": "https://www.bing.com/webmasters/help/how-to-verify-bingbot-3905dc26",
+        "useragent": "Bingbot"
+    },
+    "apple": {
+        "suffix": "apple.com",
+        "description": "Allow Apple's web crawler to access your site, which is used for indexing and other services like Siri.",
+        "docs": "https://support.apple.com/en-us/119829",
+        "useragent": "Applebot"
+    },
+    "openAI": {
+        "suffix": "openai.com",
+        "description": "OpenAI is an artificial intelligence research organization.",
+        "docs": "https://platform.openai.com/docs/bots/",
+        "useragent": ["GPTBot", "OAI-SearchBot", "ChatGPT-User"]
+    },
+    "ahrefs": {
+        "suffix": "ahrefs.com",
+        "description": "Ahrefs is a toolset for SEO and marketing.",
+        "docs": "https://help.ahrefs.com/en/articles/78658-what-is-the-list-of-your-ip-ranges",
+        "useragent": "AhrefsBot"
+    },
+    "CCrawler": {
+        "suffix": "commoncrawl.org",
+        "description": "CCrawler is a web crawler for the Common Crawl project.",
+        "docs": "https://commoncrawl.org/",
+        "useragent": "CCBot"
+    },
+    "xAndTwitterIPList": {
+        "suffix": ["x.com", "twttr.net", "twitter.com", "twttr.com"],
+        "description": "Let x/twitter to access your site and display rich content on posts sharing your site.",
+        "docs": "https://developer.x.com/en/docs/x-for-websites/cards/guides/troubleshooting-cards",
+        "useragent": "Twitterbot"
+    },
+    "facebook": {
+        "suffix": ["fbsv.net", "facebook.com", "tfbnw.net"],
+        "description": "Let meta platforms to access your site and display rich content on posts sharing your site.",
+        "docs": "https://developers.facebook.com/docs/sharing/webmasters/web-crawlers/",
+        "useragent": ["FacebookBot", "facebookexternalhit", "facebookcatalog"]
+    },
+    "pintrest": {
+        "suffix": ["pinterest.com", "pinterestcrawler.com"],
+        "description": "Let Pinterest to access your site and display rich content on posts sharing your site.",
+        "docs": "https://developers.facebook.com/docs/sharing/webmasters/web-crawlers/",
+        "useragent": "Pinterestbot"
+    },
+    "semrush": {
+        "suffix": "semrush.com",
+        "description": "Semrush is a tool for SEO, PPC, content, social media, and competitive research.",
+        "docs": "https://www.semrush.com/",
+        "useragent": "SemrushBot"
+    },
+    "telegram": {
+        "suffix": ["tdesktop.com", "t.me", "telegram.org"],
+        "description": "Telegram is a cloud-based instant messaging, VoIP, and VoIP service.",
+        "docs": "https://telegram.org/",
+        "useragent": "TelegramBot"
+    }
+}

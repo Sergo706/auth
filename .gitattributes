@@ -1,0 +1,2 @@
+.github/_data-sources/*.mmdb filter=lfs diff=lfs merge=lfs -text
+.github/_data-sources/**/*.mdb filter=lfs diff=lfs merge=lfs -text

@@ -17,6 +17,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Cache LFS objects
+        uses: actions/cache@v4
+        with:
+          path: .git/lfs
+          key: lfs-${{ hashFiles('.gitattributes') }}
+
+      - name: Fetch LFS objects
+        run: git lfs pull
+
       - name: node
         uses: actions/setup-node@v4
         with:
@@ -45,8 +54,8 @@ jobs:
       - name: Typecheck
         run: npx tsc -p tsconfig.prod.json --noEmit
         
-      - name: start bd 
-        run: npx @riavzon/bot-detector init --contact="Riavzon - contact@riavzon.com"
+      - name: copy data sources 
+        run: mv .github/_data-sources node_modules/@riavzon/bot-detector/dist
 
       - name: Test
         run: npm test
