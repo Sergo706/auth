@@ -36,7 +36,7 @@ jobs:
           curl -Ls https://github.com/ipinfo/mmdbctl/releases/download/mmdbctl-1.4.9/deb.sh | sh
           echo "/usr/local/bin" >> $GITHUB_PATH
           which -a mmdbctl
-          mmdbctl --version
+          mmdbctl --help
           echo $PATH
 
       - name: Dependencies
