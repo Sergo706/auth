@@ -39,31 +39,6 @@ async function waitForDatabase() {
 }
 let botDb;
 
-
-export const spawnRun = async (cmd: string, args = [], options = {}) => {
-
-     await new Promise<void>((resolve, reject) => {
-        const run = spawn(cmd, args, {
-            shell: true,
-            cwd: process.cwd(),
-            stdio: 'inherit',
-            ...options,
-        });
-
-        run.stdout?.on('data', (d: string) => process.stdout.write(d));
-        run.stderr?.on('data', (d: string) => process.stderr.write(d));
-        run.on('error', (err: Error) => { reject(err); });
-        
-        run.on('close', (code: number) => {
-            if (code === 0) resolve();
-            else reject(new Error(`${cmd} exited with code ${String(code)}`));
-        });
-
-    });
-
-    return;
-};
-
 export async function setup(project: TestProject) {
     try {
         await run ('rm -rf auth-logs')
@@ -71,9 +46,11 @@ export async function setup(project: TestProject) {
         await waitForDatabase();
         await configuration(config)
 
-        // await run('npx @riavzon/bot-detector init --contact="Riavzon - contact@riavzon.com"')
-
-        await spawnRun('npx @riavzon/bot-detector init --contact="Riavzon - contact@riavzon.com"')
+        if (!process.env.CI && process.stdout.isTTY) {
+            console.log('Running @riavzon/bot-detector init')
+            await run('npx @riavzon/bot-detector init --contact="Riavzon - contact@riavzon.com"')
+            console.log('@riavzon/bot-detector init completed')
+        }
 
         const botConfig = configBotDetector(true) as BotDetectorConfigInput;
         await defineConfiguration(botConfig)

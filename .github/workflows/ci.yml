@@ -44,7 +44,9 @@ jobs:
 
       - name: Typecheck
         run: npx tsc -p tsconfig.prod.json --noEmit
-
+        
+      - name: start bd 
+        run: npx @riavzon/bot-detector init --contact="Riavzon - contact@riavzon.com"
 
       - name: Test
         run: npm test
