@@ -46,10 +46,12 @@ export const spawnRun = async (cmd: string, args = [], options = {}) => {
         const run = spawn(cmd, args, {
             shell: true,
             cwd: process.cwd(),
+            stdio: 'inherit',
             ...options,
         });
-        run.stdout.on('data', (d: string) => process.stdout.write(d));
-        run.stderr.on('data', (d: string) => process.stderr.write(d));
+
+        run.stdout?.on('data', (d: string) => process.stdout.write(d));
+        run.stderr?.on('data', (d: string) => process.stderr.write(d));
         run.on('error', (err: Error) => { reject(err); });
         
         run.on('close', (code: number) => {
@@ -72,7 +74,7 @@ export async function setup(project: TestProject) {
         // await run('npx @riavzon/bot-detector init --contact="Riavzon - contact@riavzon.com"')
 
         await spawnRun('npx @riavzon/bot-detector init --contact="Riavzon - contact@riavzon.com"')
-        
+
         const botConfig = configBotDetector(true) as BotDetectorConfigInput;
         await defineConfiguration(botConfig)
         console.log('Creating bot detector tables')
