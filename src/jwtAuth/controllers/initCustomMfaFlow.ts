@@ -135,7 +135,7 @@ export async function initCustomMfaFlow(req: Request, res: Response, next: NextF
     const { ok, data } = await generateCustomMfaFlow(
         validRandom,
         validReason, 
-        { userId: Number(userId)!, visitor: Number(visitorId)! },
+        { userId: Number(userId)!, visitor: visitorId! },
          refresh,
          req.ip!,
         res,
