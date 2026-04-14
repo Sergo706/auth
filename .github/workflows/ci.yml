@@ -55,7 +55,7 @@ jobs:
         run: npx tsc -p tsconfig.prod.json --noEmit
         
       - name: copy data sources 
-        run: mv .github/_data-sources node_modules/@riavzon/bot-detector/dist
+        run: cp -r .github/_data-sources node_modules/@riavzon/bot-detector/dist
 
       - name: Test
         run: npm test
