@@ -1,5 +1,3 @@
-# @riavzon/auth
-
 Authentication and identity management for Node.js, and Express, backends. Provides secure, ready-to-use middleware, and route sets.
 
 ## Features
