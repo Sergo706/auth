@@ -1,0 +1,47 @@
+name: CI
+permissions:
+  contents: read
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    name: Build & Typecheck
+    runs-on: ubuntu-latest
+ 
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+        
+      - name: Cache mmdbctl
+        id: mmdbctl-cache
+        uses: actions/cache@v4
+        with:
+          path: /usr/local/bin/mmdbctl
+          key: mmdbctl-1.4.9
+
+      - name: Install mmdbctl
+        if: steps.mmdbctl-cache.outputs.cache-hit != 'true'
+        run: curl -Ls https://github.com/ipinfo/mmdbctl/releases/download/mmdbctl-1.4.9/deb.sh | sh
+
+      - name: Dependencies
+        run: npm install
+
+      - name: Typecheck
+        run: npx tsc -p tsconfig.prod.json --noEmit
+
+      - name: Test
+        run: npm test
+
+      - name: Verify Build
+        run: npm run build

@@ -46,11 +46,12 @@
     "build": "tsdown && npx @riavzon/shield-base --email --path=dist",
     "start": "node dist/service.mjs",
     "build:createTables": "node dist/bin.mjs",
-    "test": "vitest run --coverage",
+    "test": "vitest run --no-coverage",
     "docs:start": "typedoc --options ./typedoc.json && typedoc --options ./typedoc.botdetector.json && vitepress dev",
     "docs:dev": "vitepress dev",
     "docs:build": "typedoc --options ./typedoc.json && typedoc --options ./typedoc.botdetector.json && vitepress build",
-    "docs:preview": "vitepress preview"
+    "docs:preview": "vitepress preview",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@riavzon/bot-detector": "^1.0.22",

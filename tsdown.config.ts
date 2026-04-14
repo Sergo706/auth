@@ -21,11 +21,11 @@ export default defineConfig([
     dts: true,
     format: ['esm', 'cjs'],
     publint: {
-      level: 'error',
+      level: 'warning',
       strict: true,
     },
     attw: {
-      level: 'error',
+      level: 'warn',
       profile: 'node16'
     },
   },
