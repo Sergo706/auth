@@ -8,12 +8,11 @@ import { run } from "@riavzon/utils/server";
 import type { TestProject } from 'vitest/node'
 import { createTestUser } from "./test-utils/testUser.js";
 import 'vitest';
-import { spawn } from "child_process";
-
 
 
 let testUserId: number;
 let anotherUserId: number;
+let botDb;
 declare module 'vitest' {
   export interface ProvidedContext {
       testUserId: number;
@@ -37,7 +36,6 @@ async function waitForDatabase() {
     }
     throw new Error('Database failed to start in time');
 }
-let botDb;
 
 export async function setup(project: TestProject) {
     try {
