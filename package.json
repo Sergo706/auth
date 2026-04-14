@@ -1,18 +1,45 @@
 {
-  "name": "@riavzon/auth",
-  "version": "1.0.0",
-  "description": "",
-  "license": "ISC",
-  "author": "",
-  "type": "module",
+    "name": "@riavzon/auth",
+    "version": "1.0.0",
+    "author": "Sergio contact@riavzon.com",
+    "type": "module",
+    "main": "./dist/main.mjs",
+    "types": "./dist/main.d.mts",
+    "license": "Apache-2.0",
+    "description": "Authentication middleware and utilities for Express/Node.js",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/Sergo706/auth"
+    },
+    "homepage": "https://github.com/Sergo706/auth#readme",
+    "bugs": {
+      "url": "https://github.com/Sergo706/auth/issues"
+    },
+    "keywords": [
+      "auth",
+      "authentication",
+      "express",
+      "nodejs",
+      "magic-link",
+      "oauth",
+      "jwt",
+      "mfa",
+      "middleware",
+      "hmac",
+      "mtls",
+      "rate-limit",
+      "session",
+      "email",
+      "secure",
+      "token",
+      "user-management"
+    ],
   "engines": {
     "node": ">=18.0.0"
   },
   "bin": {
     "auth": "./dist/bin.mjs"
   },
-  "main": "./dist/main.mjs",
-  "types": "./dist/main.d.mts",
   "files": [
     "dist"
   ],
@@ -47,10 +74,6 @@
     "start": "node dist/service.mjs",
     "build:createTables": "node dist/bin.mjs",
     "test": "vitest run --no-coverage",
-    "docs:start": "typedoc --options ./typedoc.json && typedoc --options ./typedoc.botdetector.json && vitepress dev",
-    "docs:dev": "vitepress dev",
-    "docs:build": "typedoc --options ./typedoc.json && typedoc --options ./typedoc.botdetector.json && vitepress build",
-    "docs:preview": "vitepress preview",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
@@ -94,9 +117,6 @@
     "publint": "^0.3.18",
     "supertest": "^7.2.2",
     "tsdown": "^0.21.7",
-    "typedoc": "0.28.13",
-    "typedoc-plugin-markdown": "4.8.1",
-    "vitepress": "1.6.4",
     "vitest": "4.0.18"
   }
 }
