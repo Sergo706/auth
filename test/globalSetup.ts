@@ -8,6 +8,7 @@ import { run } from "@riavzon/utils/server";
 import type { TestProject } from 'vitest/node'
 import { createTestUser } from "./test-utils/testUser.js";
 import 'vitest';
+import { spawn } from "child_process";
 
 
 
@@ -38,6 +39,29 @@ async function waitForDatabase() {
 }
 let botDb;
 
+
+export const spawnRun = async (cmd: string, args = [], options = {}) => {
+
+     await new Promise<void>((resolve, reject) => {
+        const run = spawn(cmd, args, {
+            shell: true,
+            cwd: process.cwd(),
+            ...options,
+        });
+        run.stdout.on('data', (d: string) => process.stdout.write(d));
+        run.stderr.on('data', (d: string) => process.stderr.write(d));
+        run.on('error', (err: Error) => { reject(err); });
+        
+        run.on('close', (code: number) => {
+            if (code === 0) resolve();
+            else reject(new Error(`${cmd} exited with code ${String(code)}`));
+        });
+
+    });
+
+    return;
+};
+
 export async function setup(project: TestProject) {
     try {
         await run ('rm -rf auth-logs')
@@ -46,6 +70,9 @@ export async function setup(project: TestProject) {
         await configuration(config)
 
         // await run('npx @riavzon/bot-detector init --contact="Riavzon - contact@riavzon.com"')
+
+        await spawnRun('npx @riavzon/bot-detector init --contact="Riavzon - contact@riavzon.com"')
+        
         const botConfig = configBotDetector(true) as BotDetectorConfigInput;
         await defineConfiguration(botConfig)
         console.log('Creating bot detector tables')
