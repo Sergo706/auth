@@ -46,6 +46,8 @@ export async function setup(project: TestProject) {
         await configuration(config)
 
         console.log('Initializes bot detector data sources')
+        await run(`which -a mmdbctl`)
+        await run(`mmdbctl --help`)
         await run('npx @riavzon/bot-detector init --contact="Riavzon - contact@riavzon.com"')
         console.log('bot detector data sources initialized')
         const botConfig = configBotDetector(true) as BotDetectorConfigInput;
