@@ -44,19 +44,27 @@ export async function setup(project: TestProject) {
         await waitForDatabase();
         await configuration(config)
 
-        await run('npx @riavzon/bot-detector init --contact="Riavzon - contact@riavzon.com"')
+        console.log('Initializes bot detector data sources')
+        await run('npx --yes @riavzon/bot-detector init --contact="Riavzon - contact@riavzon.com"')
+        console.log('bot detector data sources initialized')
         const botConfig = configBotDetector(true) as BotDetectorConfigInput;
         await defineConfiguration(botConfig)
+        console.log('Creating bot detector tables')
         botDb = getDb();
         await createTables(botDb);
+        console.log('Created bot detector tables')
 
-
+        console.log('Creating tables')
         await makeTables();
+        console.log('Created tables')
+
         await run('docker compose -f docker-compose.test.yml up -d')
         const uniq = `${Date.now()}_${Math.random().toString(36).slice(2)}`;
 
+        console.log('Creating users')
         testUserId = await createTestUser(`test${uniq}@example.com`);
         anotherUserId = await createTestUser(`another${uniq}@example.com`);
+        console.log('Created users')
         
         project.provide('testUserId', testUserId )
         project.provide('anotherUserId', anotherUserId)
@@ -68,6 +76,7 @@ export async function setup(project: TestProject) {
 }
 
 export async function teardown() {
+    console.log('tearing down')
     await run('docker compose -f docker-compose.test.yml down -v')
     const db = getDb();
     if (db) await db.dispose();
