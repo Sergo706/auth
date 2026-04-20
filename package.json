@@ -99,7 +99,7 @@
     },
     "devDependencies": {
         "@arethetypeswrong/core": "^0.18.2",
-        "@rollup/plugin-terser": "0.4.4",
+        "@rollup/plugin-terser": "1.0.0",
         "@types/cookie-parser": "1.4.9",
         "@types/ejs": "3.1.5",
         "@types/express": "5.0.3",
