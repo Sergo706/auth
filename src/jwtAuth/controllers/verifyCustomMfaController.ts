@@ -39,5 +39,5 @@ export async function verifyCustomMfa (req: Request, res: Response, next: NextFu
     return; 
   }
   
- return verifyMfaCode(req, res, next, req.body.code, log, true);
+ return await verifyMfaCode(req, res, next, req.body.code, log, true);
 }

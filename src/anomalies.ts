@@ -6,7 +6,7 @@ import { revokeRefreshToken } from "./refreshTokens.js";
 import { createHash } from "crypto";
 import { getLogger } from "./jwtAuth/utils/logger.js";
 import { getConfiguration } from "./jwtAuth/config/configuration.js";
-
+import { anomaliesCache } from "~~/utils/anomaliesCache.js";
 
 interface RefreshRow {
   user_id:             number;
@@ -94,9 +94,24 @@ Promise <{
 }>
 
 {
+const log = getLogger().child({service: 'auth', branch: 'anomalies', visitor_cookie: cookie, ip:ipAddress});
+
+const cache = anomaliesCache()
+
 const pool = getPool()
 const hashedClientToken = createHash('sha256').update(token).digest('hex');
-const log = getLogger().child({service: 'auth', branch: 'anomalies', visitor_cookie: cookie, ip:ipAddress});
+const cached = cache?.get(hashedClientToken);
+
+if (cached && !cached.resolved) {
+  log.info({cached}, 'User anomaly is already in progress or this session is invalid')
+  return {
+    valid: false,
+    reason: cached.anomalyType,
+    reqMFA: cached.resolvable,
+    visitorId: cached.visitorId,
+    userId: cached.userId
+  }
+}
 const [rows] = await pool.execute<RowDataPacket[]>(`
 
 SELECT 
@@ -142,6 +157,12 @@ SELECT
 
   if (!rows || rows.length === 0) {
    log.warn('No valid token was found')
+   cache?.set(hashedClientToken, {
+        anomalyType: 'No token found',
+        canaryCookie: cookie,
+        resolved: false,
+        resolvable: false,
+   })
     return {
       valid: false,
       reason: 'No token found',
@@ -155,15 +176,31 @@ const { refresh_tokens } = getConfiguration().jwt;
 if (!tokenResults.valid || rotated && tokenResults.usage_count > 0) { 
      await revokeRefreshToken(token)
      log.info('token is invalid or being used more then ones')
+
+     cache?.set(hashedClientToken, {
+        anomalyType: "token is invalid or being used more then ones",
+        canaryCookie: cookie,
+        resolved: false,
+        resolvable: false,
+     })
+
       return {
-      valid: false,
-      reason: 'token is invalid or being used more then ones',
-      reqMFA: false
+        valid: false,
+        reason: 'token is invalid or being used more then ones',
+        reqMFA: false
     };
 };
 
 if (tokenResults.canary_id !== cookie) { 
   log.info(`canary cookies doesn't match. DB cookie: ${tokenResults.canary_id}, incoming cookie ${cookie}`)
+  cache?.set(hashedClientToken, {
+        anomalyType: 'new device',
+        canaryCookie: cookie,
+        resolved: false,
+        resolvable: true,
+        userId: tokenResults.user_id,
+        visitorId: tokenResults.visitor_id
+  })
     return {
       valid: false,
       reason: 'new device',
@@ -176,6 +213,14 @@ if (tokenResults.canary_id !== cookie) {
     const day = 1000 * 60 * 60 * 24;
     if (Date.now() - tokenResults.last_seen.getTime() > day) { 
        log.info(`time last seen has been triggered. Time ${Date.now()} Last seen: ${tokenResults.last_seen.getTime()}`)
+      cache?.set(hashedClientToken, {
+          anomalyType: 'idle',
+          canaryCookie: cookie,
+          resolved: false,
+          resolvable: true,
+          userId: tokenResults.user_id,
+          visitorId: tokenResults.visitor_id
+      })
         return {
           valid: false,
           reason: 'idle',
@@ -207,7 +252,16 @@ if (tokenResults.canary_id !== cookie) {
   Date.now() - new Date(results.last_mfa_at).getTime() < refresh_tokens.byPassAnomaliesFor; 
 
   if(results.totalValid >= refresh_tokens.maxAllowedSessionsPerUser && !bypass) {
-   log.info(`more than ${refresh_tokens.maxAllowedSessionsPerUser} active sessions`)   
+   log.info(`more than ${refresh_tokens.maxAllowedSessionsPerUser} active sessions`)
+   cache?.set(hashedClientToken, {
+          anomalyType: `more than ${refresh_tokens.maxAllowedSessionsPerUser} active sessions`,
+          canaryCookie: cookie,
+          resolved: false,
+          resolvable: true,
+          userId: tokenResults.user_id,
+          visitorId: tokenResults.visitor_id
+    })
+
     return {
       valid: false,
       reason: `more than ${refresh_tokens.maxAllowedSessionsPerUser} active sessions`,
@@ -219,7 +273,13 @@ if (tokenResults.canary_id !== cookie) {
         
         if (results.recentValid > 3) {
          await revokeRefreshToken(token)
-          log.warn(`3 tokens in less than 10 min`)     
+          log.warn(`3 tokens in less than 10 min`)
+           cache?.set(hashedClientToken, {
+              anomalyType: `3 tokens in less than 10 min`,
+              canaryCookie: cookie,
+              resolved: false,
+              resolvable: false,
+          }) 
          return {
           valid: false,
           reason: '3 tokens in less than 10 min',
@@ -232,13 +292,21 @@ if (tokenResults.canary_id !== cookie) {
   const isInRange = ipRangeCheck(ipAddress, tokenResults.ip_address,);
     if (!isInRange) { 
       log.info(`Ip does not match`)   
-    return {
-      valid: false,
-      reason: 'Ip does not match',
-      reqMFA: true,
-      userId: tokenResults.user_id,
-      visitorId: tokenResults.visitor_id
-    }  
+      cache?.set(hashedClientToken, {
+          anomalyType: 'Ip does not match',
+          canaryCookie: cookie,
+          resolved: false,
+          resolvable: true,
+          userId: tokenResults.user_id,
+          visitorId: tokenResults.visitor_id
+      }) 
+      return {
+        valid: false,
+        reason: 'Ip does not match',
+        reqMFA: true,
+        userId: tokenResults.user_id,
+        visitorId: tokenResults.visitor_id
+      }  
     };
 
     const config = getConfiguration()
@@ -248,6 +316,14 @@ if (tokenResults.canary_id !== cookie) {
     
     if (tokenResults.suspicious_activity_score >= (maxScore * 0.25)) { 
         log.info(`Suspicion score to high`)  
+        cache?.set(hashedClientToken, {
+            anomalyType: 'Suspicion score to high',
+            canaryCookie: cookie,
+            resolved: false,
+            resolvable: true,
+            userId: tokenResults.user_id,
+            visitorId: tokenResults.visitor_id
+        }) 
         return {
           valid: false,
           reason: 'Suspicion score to high',
@@ -269,6 +345,16 @@ const userAgent = ua;
         if ((incomingGeo.proxy && !proxyAllowed) ||
       (incomingGeo.hosting && !hostingAllowed)) {
         log.info({userId: tokenResults.user_id},`Proxy Or hosting is not allowed for this user.`)  
+        
+        cache?.set(hashedClientToken, {
+            anomalyType: 'Proxy Or hosting',
+            canaryCookie: cookie,
+            resolved: false,
+            resolvable: true,
+            userId: tokenResults.user_id,
+            visitorId: tokenResults.visitor_id
+        }) 
+
         return {
           valid: false,
           reason: 'Proxy Or hosting',
@@ -279,10 +365,18 @@ const userAgent = ua;
     };
     
     log.info({userId: tokenResults.user_id},`Proxy Or hosting is allowed for this user.`)  
+    cache?.set(hashedClientToken, {
+            anomalyType: 'Proxy or hosting allowed',
+            canaryCookie: cookie,
+            resolved: true,
+            resolvable: false,
+            userId: tokenResults.user_id,
+            visitorId: tokenResults.visitor_id
+    }) 
     return {
-    valid: true,
-    reason: 'Proxy or hosting allowed',
-    reqMFA: false
+      valid: true,
+      reason: 'Proxy or hosting allowed',
+      reqMFA: false
     }
 }
     const { proxy, hosting, ...restOfGeo} = incomingGeo;
@@ -299,7 +393,16 @@ for (const [reqKey, reqValue] of Object.entries(incomingReq)) {
     reqValue !== 'unknown' &&
     userValue !== 'unknown';
     if (notNull && reqValue !== userValue) {
-      log.info({user_value: userValue, reqValue: reqValue}, `Loop detected an mismatch`)  
+      log.info({user_value: userValue, reqValue: reqValue}, `Loop detected an mismatch`)
+
+        cache?.set(hashedClientToken, {
+            anomalyType: 'Loop detected',
+            canaryCookie: cookie,
+            resolved: false,
+            resolvable: true,
+            userId: tokenResults.user_id,
+            visitorId: tokenResults.visitor_id
+        })   
         return {
           valid: false,
           reason: 'Loop detected',
@@ -311,6 +414,14 @@ for (const [reqKey, reqValue] of Object.entries(incomingReq)) {
   }
 }
 log.info(`Checks passed`)
+cache?.set(hashedClientToken, {
+      anomalyType: 'Checks passed',
+      canaryCookie: cookie,
+      resolved: true,
+      resolvable: false,
+      userId: tokenResults.user_id,
+      visitorId: tokenResults.visitor_id
+})   
 return {
   valid: true,
   reason: 'Checks passed',

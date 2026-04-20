@@ -73,7 +73,7 @@
         "prepublishOnly": "npm run build"
     },
     "dependencies": {
-        "@riavzon/bot-detector": "^1.0.26",
+        "@riavzon/bot-detector": "^1.0.28",
         "@riavzon/shield-base": "^2.0.5",
         "@riavzon/utils": "^1.1.0",
         "argon2": "0.44.0",
@@ -113,6 +113,7 @@
         "publint": "^0.3.18",
         "supertest": "^7.2.2",
         "tsdown": "^0.21.7",
+        "typescript": "^6.0.3",
         "vitest": "4.0.18"
     }
 }

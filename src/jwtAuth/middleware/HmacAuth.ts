@@ -39,7 +39,10 @@ export const hmacAuth: RequestHandler = (req, res, next) => {
     const isLocal = remote === '127.0.0.1' || remote === '::1' || remote === '::ffff:127.0.0.1';
     const isHealth = req.method === 'GET' && (req.path === '/health' || req.originalUrl === '/health');
 
-    if (isHealth && isLocal) return next();
+    if (isHealth && isLocal) {
+      next()
+      return; 
+    };
     
 
   if (!id || !ts || !sig || !reqid) {
@@ -76,5 +79,6 @@ export const hmacAuth: RequestHandler = (req, res, next) => {
   nonceCache.set(reqid, true, { ttl: MAX_CLOCK_SKEW_MS });
   log.info({Authorized: true, ClientID: id, Reason: 'Match'})
 
- return next();
+ next();
+ return
 }

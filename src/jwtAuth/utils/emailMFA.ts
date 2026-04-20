@@ -12,6 +12,8 @@ import { makeConsecutiveCache } from "./limiters/utils/consecutiveCache.js";
 import { generateMfaCode } from "./secureRandomCode.js";
 import { EmailMetaDataOTP } from "../types/Emails.js";
 import { toDigestHex } from "./hashChecker.js";
+import { safeAction } from "@riavzon/utils";
+import { fakeLogger } from "./fakeLogger.js";
 const consecutiveForGlobal = makeConsecutiveCache<{countData: number}>(100, 1000 * 60 * 60 * 24);
 const consecutiveForUserId = makeConsecutiveCache<{countData: number}>(2000, 1000 * 60 * 60 * 24);
 const consecutiveForIp = makeConsecutiveCache<{countData: number}>(2000, 1000 * 60 * 60 * 24);
@@ -91,7 +93,10 @@ export async function sendTempMfaLink(
   url.searchParams.set('reason', 'MAGIC_LINK_MFA_CHECKS');
 
 try {
-  const { ok, data, code, date } = await generateMfaCode(log, sessionToken, user.userId, jti)
+
+  const { ok, data, code, date } = await safeAction(`${sessionToken}:${user.userId}:${user.visitor}:generate-mfa-code:anomalies`, async () => {
+    return await generateMfaCode(log, sessionToken, user.userId, jti)
+  }, 5000, fakeLogger)
   
   if (data === 'Code exists') {
     log.info(`Valid MFA code found for user ${user.userId}`)
@@ -107,7 +112,7 @@ try {
   log.info(`Sending email...`)
   const [rows] = await pool.execute<RowDataPacket[]>(`SELECT name, email FROM users WHERE id = ?`, [user.userId]);
   const { name, email } = rows[0];
-  await mfaEmail(Number(code), email, url.toString(), meta);
+  await safeAction(`${sessionToken}:${user.userId}:${user.visitor}:send-email`, async () => await mfaEmail(Number(code), email, url.toString(), meta), 5000, fakeLogger)
   log.info(`email sended.`)
   return true;
 } catch (err) {

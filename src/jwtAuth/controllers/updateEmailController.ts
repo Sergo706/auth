@@ -41,7 +41,7 @@ export async function updateEmailController(req: Request, res: Response, next: N
 
 
 
-  if (req.link.purpose !== "change_email" || visitor_id === String(req.link.visitor)) {
+  if (req.link.purpose !== "change_email" || visitor_id !== req.link.visitor) {
     log.warn('Invalid link purpose/Email is null')
      res.status(400).json({ 
         ok: false, 
@@ -120,7 +120,7 @@ export async function updateEmailController(req: Request, res: Response, next: N
       return;
   }
 
- return verifyMfaCode(req, res, next, req.body.code, log, false, true, async (conn, userId) => {
+ return await verifyMfaCode(req, res, next, req.body.code, log, false, true, async (conn, userId) => {
     const [results] = await conn.execute<ResultSetHeader>(`
                 UPDATE users
                   SET email = ?

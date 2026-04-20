@@ -11,7 +11,9 @@ import { getLimiters } from "../utils/limiters/protectedEndpoints/tokensLimiters
 import { makeConsecutiveCache } from "../utils/limiters/utils/consecutiveCache.js";
 import { getConfiguration } from '../config/configuration.js';
 import { EmailMetaDataOTP } from '../types/Emails.js';
-
+import { anomaliesCache } from '~~/utils/anomaliesCache.js';
+import { safeAction } from '@riavzon/utils';
+import { fakeLogger } from '~~/utils/fakeLogger.js';
 
 const consecutiveForIp = makeConsecutiveCache< {countData:number} >(500, 1000 * 60 * 10);
 const consecutiveForCompositeKey = makeConsecutiveCache< {countData:number} >(500, 1000 * 60 * 10);
@@ -60,8 +62,14 @@ export const rotateCredentials = async (req: Request, res: Response) => {
     
   
     try {
-      const {valid, reason, reqMFA, userId, visitorId} = 
-      await strangeThings(rawRefreshToken, canary_id, req.ip!, req.get('User-Agent')!, true);
+      const hashedToken = createHash('sha256').update(rawRefreshToken).digest('hex');
+
+      const anomalies = await safeAction(`${hashedToken}:${canary_id}`, async () => {
+        const anon = await strangeThings(rawRefreshToken, canary_id, req.ip!, req.get('User-Agent')!, true);
+        return anon;
+      }, 5000, fakeLogger)
+
+      const {valid, reason, reqMFA, userId, visitorId} = anomalies;
       const { device: devicePrint, os, browser: browserPrint, city, country, browserType, browserVersion, district,region, regionName, timezone,lat,lon } = req.fingerPrint;
 
       const location = [country ?? 'Unknown Location', timezone, district, city, region, regionName, lat, lon].filter(Boolean).join('-');
@@ -73,6 +81,8 @@ export const rotateCredentials = async (req: Request, res: Response) => {
         browser,
         location
       }
+
+
          if (!valid && reqMFA) {
         log.info({token: '[REDACTED]',valid, reason, reqMFA, userId, visitorId},`mfa is triggered`)
         const mfa = await sendTempMfaLink(
@@ -89,8 +99,9 @@ export const rotateCredentials = async (req: Request, res: Response) => {
             
             if (!mfa) { 
               log.warn({token: '[REDACTED]',valid, reason, reqMFA, userId, visitorId},`mfa error 500`)
-            res.status(500).json({ error: 'Could not send MFA code, try again later' });
-            return;
+              anomaliesCache()?.delete(hashedToken)
+              res.status(500).json({ error: 'Could not send MFA code, try again later' });
+              return;
             }
             log.info({token: '[REDACTED]',valid, reason, reqMFA, userId, visitorId},`A login link has been sent to the user`)
             res.status(202).json({ mfa: true, message: 'A login link has been sent to your email.' });
@@ -104,94 +115,139 @@ export const rotateCredentials = async (req: Request, res: Response) => {
      }
 
 
-      const hashedToken = createHash('sha256').update(rawRefreshToken).digest('hex');
+     
       if (!(await guard(refreshTokenLimiter , hashedToken, consecutiveForRefreshToken, 1, 'Refresh Token', log, res))) return;
       
       const compositeKey = `${req.ip}_${hashedToken}`;
       if (!(await guard(refreshAccessTokenLimiter , compositeKey, consecutiveForCompositeKey, 1, 'compositeKey', log, res))) return;
-     
-    const result = await consumeAndVerifyRefreshToken(rawRefreshToken);
 
-         if (result.valid && Date.now() - result.sessionTTL!.getTime() >= jwt.refresh_tokens.MAX_SESSION_LIFE) {
-          const revoke = await revokeRefreshToken(rawRefreshToken);
-              if (!revoke.success) {
-                  log.error(`DB error revoking token`)
-                  res.status(500).json({ error: 'DB error revoking token' });
-                  return;
-              } 
-            res.clearCookie('session', {
-             httpOnly: true,
-             sameSite: "strict", 
-             secure: true,
-             domain: jwt.refresh_tokens.domain,
-             path: '/'
-            });
-            res.clearCookie('iat', {
-             httpOnly: true,
-             sameSite: "strict", 
-             secure: true,
-             domain: jwt.refresh_tokens.domain,
-             path: '/'
-            });
-            log.info({user: result.userId},`User's Session is expired`);
-            res.status(401).json({error: 'Session is expired'})
-            return;
-         }
+     const safeRotation = await safeAction(`rotate:${hashedToken}`, async () => {
+            const result = await consumeAndVerifyRefreshToken(rawRefreshToken);
 
-    if (!result.valid) {
-        log.warn(`Error verifying credentials ${result.reason}`)
-        res.status(401).json({ error: result.reason })
+            if (result.valid && Date.now() - result.sessionTTL!.getTime() >= jwt.refresh_tokens.MAX_SESSION_LIFE) { 
+                const revoke = await revokeRefreshToken(rawRefreshToken);
+
+                if (!revoke.success) {
+                    log.error(`DB error revoking token`)
+                    return {
+                      status: 500,
+                      error: 'Server error',
+                      action: "SERVER_ERROR"
+                    }
+                } else {
+                    log.info({user: result.userId},`User's Session is expired`);
+                    return {
+                      status: 401,
+                      error: 'Session is expired',
+                      action: 'CLEAR_COOKIES'
+                    }
+                }
+            } 
+
+            if (!result.valid) {
+                  log.warn(`Error verifying credentials ${result.reason}`)
+                  return {
+                    status: 401,
+                    error: "Invalid session",
+                    action: 'REJECT'
+                  }
+            };
+           log.info(`Verifying credentials succeeded, revoking...`)
+           const revoke = await revokeRefreshToken(rawRefreshToken);
+           if (!revoke.success) {
+              log.error(`DB error revoking token`)
+                return {
+                  status: 500,
+                  error: 'Server error',
+                  action: "SERVER_ERROR"
+                }
+           }
+
+          const newRefresh = await generateRefreshToken(
+              jwt.refresh_tokens.refresh_ttl,
+              result.userId!,
+              result.sessionTTL ? result.sessionTTL : undefined
+            );
+
+          const newAccess  = generateAccessToken({
+              id: result.userId!,
+              visitor_id: result.visitor_id!,
+              jti: randomUUID()
+            });
+          return {
+              status: 201,
+              action: 'ROTATE',
+              data: {
+                  accessToken: newAccess,
+                  newRefreshRaw: newRefresh.raw,
+                  expiresAt: newRefresh.expiresAt
+              }
+          };
+
+     }, 5000, log)
+
+    if (safeRotation.action === "SERVER_ERROR") {
+        res.status(500).json({ error: safeRotation.error });
         return;
-    };
-    log.info(`Verifying credentials succeeded, revoking...`)
-   const revoke = await revokeRefreshToken(rawRefreshToken);
-
-    if (!revoke.success) {
-      log.error(`DB error revoking token`)
-      res.status(500).json({ error: 'DB error revoking token' });
+    }
+    if (safeRotation.action === 'CLEAR_COOKIES') {
+      res.clearCookie('session', {
+             httpOnly: true,
+             sameSite: "strict", 
+             secure: true,
+             domain: jwt.refresh_tokens.domain,
+             path: '/'
+        });
+      res.clearCookie('iat', {
+             httpOnly: true,
+             sameSite: "strict", 
+             secure: true,
+             domain: jwt.refresh_tokens.domain,
+             path: '/'
+      });
+      res.status(safeRotation.status).json({error: safeRotation.error})
       return;
-      } 
-      log.info(`Revoked credentials succeeded, generating new ones...`)
+    }
 
-    const newRefresh = await generateRefreshToken(
-      jwt.refresh_tokens.refresh_ttl,
-      result.userId!,
-      result.sessionTTL ? result.sessionTTL : undefined
-    );
+    if(safeRotation.action === 'REJECT') {
+        res.status(safeRotation.status).json({ error: safeRotation.error })
+        return;
+    }
 
-    const newAccess  = generateAccessToken({
-      id: result.userId!,
-      visitor_id: result.visitor_id!,
-      jti: randomUUID()
-    });
+    if (safeRotation.action === "ROTATE") {
+        const { data } = safeRotation;
+         if (!data) throw new Error('UNEXPECTED_ERROR');
 
-  makeCookie(res, 'iat', Date.now().toString(), {
-    httpOnly: true,
-    secure:   true,
-    sameSite: 'strict',
-    path:     '/',
-    expires:  newRefresh.expiresAt
-    });
+          makeCookie(res, 'iat', Date.now().toString(), {
+            httpOnly: true,
+            secure:   true,
+            sameSite: 'strict',
+            path:     '/',
+            expires:  data.expiresAt
+          });
 
-  makeCookie(res, 'session', newRefresh.raw, {
-      httpOnly: true,
-      sameSite: 'strict',
-      secure:   true,
-      domain:   jwt.refresh_tokens.domain,
-      path:     '/',
-      expires:  newRefresh.expiresAt
-    });
-    await refreshTokenLimiter.block(hashedToken, 60 * 60 * 24 * 3);
-    await refreshAccessTokenLimiter.block(compositeKey, 60 * 60 * 24 * 3);
-     log.info(`Refresh & access tokens rotated successfully`);
-     res.status(201).json({
-      message:  'Refresh & access tokens rotated',
-      accessToken: newAccess,
-      accessIat: Date.now().toString()
-    }) 
+        makeCookie(res, 'session', data.newRefreshRaw, {
+            httpOnly: true,
+            sameSite: 'strict',
+            secure:   true,
+            domain:   jwt.refresh_tokens.domain,
+            path:     '/',
+            expires:  data.expiresAt
+        });
+          await refreshTokenLimiter.block(hashedToken, 60 * 60 * 24 * 3);
+          await refreshAccessTokenLimiter.block(compositeKey, 60 * 60 * 24 * 3);
+
+          log.info(`Refresh & access tokens rotated successfully`);
+          res.status(201).json({
+            message:  'Refresh & access tokens rotated',
+            accessToken: data.accessToken,
+            accessIat: Date.now().toString()
+          }) 
+          return;
+    }
+
     return;
     
-
   } catch (err) {
     log.error({err},`Failed rotating user's credentials`)
      res.status(500).json({ error: 'Server error rotating refresh token' })

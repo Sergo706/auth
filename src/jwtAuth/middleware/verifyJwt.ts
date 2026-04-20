@@ -7,6 +7,10 @@ import { getLimiters } from '../utils/limiters/protectedEndpoints/tokensLimiters
 import { makeConsecutiveCache } from "../utils/limiters/utils/consecutiveCache.js";
 import { guard } from "../utils/limiters/utils/guard.js";
 import { EmailMetaDataOTP } from "../types/Emails.js";
+import { anomaliesCache } from "~~/utils/anomaliesCache.js";
+import { createHash } from "crypto";
+import { safeAction } from "@riavzon/utils";
+import { fakeLogger } from "~~/utils/fakeLogger.js";
 
 const consecutiveForJti = makeConsecutiveCache< {countData:number} >(2000, 1000 * 60 * 60 * 24);
 
@@ -71,9 +75,13 @@ const { blackList } = getLimiters();
     return;
   }
      if (!(await guard(blackList, result.payload.jti!, consecutiveForJti, 2, 'access token blacklist', log, res))) return;
-  
-      const {valid, reason, reqMFA, userId, visitorId} = await
-    strangeThings(session, canary, req.ip!, req.get('User-Agent')!, false);
+
+      const hashedToken = createHash('sha256').update(session).digest('hex');
+      
+      const {valid, reason, reqMFA, userId, visitorId} = await safeAction(`${hashedToken}:${token}:${canary}`, async () => {
+        const anon = await strangeThings(session, canary, req.ip!, req.get('User-Agent')!, false);
+        return anon;
+      }, 5000, fakeLogger)
     
       const { device: devicePrint, os, browser: browserPrint, city, country, browserType, browserVersion, district,region, regionName, timezone,lat,lon } = req.fingerPrint;
 
@@ -86,7 +94,8 @@ const { blackList } = getLimiters();
         browser,
         location
       }
-
+      
+     
       if (!valid && reqMFA) {
         log.info({token: '[REDACTED]',valid, reason, reqMFA, userId, visitorId},`mfa is triggered`)
         const mfa = await sendTempMfaLink(
@@ -103,8 +112,9 @@ const { blackList } = getLimiters();
             
             if (!mfa) { 
               log.warn({token: '[REDACTED]',valid, reason, reqMFA, userId, visitorId},`mfa error 500`)
-            res.status(500).json({ error: 'Could not send MFA code, try again later' });
-            return;
+              anomaliesCache()?.delete(hashedToken)
+              res.status(500).json({ error: 'Could not send MFA code, try again later' });
+              return;
             }
             log.info({token: '[REDACTED]',valid, reason, reqMFA, userId, visitorId},`A login link has been sent to the user`)
             res.status(202).json({ mfa: true, message: 'A login link has been sent to your email.' });

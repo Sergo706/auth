@@ -14,6 +14,7 @@ import { getLimiters, resetLimitersUni } from "../utils/limiters/protectedEndpoi
 import { makeConsecutiveCache } from "../utils/limiters/utils/consecutiveCache.js"
 import { updateVisitors } from '@riavzon/bot-detector';
 import pino from 'pino';
+import { anomaliesCache } from './anomaliesCache.js';
 
 const consecutiveForSubmittedHash = makeConsecutiveCache< {countData:number} >(2000, 1000 * 60 * 10);
 const consecutiveForSlowDown = makeConsecutiveCache< {countData:number} >(2000, 1000 * 60 * 10);
@@ -147,7 +148,10 @@ export async function verifyMfaCode(
         }
 
         log.info(`Found valid code, updating users and visitors...`)
-        const currentVisitorId = req.newVisitorId || visitor;
+        const currentVisitorId = visitor;
+        if (req.newVisitorId && req.newVisitorId !== visitor) {
+          log.warn({ newVisitorId: req.newVisitorId, linkVisitor: visitor }, 'Ignoring runtime visitor; preferring link visitor');
+        }
       
         if (!currentVisitorId ) {
           log.fatal(`currentVisitorId  is empty, possible loop`)
@@ -168,6 +172,13 @@ export async function verifyMfaCode(
         `,
           [currentVisitorId, rows[0].user_id]    
         );
+
+        const [visitorRows] = await conn.execute<RowDataPacket[]>(
+          `SELECT canary_id FROM visitors WHERE visitor_id = ? LIMIT 1 FOR UPDATE`,
+          [currentVisitorId]
+        );
+
+        const dbCanary: string | undefined = (visitorRows && visitorRows[0] && (visitorRows[0]).canary_id) || undefined;
       
         await usedJtiLimiter.block(jti, 60 * 20);
         await conn.commit();
@@ -176,6 +187,23 @@ export async function verifyMfaCode(
         consecutiveForSubmittedHash.delete(submittedHash!);
         await resetLimitersUni(req.ip!);
         
+        if (dbCanary) {
+          try {
+            makeCookie(res, 'canary_id', dbCanary, {
+              httpOnly: true,
+              sameSite: "lax",
+              maxAge: 1000 * 60 * 60 * 24 * 90,
+              secure: true,
+              path: "/",
+            });
+
+            req.cookies.canary_id = dbCanary;
+            log.info({ canary: dbCanary }, 'Set canary cookie to DB value for visitor');
+          } catch (err) {
+            log.error({ err }, 'Failed to set canary cookie on response');
+          }
+        }
+
         const updateFingerPrint = await updateVisitors({
             userAgent: fingerprints.userAgent,
             ipAddress: fingerprints.ipAddress,
@@ -200,13 +228,14 @@ export async function verifyMfaCode(
             browserType: fingerprints.browserType ?? '',
             browserVersion: fingerprints.browserVersion ?? '',
             os: fingerprints.os ?? ''
-          }, req.cookies.canary_id, currentVisitorId);
+          }, dbCanary ?? '', currentVisitorId);
         
           if (!updateFingerPrint.success) {
-             log.error({error: updateFingerPrint.reason},`Failed to update fingerprints, false positives may occur.`);
+             log.error({error: updateFingerPrint.reason, dbCanary, currentVisitorId},`Failed to update fingerprints, This may trigger an mfa loop.`);
+             throw new Error("Error updating fingerprints")
           }
       
-       log.info(`updated users and visitors, generating tokens...`)
+       log.info({dbCanary, currentVisitorId, updateFingerPrint: updateFingerPrint.success}, `updated users and visitors, generating tokens...`)
         const token = rows[0].token;
         const userId = rows[0].user_id;
       
@@ -217,6 +246,8 @@ export async function verifyMfaCode(
            res.status(401).json({ error: result.reason });
           return;
         }
+        
+         anomaliesCache()?.delete(token)
 
          if (revokeAllTokensOnSuccess) {
            const {success} = await revokeAllRefreshTokens(userId) 
@@ -290,5 +321,5 @@ export async function verifyMfaCode(
         conn.release();
       }
     }
-    return verify(req, res, next)
+    return await verify(req, res, next)
 }

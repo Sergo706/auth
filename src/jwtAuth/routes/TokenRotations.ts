@@ -5,6 +5,7 @@ import { handleLogout } from "../controllers/logout.js";
 import { rotateCredentials } from "../controllers/rotateOnEveryUse.js";
 import { requireAccessToken } from "../middleware/requireAccessToken.js";
 import { getFingerPrint } from "../middleware/fingerPrint.js";
+import { checkForActiveMfa } from "~~/middleware/isMfaActive.js";
 const router = Router();
 
 router.post(
@@ -12,6 +13,7 @@ router.post(
   requireRefreshToken,
   cookieOnly,
   getFingerPrint,
+  checkForActiveMfa,
   rotateCredentials
 );
 

@@ -46,7 +46,7 @@ import { Request, Response } from "express";
       const [rowVisitor] = await pool.execute<RowDataPacket[]>('SELECT * FROM visitors WHERE visitor_id = ?', [visitor_id])
 
       if (!row.length || !rowVisitor.length) {
-         log.warn(`Unauthorized access attempt, user not found`)
+         log.warn({user: req.user}, `Unauthorized access attempt, user ${userId} or visitor ${visitor_id} not found `)
          res.status(404).json({
             authorized: false,
             reason: 'Not found',

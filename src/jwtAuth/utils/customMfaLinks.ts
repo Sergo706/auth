@@ -12,6 +12,8 @@ import { toDigestHex } from "./hashChecker.js";
 import { generateMfaCode } from "./secureRandomCode.js";
 import { mfaEmail } from "./systemEmailMap.js";
 import { EmailMetaDataOTP } from "../types/Emails.js";
+import { fakeLogger } from "./fakeLogger.js";
+import { safeAction } from "@riavzon/utils";
 
 const consecutiveForGlobal = makeConsecutiveCache<{countData: number}>(100, 1000 * 60 * 60 * 24);
 const consecutiveForUserId = makeConsecutiveCache<{countData: number}>(2000, 1000 * 60 * 60 * 24);
@@ -113,7 +115,9 @@ export async function generateCustomMfaFlow(
     url.searchParams.set('reason', reason);
     
     try {
-        const { ok, data, date, code } = await generateMfaCode(log, sessionToken, user.userId, jti);
+        const { ok, data, code, date } = await safeAction(`${sessionToken}:${user.userId}:${user.visitor}:generate-mfa-code:custom`, async () => {
+            return await generateMfaCode(log, sessionToken, user.userId, jti)
+          }, 5000, fakeLogger)
 
         if (data === 'Code exists') {
             return {

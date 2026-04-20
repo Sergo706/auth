@@ -1,3 +1,4 @@
+import { checkForActiveMfa } from "~~/middleware/isMfaActive.js";
 import { allowBffAccess } from "../controllers/allowBffAccess.js";
 import { getAccessTokenPayload } from "../controllers/getPayloadMeta.js";
 import { getFingerPrint } from "../middleware/fingerPrint.js";
@@ -26,6 +27,7 @@ router.get('/secret/data',
   requireAccessToken,
   requireRefreshToken,
   getFingerPrint,
+  checkForActiveMfa,
   protectRoute,
   allowBffAccess
 )
@@ -33,6 +35,7 @@ router.get('/secret/accesstoken/metadata',
   requireAccessToken,
   requireRefreshToken,
   getFingerPrint,
+  checkForActiveMfa,
   protectRoute,
   cookieOnly,
   getAccessTokenPayload

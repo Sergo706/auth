@@ -13,6 +13,8 @@ import { getProviders } from "../utils/newOauthProvider.js";
 import { trustVisitor } from "../models/trustVisitor.js";
 import { generateAccessToken } from "../../accessTokens.js";
 import crypto from "crypto";
+import { safeAction } from "@riavzon/utils";
+import { fakeLogger } from "~~/utils/fakeLogger.js";
 
 const consecutiveForIp = makeConsecutiveCache<{countData:number}>(2000, 1000 * 60 * 60 );
 const consecutiveForSub = makeConsecutiveCache<{countData:number}>(2000, 1000 * 60 * 5 );
@@ -99,12 +101,20 @@ export const OAuthHandler = async (req: Request, res: Response, next: NextFuncti
         };
 
         log.info(`Calling findUserByProvider with id=', ${userSub}`)
-        const found = await findUserByProvider(providedName, userSub);
+
+        const found = await safeAction(`${canaryCookie}:${compositeKey}`, async () => {
+            return await findUserByProvider(providedName, userSub);
+        }, 6000, fakeLogger)
+
         log.info({found: found.user},`findUserByProvider returned`)
 
       if(!found.user) { 
         log.info(`No existing user found, creating new one...`)
-        const makeNewUser = await createOauthUser(canaryCookie, userSchema, providedName);
+
+        const makeNewUser = await safeAction(`${canaryCookie}:${compositeKey}`, async () => {
+          return await createOauthUser(canaryCookie, userSchema, providedName);
+        }, 6000, fakeLogger)
+
       if (!makeNewUser.success) {
         log.warn(`Failed to create new OAuth user for ${providedName}.`);
         if (makeNewUser.duplicate) {
@@ -128,7 +138,11 @@ export const OAuthHandler = async (req: Request, res: Response, next: NextFuncti
             refreshToken = found.refreshToken!;
 
             if (trustUserDeviceOnAuth && req.newVisitorId) {
-              const trustUser = await trustVisitor(found.id!, req.newVisitorId, req.cookies.canary_id, req.fingerPrint, log);
+
+              const trustUser = await safeAction(`${canaryCookie}:${compositeKey}:trust`, async () => {
+                  return await trustVisitor(found.id!, req.newVisitorId!, req.cookies.canary_id, req.fingerPrint, log);
+              }, 6000, fakeLogger)
+
                  if (trustUser.ok) {
                     accessToken = generateAccessToken({ id: found.id!, visitor_id: req.newVisitorId, jti: crypto.randomUUID() });
                  } else {

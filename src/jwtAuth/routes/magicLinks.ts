@@ -14,6 +14,7 @@ import { initCustomMfaFlow } from "../controllers/initCustomMfaFlow.js";
 import { requireAccessToken } from "../middleware/requireAccessToken.js";
 import { protectRoute } from "../middleware/verifyJwt.js";
 import { updateEmailController } from "../controllers/updateEmailController.js";
+import { checkForActiveMfa } from "~~/middleware/isMfaActive.js";
 
 const router = Router();
 
@@ -33,7 +34,7 @@ router
           }
         }
       }), 
-      detectBots,
+      detectBots(),
     getFingerPrint,
     verifyMFA
   );
@@ -43,6 +44,7 @@ router
     requireAccessToken,
     requireRefreshToken,
     getFingerPrint,
+    checkForActiveMfa,
     protectRoute,
     express.json({ 
         limit: '1kb',
@@ -63,6 +65,7 @@ router
     requireAccessToken,
     requireRefreshToken,
     getFingerPrint,
+    checkForActiveMfa,
     protectRoute,
     customMfaFlowsVerification
   )
@@ -71,6 +74,7 @@ router
       requireAccessToken,
       requireRefreshToken,
       getFingerPrint,
+      checkForActiveMfa,
       protectRoute,
         express.json({ 
           limit: '1kb',
@@ -83,7 +87,7 @@ router
           }
         }), 
       customMfaFlowsVerification,
-      detectBots,
+      detectBots(),
       verifyCustomMfa
     );
 
@@ -92,6 +96,7 @@ router
         requireAccessToken,
         requireRefreshToken,
         getFingerPrint,
+        checkForActiveMfa,
         protectRoute,
         express.json({ 
           limit: '1kb',
@@ -104,7 +109,7 @@ router
           }
       }),
       customMfaFlowsVerification,
-      detectBots,
+      detectBots(),
       updateEmailController
     )
   
@@ -139,7 +144,7 @@ router
           }
         }
       }),   
-      detectBots,
+      detectBots(),
       getFingerPrint,
     verifyNewPassword
   );

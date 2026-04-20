@@ -28,7 +28,7 @@ const emailData: EmailData = {
 export async function resetPasswordEmail(userName: string, email: string, url: string) {
  const {magic_links} = getConfiguration()
  const { notificationBanner } = magic_links.emailImages
- const { websiteName, privacyPolicyLink, changePasswordPageLink, contactPageLink } = magic_links.notificationEmail;
+ const { websiteName, privacyPolicyLink, contactPageLink } = magic_links.notificationEmail;
 
 const emailData: EmailData = {
     title: "Password Reset Request",
@@ -36,7 +36,7 @@ const emailData: EmailData = {
     subject: "Reset your password",
     username: userName,
     message: `We received a request to reset your password. If you didn't make this request, you can safely ignore this email.`,
-    cta_link: changePasswordPageLink,
+    cta_link: url,
     cta: "Change Password",
     websiteName: websiteName,
     privacy_link: privacyPolicyLink,

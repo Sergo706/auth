@@ -155,8 +155,8 @@ if (visitor !== results.payload.visitor) {
      res.status(400).json({error: 'This link can only be used once'})
      return;
    };
-
-  return next();
+   next();
+  return
 } 
 
 
@@ -289,6 +289,7 @@ if (visitor !== results.payload.visitor) {
         link: 'Password Reset',
         reason: raw.purpose 
       }});
+      log.info(`Response sended to client. ${raw.purpose}`)
     return;  
   }
 
@@ -301,8 +302,8 @@ if (visitor !== results.payload.visitor) {
      res.status(400).json({error: 'This link can only be used once'})
      return;
    };
-
-  return next();
+  next();
+  return 
 } 
 /**
  * Middleware for verifying custom Multi-Factor Authentication (MFA) magic links.
@@ -470,6 +471,7 @@ export const customMfaFlowsVerification = async (req: Request, res: Response, ne
      })
      return;
    };
-
-  return next();
+   
+  next();
+  return
 }

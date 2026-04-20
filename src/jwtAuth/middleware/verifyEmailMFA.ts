@@ -43,5 +43,5 @@ export async function verifyMFA (req: Request, res: Response, next: NextFunction
     return;
   }
 
- return verifyMfaCode(req, res, next, req.body.code, log);
+ return await verifyMfaCode(req, res, next, req.body.code, log);
 }
