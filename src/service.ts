@@ -127,6 +127,7 @@ export async function startServer() {
                 1000 * 60 * 60 * 24,
                 1000 * 60 * 60 * 24 * 3,
                 1000 * 60 * 60 * 24 * 7,
+                config.store.main
             )
         })
 
