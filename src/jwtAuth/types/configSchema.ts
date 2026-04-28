@@ -205,8 +205,90 @@ export const configurationSchema = z.strictObject({
         resend_key: z.string(),
         email: z.string()
     }),
-    
+
+    apiTokens: z.object({
+      limitTokensPerUser: z.number().default(20),
+    }).prefault({}),
+
     rate_limiters: z.object({
+        apiTokensLimiters: z.object({
+          operationRateLimits: z.object({
+
+            newTokenCreationLimiter: z.object({
+                inMemoryBlockOnConsumed: z.number(),
+                points: z.number(),
+                duration: z.number(),
+                blockDuration: z.number(),
+                inMemoryBlockDuration: z.number()  
+            }),
+
+            revokeTokensLimiter: z.object({
+                inMemoryBlockOnConsumed: z.number(),
+                points: z.number(),
+                duration: z.number(),
+                blockDuration: z.number(),
+                inMemoryBlockDuration: z.number()  
+            }),
+
+            getMetadataTokenLimiter: z.object({
+                inMemoryBlockOnConsumed: z.number(),
+                points: z.number(),
+                duration: z.number(),
+                blockDuration: z.number(),
+                inMemoryBlockDuration: z.number()  
+            }),
+            rotationRateLimiter: z.object({
+                inMemoryBlockOnConsumed: z.number(),
+                points: z.number(),
+                duration: z.number(),
+                blockDuration: z.number(),
+                inMemoryBlockDuration: z.number()  
+            }),
+
+            ipRestrictionUpdate: z.object({
+                inMemoryBlockOnConsumed: z.number(),
+                points: z.number(),
+                duration: z.number(),
+                blockDuration: z.number(),
+                inMemoryBlockDuration: z.number()  
+            }),
+
+            privilegeUpdate: z.object({
+                inMemoryBlockOnConsumed: z.number(),
+                points: z.number(),
+                duration: z.number(),
+                blockDuration: z.number(),
+                inMemoryBlockDuration: z.number()  
+            }),
+
+          }),
+
+          consumptionRateLimiter: z.object({
+                points: z.number(),
+                duration: z.number(),
+                blockDuration: z.number(),
+                inMemoryBlockDuration: z.number()  
+            }),
+
+            generalUnionLimiter: z.object({
+               burstLimiter: z.object({
+                        inMemoryBlockOnConsumed: z.number(),
+                        points: z.number(),
+                        duration: z.number(),
+                        blockDuration: z.number(),
+                        inMemoryBlockDuration: z.number()  
+                }),
+                slowLimiter: z.object({
+                        inMemoryBlockOnConsumed: z.number(),
+                        points: z.number(),
+                        duration: z.number(),
+                        blockDuration: z.number(),
+                        inMemoryBlockDuration: z.number()
+                })
+            })
+
+        }).optional(),
+        
         linkVerificationLimiter: z.object({
             unionLimiter: z.object({
                 burstLimiter: z.object({

@@ -2,7 +2,7 @@ import express from 'express'
 import cookieParser from "cookie-parser";
 import { hmacAuth } from './jwtAuth/middleware/HmacAuth.js';
 import { httpLogger } from './jwtAuth/middleware/httpLogger.js';
-import { ApiResponse, warmUp, defineConfiguration, createTables, getDb } from '@riavzon/bot-detector';
+import { ApiResponse as botDetectorApi, warmUp, defineConfiguration, createTables, getDb } from '@riavzon/bot-detector';
 import { configBotDetector } from './jwtAuth/config/botDetectorConfig.js'
 import { makeTables } from './jwtAuth/models/schema.js'
 import type { Configuration, ConfigurationInput } from './jwtAuth/types/configSchema.js';
@@ -20,6 +20,7 @@ import { finalUnHandledErrors } from './jwtAuth/middleware/finalErrorHandler.js'
 import { sendOperationalConfig } from './jwtAuth/controllers/sendOprConfig.js';
 import fs, { access, constants } from 'node:fs/promises';
 import { refreshData } from '~~/utils/refreshData.js';
+import { apiVerificationRoute, apiProtectedRoutes } from '~~/routes/api.js';
 
 export async function bootstrapApp(config: ConfigurationInput) { 
 
@@ -72,13 +73,15 @@ export async function bootstrapApp(config: ConfigurationInput) {
     if (config.service?.Hmac) {
         app.use(hmacAuth);
     };
+    app.use(apiVerificationRoute())
     app.use(express.json());
     app.use(cookieParser());
-    app.use(ApiResponse);  
+    app.use(botDetectorApi); 
     app.use(authenticationRoutes)
     app.use(tokenRotationRoutes)
     app.use(magicLinks)
     app.use(allowBff)
+    app.use(apiProtectedRoutes()) 
     app.use('/operational/config', sendOperationalConfig)
     await warmUp();
     app.use(notFoundHandler);

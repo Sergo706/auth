@@ -147,3 +147,8 @@ export { isPwned } from './jwtAuth/utils/isPasswordPwned.js'
 export { compareRoles } from '~~/utils/compareRoles.js';
 export * from './jwtAuth/utils/anomaliesCache.js';
 export * from './jwtAuth/middleware/isMfaActive.js';
+export * from './apiTokens.js'
+export * from './jwtAuth/routes/api.js'
+export * from './jwtAuth/controllers/apiTokens.js'
+export * from './jwtAuth/controllers/verifyApiToken.js'
+export type * from './jwtAuth/types/Api.js'

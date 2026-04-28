@@ -33,6 +33,34 @@ async function tablesForAuth (connection: Pool): Promise<void> {
         );
         `;
 
+    const apiTables = `
+        CREATE TABLE IF NOT EXISTS api_tokens (
+            id int AUTO_INCREMENT PRIMARY KEY,
+            user_id INT NOT NULL,
+            api_token VARCHAR(300) NOT NULL UNIQUE,
+            public_identifier VARCHAR(300) NOT NULL UNIQUE,
+            prefix VARCHAR(50) NOT NULL,
+            name VARCHAR(150) NOT NULL,
+            created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+            expires_at TIMESTAMP(3) DEFAULT NULL,
+            restricted_to_ip_address VARCHAR(200) DEFAULT NULL,
+            last_used TIMESTAMP(3) DEFAULT NULL,
+            privilege_type ENUM('demo', 'restricted', 'protected', 'full', 'custom') NOT NULL DEFAULT 'restricted',
+            usage_count INT DEFAULT 0,
+            valid BOOLEAN DEFAULT 0,
+
+        CONSTRAINT users_api_keys
+            FOREIGN KEY(user_id) 
+            REFERENCES users(id)
+            ON DELETE  CASCADE
+        );`;
+
+    const createApiTokensIndexes = [
+      'CREATE INDEX idx_user_api_key_public_identifier ON api_tokens (user_id, public_identifier);',
+      'CREATE INDEX idx_user_api_key ON api_tokens (user_id, id);',
+      'CREATE INDEX idx_user_valid_tokens ON api_tokens (id, valid);'
+    ];
+
     const createAuthTable = `
         CREATE TABLE IF NOT EXISTS refresh_tokens (
           id              int AUTO_INCREMENT PRIMARY KEY,
@@ -79,6 +107,8 @@ async function tablesForAuth (connection: Pool): Promise<void> {
         await connection.execute(createUsersTable);
         await connection.execute(createAuthTable);
         await connection.execute(createMFATable);
+        await connection.execute(apiTables);
+        for (const q of createApiTokensIndexes) await connection.execute(q);
         console.log('Tables created successfully.');
     } catch (error) {
         console.error('Error creating tables:', error);
