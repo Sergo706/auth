@@ -108,7 +108,16 @@ async function tablesForAuth (connection: Pool): Promise<void> {
         await connection.execute(createAuthTable);
         await connection.execute(createMFATable);
         await connection.execute(apiTables);
-        for (const q of createApiTokensIndexes) await connection.execute(q);
+        for (const q of createApiTokensIndexes) {
+            try {
+                await connection.execute(q);
+            } catch(err: any) {
+            if (err && (err.code === 'ER_DUP_KEYNAME' || err.errno === 1061)) {
+                  continue;
+             }
+             throw err;
+            }
+        }
         console.log('Tables created successfully.');
     } catch (error) {
         console.error('Error creating tables:', error);
