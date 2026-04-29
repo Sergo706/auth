@@ -4,7 +4,7 @@ import { getConfiguration, getPool } from "./jwtAuth/config/configuration.js";
 import { ResultSetHeader, RowDataPacket } from 'mysql2';
 import { ensureSha256Hex, toDigestHex } from "./jwtAuth/utils/hashChecker.js";
 import { Results } from "@riavzon/utils";
-import type { ActionArgs, ActionManagerResult, AllValidTokensList, CreationSuccess, RotationSuccess, Row, SingleTokenMeta, VerifySuccessResponse } from "~~/types/Api.js";
+import type { ActionArgs, ActionManagerResult, AllValidTokensList, CreationSuccess, ApiTokenRotationSuccess, Row, SingleTokenMeta, VerifySuccessResponse } from "~~/types/Api.js";
 import pino from "pino";
 
 
@@ -129,6 +129,13 @@ export async function createApiKey(
     const randomPart = crypto.randomBytes(64).toString('hex');
     const expiresAt = expires ? new Date(Date.now() + expires) : null;
     const checksum = generateChecksum(randomPart);
+
+    const badPrefix = prefix.includes('_')
+    if (badPrefix) {
+        log.info({badPrefix}, 'client provided a bad prefix. "_" is reserved. ')
+        throw new Error('"_" is a reserved character, please exclude it from your prefixes' )
+    }
+
     const rawApiKey = `${prefix}_${randomPart}_${checksum}`;
 
     // public_identifier, should not be hashed.
@@ -467,7 +474,7 @@ export async function rotateApiKey(
     ipAddress?: string[],
     expires?: number,
     prefix = 'api'
-): Promise<Results<RotationSuccess>> {
+): Promise<Results<ApiTokenRotationSuccess>> {
     const log = getLogger().child({service: 'auth', branch: 'api_tokens', type: 'rotate', date: new Date().toISOString()});
     const pool = getPool();
    

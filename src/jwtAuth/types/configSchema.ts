@@ -208,6 +208,12 @@ export const configurationSchema = z.strictObject({
 
     apiTokens: z.object({
       limitTokensPerUser: z.number().default(20),
+      /**
+       * Set to `true` to use the `generalUnionLimiter` limiter configuration to rate limit successful requests.
+       * @default
+       * `false`
+       */
+      rateLimitOnSuccessfulRequest: z.boolean().default(false)
     }).prefault({}),
 
     rate_limiters: z.object({

@@ -9,12 +9,13 @@ import { validateSchema } from "~~/utils/validateZodSchema.js";
 import { resetApiUnionLimiters } from "~~/utils/limiters/protectedEndpoints/api.js";
 import { resetLimiters } from "~/src/main.js";
 import { fakeLogger } from "~~/utils/fakeLogger.js";
+import { getConfiguration } from "~~/config/configuration.js";
 
 export type Privileges = z.infer<typeof privilegeQ>;
 
 export async function verifyApiTokenController(req: Request, res: Response) {
      const log = getLogger().child({service: 'auth', branch: "api_tokens", type: 'routes_verify'});
-     const apiKey = req.headers['X-API-KEY'];
+     const apiKey = req.get('x-api-key') ?? req.headers['X-API-KEY'];
      const providedIpAddress = req.ip;
      const requiredPrivilege = req.query.privilege as Privileges;
      
@@ -24,8 +25,12 @@ export async function verifyApiTokenController(req: Request, res: Response) {
         
         cache 
       } = getApiLimiters();
+      
+     const { rateLimitOnSuccessfulRequest } = getConfiguration().apiTokens;
 
-    if (!(await guard(generalUnionLimiter, `${req.ip!}_verify`, cache.generalUnionLimiter, 1, 'ip', log, res))) return;
+    if (rateLimitOnSuccessfulRequest) {
+        if (!(await guard(generalUnionLimiter, `${req.ip!}_verify`, cache.generalUnionLimiter, 1, 'ip', log, res))) return;
+    }      
       
      if (!apiKey || typeof apiKey !== 'string') {
         if (!(await guard(consumptionRateLimiter, `${req.ip!}_verify`, cache.consumptionRateLimiter, 1, 'ip', log, res))) return;

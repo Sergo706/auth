@@ -54,7 +54,7 @@ export interface Row {
     valid: boolean;
 }
 
-export interface RotationSuccess {
+export interface ApiTokenRotationSuccess {
      msg: string;
      newRawToken: string | undefined,
      newExpiry: Date | null

@@ -70,12 +70,12 @@ export async function guard(
 
   
   let finalKey = key;
-  if (limiter instanceof RateLimiterMySQL || key.length > 255) {
+  if (limiter instanceof RateLimiterMySQL || key.length > 80) {
      finalKey = crypto.createHash('sha256').update(key).digest('hex');
   }
   
     if (isBlockedCache.get(finalKey)?.Blocked) {
-    log.warn({ key, label, limiters: limiter.keyPrefix, expires: isBlockedCache.get(finalKey)?.expire}, 'Request blocked by cache');
+    log.warn({ key: key.slice(0, 5), label, limiters: limiter.keyPrefix, expires: isBlockedCache.get(finalKey)?.expire}, 'Request blocked by cache');
     res.set('Retry-After', String(isBlockedCache.get(finalKey)?.expire)).status(429).json(
       { error: 'Too many requests',
         retry: isBlockedCache.get(finalKey)?.expire
@@ -89,18 +89,18 @@ export async function guard(
     const entry = (cache.get(finalKey)?.countData ?? 0) + 1;
     cache.set(finalKey, { countData: entry });
 
-    log.warn({ key, label, entry }, 'Strike recorded');
+    log.warn({ key: key.slice(0, 5), label, entry }, 'Strike recorded');
 
     if (entry >= maxBans) { 
         await limiter.block(finalKey, seconds ?? 0);
         isBlockedCache.set(finalKey, {Blocked: true, expire: `${seconds ?? 'permanent'}` })
-        log.warn({ key, label, limiters: limiter.keyPrefix}, `Key added to ${seconds ?? 'permanent'} duration blacklist`);
+        log.warn({ key: key.slice(0, 5), label, limiters: limiter.keyPrefix}, `Key added to ${seconds ?? 'permanent'} duration blacklist`);
     }
     return false; 
   }
 
   isBlockedCache.delete(key);
-  log.info({ key, label, remaining: rlRes.remainingPoints, consumed: rlRes.consumedPoints, nextActionAllowedIn: rlRes.msBeforeNext }, 'Limiter passed');
+  log.info({ key: key.slice(0, 5), label, remaining: rlRes.remainingPoints, consumed: rlRes.consumedPoints, nextActionAllowedIn: rlRes.msBeforeNext }, 'Limiter passed');
   return true;  
 }
 
