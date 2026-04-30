@@ -99,7 +99,7 @@ export async function totalUserTokensCount(userId: number) {
  * @param userId - The owner of the new key.
  * @param privilegeType - The access level assigned to the token.
  * @param name - A friendly name for identifying the token in the dashboard.
- * @param prefix - The string prefix for the raw API key (defaults to 'api').
+ * @param prefix - The string prefix for the raw API key (defaults to 'api'). "_" should be excluded.
  * @param expires - Optional TTL in milliseconds.
  * @param ipAddresses - Optional array of authorized IPv4/IPv6 addresses.
  * @returns A result object containing the data `rawApiKey`, `rawPublicId`, and `expiresAt`.
@@ -133,7 +133,11 @@ export async function createApiKey(
     const badPrefix = prefix.includes('_')
     if (badPrefix) {
         log.info({badPrefix}, 'client provided a bad prefix. "_" is reserved. ')
-        throw new Error('"_" is a reserved character, please exclude it from your prefixes' )
+        return {
+            ok: false,
+            date: new Date().toISOString(),
+            reason: '"_" is a reserved character, please exclude it from your prefixes'
+        }
     }
 
     const rawApiKey = `${prefix}_${randomPart}_${checksum}`;

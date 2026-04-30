@@ -148,7 +148,7 @@ function buildLimiters(): LimiterBundle<{countData:number}> {
     storeClient: pool,
     storeType: 'mysql2',
     keyPrefix: 'consumption_rate',
-    inMemoryBlockOnConsumed: consumptionConfig?.inMemoryBlockDuration ?? 10,
+    inMemoryBlockOnConsumed: consumptionConfig?.inMemoryBlockOnConsumed ?? 10,
     points: consumptionConfig?.points ?? 10,
     tableName: 'api_tokens_rate_limiters',
     duration: consumptionConfig?.duration ?? 60,

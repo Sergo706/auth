@@ -270,6 +270,7 @@ export const configurationSchema = z.strictObject({
           }),
 
           consumptionRateLimiter: z.object({
+                inMemoryBlockOnConsumed: z.number(),
                 points: z.number(),
                 duration: z.number(),
                 blockDuration: z.number(),
