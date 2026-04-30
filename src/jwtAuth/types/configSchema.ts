@@ -425,7 +425,7 @@ export const configurationSchema = z.strictObject({
            blockDuration: z.number(),
            inMemoryBlockDuration: z.number() 
         })
-    }),
+    }).optional(),
 
     tempPostRoutesLimiters: z.object({
         unionLimiters: z.object({
