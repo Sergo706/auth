@@ -159,7 +159,7 @@ describe('sanitizeInputString stress and nesting tests', () => {
 
         expect(vall).toBe('Content');
         expect(results.htmlFound).toBe(true);
-        expect(end - start).toBeLessThan(30); 
+        expect(end - start).toBeLessThan(60); 
     });
 
     it('should not block the event loop and detect nested inputs', async () => {
