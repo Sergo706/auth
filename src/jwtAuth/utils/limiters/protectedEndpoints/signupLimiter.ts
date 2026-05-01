@@ -17,8 +17,8 @@ let limiter: LimiterBundle | null;
 function buildLimiter(): LimiterBundle { 
   const { store, rate_limiters } = getConfiguration();
   const pool = poolForLibrary() as unknown as any;
-  const limiterConfig = rate_limiters?.signupLimiters.unionLimiters.uniLimiterIp;
-  const limiterConfigComposite = rate_limiters?.signupLimiters.unionLimiters.uniLimiterComposite;
+  const limiterConfig = rate_limiters!.signupLimiters!.unionLimiters.uniLimiterIp;
+  const limiterConfigComposite = rate_limiters!.signupLimiters!.unionLimiters.uniLimiterComposite;
 
   const ipLimit = makeRateLimiter(true, false, {
     dbName: store.rate_limiters_pool.dbName,
@@ -77,13 +77,13 @@ function buildLimiter(): LimiterBundle {
     dbName: store.rate_limiters_pool.dbName,
     storeClient: pool,
     storeType  : 'mysql2',
-    inMemoryBlockOnConsumed: rate_limiters?.signupLimiters.emailLimit.inMemoryBlockOnConsumed ?? 3,
+    inMemoryBlockOnConsumed: rate_limiters!.signupLimiters!.emailLimit.inMemoryBlockOnConsumed ?? 3,
     keyPrefix: 'email',
-    points: rate_limiters?.signupLimiters.emailLimit.points ?? 3,
+    points: rate_limiters!.signupLimiters!.emailLimit.points ?? 3,
     tableName: 'signups',
-    duration: rate_limiters?.signupLimiters.emailLimit.duration ?? 60 * 60 * 24, 
-    blockDuration: rate_limiters?.signupLimiters.emailLimit.blockDuration ?? 60 * 60 * 24,  
-    inMemoryBlockDuration: rate_limiters?.signupLimiters.emailLimit.inMemoryBlockDuration ?? 60 * 60 * 24 
+    duration: rate_limiters!.signupLimiters!.emailLimit.duration ?? 60 * 60 * 24, 
+    blockDuration: rate_limiters!.signupLimiters!.emailLimit.blockDuration ?? 60 * 60 * 24,  
+    inMemoryBlockDuration: rate_limiters!.signupLimiters!.emailLimit.inMemoryBlockDuration ?? 60 * 60 * 24 
   });
 
    return {
