@@ -6,7 +6,6 @@ import { getApiLimiters } from "~~/utils/limiters/protectedEndpoints/api.js";
 import { privilegeQ } from "~~/models/apiTokensSchemas.js";
 import z from "zod";
 import { validateSchema } from "~~/utils/validateZodSchema.js";
-import { resetApiUnionLimiters } from "~~/utils/limiters/protectedEndpoints/api.js";
 import { resetLimiters } from "~/src/main.js";
 import { fakeLogger } from "~~/utils/fakeLogger.js";
 import { getConfiguration } from "~~/config/configuration.js";
@@ -59,7 +58,7 @@ export async function verifyApiTokenController(req: Request, res: Response) {
 
      if ("valid" in privilegesResults) { 
          if (!privilegesResults.valid && privilegesResults.errors !== 'XSS attempt') {
-             if (!(await guard(consumptionRateLimiter, apiKey, cache.consumptionRateLimiter, 2, 'ip', log, res))) return;
+             if (!(await guard(consumptionRateLimiter, apiKey, cache.consumptionRateLimiter, 1, 'ip', log, res))) return;
             res.status(400).json({
                 ok: false,
                 date: new Date().toISOString(),
@@ -76,7 +75,7 @@ export async function verifyApiTokenController(req: Request, res: Response) {
 
      if (!verifyRes.ok) {
           if (!(await guard(consumptionRateLimiter, apiKey, cache.consumptionRateLimiter, 1, 'ip', log, res))) return;
-          if (!(await guard(consumptionRateLimiter, providedIpAddress, cache.consumptionRateLimiter, 2, 'ip', log, res))) return;
+          if (!(await guard(consumptionRateLimiter, providedIpAddress, cache.consumptionRateLimiter, 1, 'ip', log, res))) return;
           res.status(401).json({
             ok: verifyRes.ok,
             date: verifyRes.date,
@@ -85,7 +84,6 @@ export async function verifyApiTokenController(req: Request, res: Response) {
         return;
      }
 
-     await resetApiUnionLimiters(`${req.ip!}_verify`);
      resetLimiters(fakeLogger, `${req.ip!}_verify`, [consumptionRateLimiter]);
      resetLimiters(fakeLogger, apiKey, [consumptionRateLimiter]);
      resetLimiters(fakeLogger, providedIpAddress, [consumptionRateLimiter]);
