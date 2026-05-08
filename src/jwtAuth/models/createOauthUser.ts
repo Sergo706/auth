@@ -59,8 +59,8 @@ Promise <
     const log = getLogger().child({service: 'auth', branch: 'oauth'});
 
     if (!cookie) {
-        log.error(`createOauthUser, cookie is undefined:', ${cookie}`)
-        throw new Error(`cookie is undefined `)
+        log.warn({ cookie }, "createOauthUser called without canary_id cookie")
+        return { success: false, noCanaryCookie: true }
     }
 const { jwt } = getConfiguration();  
 const pool = getPool()
@@ -70,7 +70,7 @@ const pool = getPool()
     const results = visitorsData[0];   
 
     if (!results || !results.canary_id) {
-        log.error({visitors: results, canary: results.canary_id}, `No Visitors data is present, cannot make new user!`)
+        log.error({ visitors: results ?? null, canary: results?.canary_id ?? null }, `No Visitors data is present, cannot make new user!`)
         return {
             success: false,
             noCanaryCookie: true

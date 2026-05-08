@@ -78,7 +78,7 @@ const { blackList } = getLimiters();
 
       const hashedToken = createHash('sha256').update(session).digest('hex');
       
-      const {valid, reason, reqMFA, userId, visitorId} = await safeAction(`${hashedToken}:${token}:${canary}`, async () => {
+      const {valid, reason, reqMFA, userId, visitorId} = await safeAction(`${hashedToken}:${token}:${canary}:protectRoute`, async () => {
         const anon = await strangeThings(session, canary, req.ip!, req.get('User-Agent')!, false);
         return anon;
       }, 5000, fakeLogger)

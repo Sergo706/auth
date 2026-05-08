@@ -102,7 +102,7 @@ export const OAuthHandler = async (req: Request, res: Response, next: NextFuncti
 
         log.info(`Calling findUserByProvider with id=', ${userSub}`)
 
-        const found = await safeAction(`${canaryCookie}:${compositeKey}`, async () => {
+        const found = await safeAction(`${canaryCookie}:${compositeKey}:find`, async () => {
             return await findUserByProvider(providedName, userSub);
         }, 6000, fakeLogger)
 
@@ -111,12 +111,12 @@ export const OAuthHandler = async (req: Request, res: Response, next: NextFuncti
       if(!found.user) { 
         log.info(`No existing user found, creating new one...`)
 
-        const makeNewUser = await safeAction(`${canaryCookie}:${compositeKey}`, async () => {
+        const makeNewUser = await safeAction(`${canaryCookie}:${compositeKey}:create`, async () => {
           return await createOauthUser(canaryCookie, userSchema, providedName);
         }, 6000, fakeLogger)
 
       if (!makeNewUser.success) {
-        log.warn(`Failed to create new OAuth user for ${providedName}.`);
+        log.warn({ provider: providedName, result: makeNewUser }, `Failed to create new OAuth user for ${providedName}.`);
         if (makeNewUser.duplicate) {
             log.warn(`Founded duplicated user`)
             res.status(409).json({ ok: false, receivedAt: new Date().toISOString(), error: 'E-mail already registered' , banned: false});
