@@ -115,8 +115,6 @@ export async function apiTokensController(req: Request, res: Response) {
          
             // public
            case 'list-metadata':
-                if (!(await guard(generalUnionLimiter, `${req.ip!}_list-metadata`, cache.generalUnionLimiter, 1, 'list-metadata_general', log, res))) return;
-                
                 if (req.method !== 'GET') {
                     res.status(400).json({
                         ok: false,
