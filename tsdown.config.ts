@@ -24,10 +24,6 @@ export default defineConfig([
       level: 'warning',
       strict: true,
     },
-    attw: {
-      level: 'warn',
-      profile: 'node16'
-    },
   },
   {
     ...shared,

@@ -64,7 +64,7 @@
                 "default": "./dist/service.cjs"
             }
         }
-    },
+    }, 
     "scripts": {
         "build": "tsdown && npx @riavzon/shield-base --email --path=dist",
         "start": "node dist/service.mjs",
@@ -73,8 +73,8 @@
         "prepublishOnly": "npm run build"
     },
     "dependencies": {
-        "@riavzon/bot-detector": "^1.0.33",
-        "@riavzon/shield-base": "^2.0.5",
+        "@riavzon/bot-detector": "^2.0.3",
+        "@riavzon/shield-base": "^3.0.0",
         "@riavzon/utils": "^1.1.0",
         "argon2": "0.44.0",
         "cookie-parser": "1.4.7",
@@ -98,7 +98,6 @@
         "ua-parser-js": "2.0.3"
     },
     "devDependencies": {
-        "@arethetypeswrong/core": "^0.18.2",
         "@rollup/plugin-terser": "0.4.4",
         "@types/cookie-parser": "1.4.9",
         "@types/ejs": "3.1.5",
