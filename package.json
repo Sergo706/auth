@@ -1,6 +1,6 @@
 {
     "name": "@riavzon/auth",
-    "version": "2.0.4",
+    "version": "2.0.5",
     "author": "Sergio contact@riavzon.com",
     "type": "module",
     "main": "./dist/main.mjs",
@@ -64,7 +64,7 @@
                 "default": "./dist/service.cjs"
             }
         }
-    }, 
+    },
     "scripts": {
         "build": "tsdown && npx @riavzon/shield-base --email --path=dist",
         "start": "node dist/service.mjs",
