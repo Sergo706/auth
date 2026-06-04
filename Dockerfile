@@ -22,7 +22,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 COPY package*.json ./
-RUN npm ci
+RUN npm install
 COPY --from=go-builder /go/bin/mmdbctl /usr/local/bin/mmdbctl
 RUN ./node_modules/.bin/bot-detector init --contact="Riavzon - contact@riavzon.com"
 
@@ -48,7 +48,7 @@ COPY --from=builder --chown=appuser:appuser /app/package.json ./package.json
 COPY --from=builder --chown=appuser:appuser /app/package-lock.json ./package-lock.json
 COPY --from=builder --chown=appuser:appuser /app/dist ./dist
 
-RUN npm ci --omit=dev --ignore-scripts && \
+RUN npm install --omit=dev --ignore-scripts && \
     rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx \
            /usr/local/bin/yarn* /usr/local/bin/corepack /opt/yarn* && \
     rm -rf /var/lib/apt/lists/* /var/cache/apt /var/log/* /tmp/* /root/.npm

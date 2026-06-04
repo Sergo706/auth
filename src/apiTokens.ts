@@ -169,7 +169,7 @@ export async function createApiKey(
                 ?
                 )
         `;
-        const restrictedToIp = ipAddresses ? JSON.stringify(ipAddresses) : null;
+        const restrictedToIp = ipAddresses && ipAddresses.length > 0 ? JSON.stringify(ipAddresses) : null;
         const params = [
             name,
             rawPublicId,
@@ -755,7 +755,7 @@ export async function getAllValidTokensList(userId: number): Promise<Results<All
         if (rows && rows.length > 0) {
             const mapped = rows.map((list) => ({
                 ...list, 
-                restricted_to_ip_address: JSON.parse(list.restricted_to_ip_address)
+                restricted_to_ip_address: list.restricted_to_ip_address ? JSON.parse(list.restricted_to_ip_address) : null
             }));
             Object.assign(dataToSend, { tokenList: mapped })
         };
