@@ -73,7 +73,7 @@
         "prepublishOnly": "npm run build"
     },
     "dependencies": {
-        "@riavzon/bot-detector": "^2.0.7",
+        "@riavzon/bot-detector": "^2.0.9",
         "@riavzon/shield-base": "^3.0.2",
         "@riavzon/utils": "^1.1.0",
         "argon2": "0.44.0",
