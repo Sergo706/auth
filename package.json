@@ -1,6 +1,6 @@
 {
     "name": "@riavzon/auth",
-    "version": "2.0.7",
+    "version": "2.1.0",
     "author": "Sergio contact@riavzon.com",
     "type": "module",
     "main": "./dist/main.mjs",
