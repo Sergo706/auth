@@ -15,58 +15,58 @@ function buildLimiter(): LimiterBundle {
   const { store, rate_limiters } = getConfiguration();
   const pool = poolForLibrary() as unknown as any;
 
-  const limiterConfig = rate_limiters?.loginLimiters;
+  const limiterConfig = rate_limiters.loginLimiters;
 
   const limit = makeRateLimiter(true, false, {
     dbName: store.rate_limiters_pool.dbName,
     storeClient: pool,
     storeType  : 'mysql2',
-    inMemoryBlockOnConsumed: limiterConfig?.unionLimiter.burstLimiter.inMemoryBlockOnConsumed ?? 1,
+    inMemoryBlockOnConsumed: limiterConfig.unionLimiter.burstLimiter.inMemoryBlockOnConsumed,
     keyPrefix: 'login',
-    points: limiterConfig?.unionLimiter.burstLimiter.points ?? 1,
+    points: limiterConfig.unionLimiter.burstLimiter.points,
     tableName: 'login',
-    duration: limiterConfig?.unionLimiter.burstLimiter.duration ?? 1, 
-    blockDuration: limiterConfig?.unionLimiter.burstLimiter.blockDuration ?? 1800,  
-    inMemoryBlockDuration: limiterConfig?.unionLimiter.burstLimiter.inMemoryBlockDuration ?? 1800 
+    duration: limiterConfig.unionLimiter.burstLimiter.duration, 
+    blockDuration: limiterConfig.unionLimiter.burstLimiter.blockDuration,  
+    inMemoryBlockDuration: limiterConfig.unionLimiter.burstLimiter.inMemoryBlockDuration 
   });
   
   const slowLimit = makeRateLimiter(true, false, {
     dbName: store.rate_limiters_pool.dbName,
     storeClient: pool,
     storeType  : 'mysql2',
-    inMemoryBlockOnConsumed: limiterConfig?.unionLimiter.slowLimiter.inMemoryBlockOnConsumed ?? 5,
+    inMemoryBlockOnConsumed: limiterConfig.unionLimiter.slowLimiter.inMemoryBlockOnConsumed,
     tableName: 'login',
     keyPrefix: 'login_slow_down',
-    points: limiterConfig?.unionLimiter.slowLimiter.points ?? 5,
-    duration: limiterConfig?.unionLimiter.slowLimiter.duration ?? 60 * 60, 
-    blockDuration: limiterConfig?.unionLimiter.slowLimiter.blockDuration ?? 60 * 30,
-    inMemoryBlockDuration: limiterConfig?.unionLimiter.slowLimiter.inMemoryBlockDuration ?? 60 * 30 
+    points: limiterConfig.unionLimiter.slowLimiter.points,
+    duration: limiterConfig.unionLimiter.slowLimiter.duration, 
+    blockDuration: limiterConfig.unionLimiter.slowLimiter.blockDuration,
+    inMemoryBlockDuration: limiterConfig.unionLimiter.slowLimiter.inMemoryBlockDuration 
   });
   
   const ipLimiter = makeRateLimiter(true, false, {
     dbName: store.rate_limiters_pool.dbName,
     storeClient: pool,
     storeType  : 'mysql2',
-    inMemoryBlockOnConsumed: rate_limiters?.loginLimiters?.ipLimiter.inMemoryBlockOnConsumed ?? 15,
+    inMemoryBlockOnConsumed: rate_limiters.loginLimiters.ipLimiter.inMemoryBlockOnConsumed,
     tableName: 'login',
     keyPrefix: 'ip_limiter',
-    points: rate_limiters?.loginLimiters?.ipLimiter.points ?? 15,
-    duration: rate_limiters?.loginLimiters?.ipLimiter.duration ?? 24 * 60 * 60, 
-    blockDuration: rate_limiters?.loginLimiters?.ipLimiter.blockDuration ?? 3 * 60 * 60,
-    inMemoryBlockDuration: rate_limiters?.loginLimiters?.ipLimiter.inMemoryBlockDuration ?? 3 * 60 * 60 
+    points: rate_limiters.loginLimiters.ipLimiter.points,
+    duration: rate_limiters.loginLimiters.ipLimiter.duration, 
+    blockDuration: rate_limiters.loginLimiters.ipLimiter.blockDuration,
+    inMemoryBlockDuration: rate_limiters.loginLimiters.ipLimiter.inMemoryBlockDuration 
   }); 
   
   const emailLimiter = makeRateLimiter(true, false, {
     dbName: store.rate_limiters_pool.dbName,
     storeClient: pool,
     storeType  : 'mysql2',
-    inMemoryBlockOnConsumed: rate_limiters?.loginLimiters?.emailLimiter.inMemoryBlockOnConsumed ?? 5,
+    inMemoryBlockOnConsumed: rate_limiters.loginLimiters.emailLimiter.inMemoryBlockOnConsumed,
     tableName: 'login',
     keyPrefix: 'email_limiter',
-    points: rate_limiters?.loginLimiters?.emailLimiter.points ?? 5,
-    duration: rate_limiters?.loginLimiters?.emailLimiter.duration ?? 24 * 60 * 60, 
-    blockDuration: rate_limiters?.loginLimiters?.emailLimiter.blockDuration ?? 5 * 60 * 60,
-    inMemoryBlockDuration: rate_limiters?.loginLimiters?.emailLimiter.inMemoryBlockDuration ?? 5 * 60 * 60 
+    points: rate_limiters.loginLimiters.emailLimiter.points,
+    duration: rate_limiters.loginLimiters.emailLimiter.duration, 
+    blockDuration: rate_limiters.loginLimiters.emailLimiter.blockDuration,
+    inMemoryBlockDuration: rate_limiters.loginLimiters.emailLimiter.inMemoryBlockDuration 
   }); 
 
  return {

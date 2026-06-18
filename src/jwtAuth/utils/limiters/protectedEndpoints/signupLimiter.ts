@@ -17,33 +17,33 @@ let limiter: LimiterBundle | null;
 function buildLimiter(): LimiterBundle { 
   const { store, rate_limiters } = getConfiguration();
   const pool = poolForLibrary() as unknown as any;
-  const limiterConfig = rate_limiters!.signupLimiters!.unionLimiters.uniLimiterIp;
-  const limiterConfigComposite = rate_limiters!.signupLimiters!.unionLimiters.uniLimiterComposite;
+  const limiterConfig = rate_limiters.signupLimiters.unionLimiters.uniLimiterIp;
+  const limiterConfigComposite = rate_limiters.signupLimiters.unionLimiters.uniLimiterComposite;
 
   const ipLimit = makeRateLimiter(true, false, {
     dbName: store.rate_limiters_pool.dbName,
     storeClient: pool,
     storeType  : 'mysql2',
-    inMemoryBlockOnConsumed: limiterConfig?.ipLimit.inMemoryBlockOnConsumed ?? 2,
+    inMemoryBlockOnConsumed: limiterConfig.ipLimit.inMemoryBlockOnConsumed,
     keyPrefix: 'signups_brute',
-    points: limiterConfig?.ipLimit.points ?? 2,
+    points: limiterConfig.ipLimit.points,
     tableName: 'signups',
-    duration: limiterConfig?.ipLimit.duration ?? 1, 
-    blockDuration: limiterConfig?.ipLimit.blockDuration ?? 900,  
-    inMemoryBlockDuration: limiterConfig?.ipLimit.inMemoryBlockDuration ?? 900 
+    duration: limiterConfig.ipLimit.duration, 
+    blockDuration: limiterConfig.ipLimit.blockDuration,  
+    inMemoryBlockDuration: limiterConfig.ipLimit.inMemoryBlockDuration 
   });
   
   const slowIpLimit = makeRateLimiter(true, false, {
     dbName: store.rate_limiters_pool.dbName,
     storeClient: pool,
     storeType  : 'mysql2',
-    inMemoryBlockOnConsumed: limiterConfig?.slowIpLimit.inMemoryBlockOnConsumed ?? 5,
+    inMemoryBlockOnConsumed: limiterConfig.slowIpLimit.inMemoryBlockOnConsumed,
     keyPrefix: 'signups_slow',
-    points: limiterConfig?.slowIpLimit.points ?? 5,
+    points: limiterConfig.slowIpLimit.points,
     tableName: 'signups',
-    duration: limiterConfig?.slowIpLimit.duration ?? 60 * 30, 
-    blockDuration: limiterConfig?.slowIpLimit.blockDuration ?? 60 * 15,  
-    inMemoryBlockDuration: limiterConfig?.slowIpLimit.inMemoryBlockDuration ?? 60 * 15 
+    duration: limiterConfig.slowIpLimit.duration, 
+    blockDuration: limiterConfig.slowIpLimit.blockDuration,  
+    inMemoryBlockDuration: limiterConfig.slowIpLimit.inMemoryBlockDuration 
   });
   
   
@@ -51,39 +51,39 @@ function buildLimiter(): LimiterBundle {
     dbName: store.rate_limiters_pool.dbName,
     storeClient: pool,
     storeType  : 'mysql2',
-    inMemoryBlockOnConsumed:  limiterConfigComposite?.compositeKeyLimit.inMemoryBlockOnConsumed ?? 1,
+    inMemoryBlockOnConsumed:  limiterConfigComposite.compositeKeyLimit.inMemoryBlockOnConsumed,
     keyPrefix: 'compositeKey_brute',
-    points: limiterConfigComposite?.compositeKeyLimit.points ?? 1,
+    points: limiterConfigComposite.compositeKeyLimit.points,
     tableName: 'signups',
-    duration: limiterConfigComposite?.compositeKeyLimit.duration ?? 1, 
-    blockDuration: limiterConfigComposite?.compositeKeyLimit.blockDuration ?? 1800,  
-    inMemoryBlockDuration: limiterConfigComposite?.compositeKeyLimit.inMemoryBlockDuration ?? 1800 
+    duration: limiterConfigComposite.compositeKeyLimit.duration, 
+    blockDuration: limiterConfigComposite.compositeKeyLimit.blockDuration,  
+    inMemoryBlockDuration: limiterConfigComposite.compositeKeyLimit.inMemoryBlockDuration 
   });
   
   const slowCompositeKeyLimit = makeRateLimiter(true, false, {
     dbName: store.rate_limiters_pool.dbName,
     storeClient: pool,
     storeType  : 'mysql2',
-    inMemoryBlockOnConsumed: limiterConfigComposite?.slowCompositeKeyLimit.inMemoryBlockOnConsumed ?? 3,
+    inMemoryBlockOnConsumed: limiterConfigComposite.slowCompositeKeyLimit.inMemoryBlockOnConsumed,
     keyPrefix: 'compositeKey_slow',
-    points: limiterConfigComposite?.slowCompositeKeyLimit.points ?? 3,
+    points: limiterConfigComposite.slowCompositeKeyLimit.points,
     tableName: 'signups',
-    duration: limiterConfigComposite?.slowCompositeKeyLimit.duration ?? 60 * 60 * 24, 
-    blockDuration: limiterConfigComposite?.slowCompositeKeyLimit.blockDuration ?? 60 * 60 * 24,  
-    inMemoryBlockDuration: limiterConfigComposite?.slowCompositeKeyLimit.inMemoryBlockDuration ?? 60 * 60 * 24 
+    duration: limiterConfigComposite.slowCompositeKeyLimit.duration, 
+    blockDuration: limiterConfigComposite.slowCompositeKeyLimit.blockDuration,  
+    inMemoryBlockDuration: limiterConfigComposite.slowCompositeKeyLimit.inMemoryBlockDuration 
   });
   
   const emailLimit = makeRateLimiter(true, false, {
     dbName: store.rate_limiters_pool.dbName,
     storeClient: pool,
     storeType  : 'mysql2',
-    inMemoryBlockOnConsumed: rate_limiters!.signupLimiters!.emailLimit.inMemoryBlockOnConsumed ?? 3,
+    inMemoryBlockOnConsumed: rate_limiters.signupLimiters.emailLimit.inMemoryBlockOnConsumed,
     keyPrefix: 'email',
-    points: rate_limiters!.signupLimiters!.emailLimit.points ?? 3,
+    points: rate_limiters.signupLimiters.emailLimit.points,
     tableName: 'signups',
-    duration: rate_limiters!.signupLimiters!.emailLimit.duration ?? 60 * 60 * 24, 
-    blockDuration: rate_limiters!.signupLimiters!.emailLimit.blockDuration ?? 60 * 60 * 24,  
-    inMemoryBlockDuration: rate_limiters!.signupLimiters!.emailLimit.inMemoryBlockDuration ?? 60 * 60 * 24 
+    duration: rate_limiters.signupLimiters.emailLimit.duration, 
+    blockDuration: rate_limiters.signupLimiters.emailLimit.blockDuration,  
+    inMemoryBlockDuration: rate_limiters.signupLimiters.emailLimit.inMemoryBlockDuration 
   });
 
    return {

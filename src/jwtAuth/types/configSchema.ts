@@ -221,364 +221,363 @@ export const configurationSchema = z.strictObject({
           operationRateLimits: z.object({
 
             newTokenCreationLimiter: z.object({
-                inMemoryBlockOnConsumed: z.number(),
-                points: z.number(),
-                duration: z.number(),
-                blockDuration: z.number(),
-                inMemoryBlockDuration: z.number()  
-            }),
+                inMemoryBlockOnConsumed: z.number().default(5),
+                points: z.number().default(5),
+                duration: z.number().default(600),
+                blockDuration: z.number().default(3600),
+                inMemoryBlockDuration: z.number().default(3600)
+            }).prefault({}),
 
             revokeTokensLimiter: z.object({
-                inMemoryBlockOnConsumed: z.number(),
-                points: z.number(),
-                duration: z.number(),
-                blockDuration: z.number(),
-                inMemoryBlockDuration: z.number()  
-            }),
+                inMemoryBlockOnConsumed: z.number().default(5),
+                points: z.number().default(5),
+                duration: z.number().default(600),
+                blockDuration: z.number().default(7200),
+                inMemoryBlockDuration: z.number().default(7200)
+            }).prefault({}),
 
             getMetadataTokenLimiter: z.object({
-                inMemoryBlockOnConsumed: z.number(),
-                points: z.number(),
-                duration: z.number(),
-                blockDuration: z.number(),
-                inMemoryBlockDuration: z.number()  
-            }),
+                inMemoryBlockOnConsumed: z.number().default(20),
+                points: z.number().default(20),
+                duration: z.number().default(2),
+                blockDuration: z.number().default(1800),
+                inMemoryBlockDuration: z.number().default(1800)
+            }).prefault({}),
             rotationRateLimiter: z.object({
-                inMemoryBlockOnConsumed: z.number(),
-                points: z.number(),
-                duration: z.number(),
-                blockDuration: z.number(),
-                inMemoryBlockDuration: z.number()  
-            }),
+                inMemoryBlockOnConsumed: z.number().default(5),
+                points: z.number().default(5),
+                duration: z.number().default(600),
+                blockDuration: z.number().default(7200),
+                inMemoryBlockDuration: z.number().default(7200)
+            }).prefault({}),
 
             ipRestrictionUpdate: z.object({
-                inMemoryBlockOnConsumed: z.number(),
-                points: z.number(),
-                duration: z.number(),
-                blockDuration: z.number(),
-                inMemoryBlockDuration: z.number()  
-            }),
+                inMemoryBlockOnConsumed: z.number().default(5),
+                points: z.number().default(5),
+                duration: z.number().default(600),
+                blockDuration: z.number().default(1800),
+                inMemoryBlockDuration: z.number().default(1800)
+            }).prefault({}),
 
             privilegeUpdate: z.object({
-                inMemoryBlockOnConsumed: z.number(),
-                points: z.number(),
-                duration: z.number(),
-                blockDuration: z.number(),
-                inMemoryBlockDuration: z.number()  
-            }),
+                inMemoryBlockOnConsumed: z.number().default(5),
+                points: z.number().default(5),
+                duration: z.number().default(600),
+                blockDuration: z.number().default(1800),
+                inMemoryBlockDuration: z.number().default(1800)
+            }).prefault({}),
 
-          }),
+          }).prefault({}),
 
           consumptionRateLimiter: z.object({
-                inMemoryBlockOnConsumed: z.number(),
-                points: z.number(),
-                duration: z.number(),
-                blockDuration: z.number(),
-                inMemoryBlockDuration: z.number()  
-            }),
+                inMemoryBlockOnConsumed: z.number().default(10),
+                points: z.number().default(10),
+                duration: z.number().default(60),
+                blockDuration: z.number().default(3600),
+                inMemoryBlockDuration: z.number().default(3600)
+            }).prefault({}),
 
             generalUnionLimiter: z.object({
                burstLimiter: z.object({
-                        inMemoryBlockOnConsumed: z.number(),
-                        points: z.number(),
-                        duration: z.number(),
-                        blockDuration: z.number(),
-                        inMemoryBlockDuration: z.number()  
-                }),
+                        inMemoryBlockOnConsumed: z.number().default(1),
+                        points: z.number().default(1),
+                        duration: z.number().default(1),
+                        blockDuration: z.number().default(900),
+                        inMemoryBlockDuration: z.number().default(900)
+                }).prefault({}),
                 slowLimiter: z.object({
-                        inMemoryBlockOnConsumed: z.number(),
-                        points: z.number(),
-                        duration: z.number(),
-                        blockDuration: z.number(),
-                        inMemoryBlockDuration: z.number()
-                })
-            })
+                        inMemoryBlockOnConsumed: z.number().default(50),
+                        points: z.number().default(50),
+                        duration: z.number().default(60),
+                        blockDuration: z.number().default(3600),
+                        inMemoryBlockDuration: z.number().default(3600)
+                }).prefault({})
+            }).prefault({})
 
-        }).optional(),
-        
+        }).prefault({}),
+
         linkVerificationLimiter: z.object({
             unionLimiter: z.object({
                 burstLimiter: z.object({
-                        inMemoryBlockOnConsumed: z.number(),
-                        points: z.number(),
-                        duration: z.number(),
-                        blockDuration: z.number(),
-                        inMemoryBlockDuration: z.number()  
-                }),
+                        inMemoryBlockOnConsumed: z.number().default(2),
+                        points: z.number().default(2),
+                        duration: z.number().default(1),
+                        blockDuration: z.number().default(900),
+                        inMemoryBlockDuration: z.number().default(900)
+                }).prefault({}),
                 slowLimiter: z.object({
-                        inMemoryBlockOnConsumed: z.number(),
-                        points: z.number(),
-                        duration: z.number(),
-                        blockDuration: z.number(),
-                        inMemoryBlockDuration: z.number()
-                })
-            })
-        }).optional(),
+                        inMemoryBlockOnConsumed: z.number().default(30),
+                        points: z.number().default(30),
+                        duration: z.number().default(1800),
+                        blockDuration: z.number().default(1800),
+                        inMemoryBlockDuration: z.number().default(1800)
+                }).prefault({})
+            }).prefault({})
+        }).prefault({}),
 
         loginLimiters: z.object({
-            unionLimiter: z.object({ 
+            unionLimiter: z.object({
                 burstLimiter: z.object({
-                    inMemoryBlockOnConsumed: z.number(),
-                    points: z.number(),
-                    duration: z.number(),
-                    blockDuration: z.number(),
-                    inMemoryBlockDuration: z.number()
-                }),
+                    inMemoryBlockOnConsumed: z.number().default(1),
+                    points: z.number().default(1),
+                    duration: z.number().default(1),
+                    blockDuration: z.number().default(1800),
+                    inMemoryBlockDuration: z.number().default(1800)
+                }).prefault({}),
                 slowLimiter: z.object({
-                    inMemoryBlockOnConsumed: z.number(),
-                    points: z.number(),
-                    duration: z.number(),
-                    blockDuration: z.number(),
-                    inMemoryBlockDuration: z.number()
-                })
+                    inMemoryBlockOnConsumed: z.number().default(5),
+                    points: z.number().default(5),
+                    duration: z.number().default(3600),
+                    blockDuration: z.number().default(1800),
+                    inMemoryBlockDuration: z.number().default(1800)
+                }).prefault({})
 
-            }),
+            }).prefault({}),
            ipLimiter: z.object({
-             inMemoryBlockOnConsumed: z.number(),
-             points: z.number(),
-             duration: z.number(),
-             blockDuration: z.number(),
-             inMemoryBlockDuration: z.number()
-           }),
+             inMemoryBlockOnConsumed: z.number().default(15),
+             points: z.number().default(15),
+             duration: z.number().default(86400),
+             blockDuration: z.number().default(10800),
+             inMemoryBlockDuration: z.number().default(10800)
+           }).prefault({}),
            emailLimiter: z.object({
-              inMemoryBlockOnConsumed: z.number(),
-              points: z.number(),
-              duration: z.number(),
-              blockDuration: z.number(),
-              inMemoryBlockDuration: z.number()
-           })
+              inMemoryBlockOnConsumed: z.number().default(5),
+              points: z.number().default(5),
+              duration: z.number().default(86400),
+              blockDuration: z.number().default(18000),
+              inMemoryBlockDuration: z.number().default(18000)
+           }).prefault({})
 
-        }).optional(),
+        }).prefault({}),
 
         oauthLimiters: z.object({
-            unionLimiter: z.object({ 
+            unionLimiter: z.object({
                 ipLimiterBrute: z.object({
-                       inMemoryBlockOnConsumed: z.number(),
-                        points: z.number(),
-                        duration: z.number(),
-                        blockDuration: z.number(),
-                        inMemoryBlockDuration: z.number()  
-                }),
+                       inMemoryBlockOnConsumed: z.number().default(1),
+                        points: z.number().default(1),
+                        duration: z.number().default(1),
+                        blockDuration: z.number().default(300),
+                        inMemoryBlockDuration: z.number().default(300)
+                }).prefault({}),
                 ipLimiterSlow: z.object({
-                        inMemoryBlockOnConsumed: z.number(),
-                        points: z.number(),
-                        duration: z.number(),
-                        blockDuration: z.number(),
-                        inMemoryBlockDuration: z.number()  
-                })
-            }),
+                        inMemoryBlockOnConsumed: z.number().default(25),
+                        points: z.number().default(25),
+                        duration: z.number().default(3600),
+                        blockDuration: z.number().default(1800),
+                        inMemoryBlockDuration: z.number().default(1800)
+                }).prefault({})
+            }).prefault({}),
 
             subLimiter: z.object({
-                 inMemoryBlockOnConsumed: z.number(),
-                  points: z.number(),
-                  duration: z.number(),
-                  blockDuration: z.number(),
-                  inMemoryBlockDuration: z.number()
-            }),
+                 inMemoryBlockOnConsumed: z.number().default(5),
+                  points: z.number().default(5),
+                  duration: z.number().default(300),
+                  blockDuration: z.number().default(900),
+                  inMemoryBlockDuration: z.number().default(900)
+            }).prefault({}),
             compositeKeyLimiter: z.object({
-                 inMemoryBlockOnConsumed: z.number(),
-                  points: z.number(),
-                  duration: z.number(),
-                  blockDuration: z.number(),
-                  inMemoryBlockDuration: z.number()
-            })
-        }).optional(),
+                 inMemoryBlockOnConsumed: z.number().default(3),
+                  points: z.number().default(3),
+                  duration: z.number().default(600),
+                  blockDuration: z.number().default(900),
+                  inMemoryBlockDuration: z.number().default(900)
+            }).prefault({})
+        }).prefault({}),
 
-    signupLimiters: z.object({ 
-          unionLimiters: z.object({ 
-            uniLimiterIp: z.object({ 
-              ipLimit: z.object({ 
-                inMemoryBlockOnConsumed: z.number(),
-                points: z.number(),
-                duration: z.number(),
-                blockDuration: z.number(),
-                inMemoryBlockDuration: z.number()
-              }),
-              slowIpLimit: z.object({ 
-                inMemoryBlockOnConsumed: z.number(),
-                points: z.number(),
-                duration: z.number(),
-                blockDuration: z.number(),
-                inMemoryBlockDuration: z.number()       
-              }),
-            }),
-             uniLimiterComposite: z.object({ 
-                compositeKeyLimit: z.object({ 
-                inMemoryBlockOnConsumed: z.number(),
-                points: z.number(),
-                duration: z.number(),
-                blockDuration: z.number(),
-                inMemoryBlockDuration: z.number()                  
-                }),
-                slowCompositeKeyLimit: z.object({ 
-                  inMemoryBlockOnConsumed: z.number(),
-                  points: z.number(),
-                  duration: z.number(),
-                  blockDuration: z.number(),
-                  inMemoryBlockDuration: z.number()                     
-             })
-          }),
-        }),
-        emailLimit: z.object({ 
-           inMemoryBlockOnConsumed: z.number(),
-           points: z.number(),
-           duration: z.number(),
-           blockDuration: z.number(),
-           inMemoryBlockDuration: z.number() 
-        })
-    }).optional(),
+    signupLimiters: z.object({
+          unionLimiters: z.object({
+            uniLimiterIp: z.object({
+              ipLimit: z.object({
+                inMemoryBlockOnConsumed: z.number().default(2),
+                points: z.number().default(2),
+                duration: z.number().default(1),
+                blockDuration: z.number().default(900),
+                inMemoryBlockDuration: z.number().default(900)
+              }).prefault({}),
+              slowIpLimit: z.object({
+                inMemoryBlockOnConsumed: z.number().default(5),
+                points: z.number().default(5),
+                duration: z.number().default(1800),
+                blockDuration: z.number().default(900),
+                inMemoryBlockDuration: z.number().default(900)
+              }).prefault({}),
+            }).prefault({}),
+             uniLimiterComposite: z.object({
+                compositeKeyLimit: z.object({
+                inMemoryBlockOnConsumed: z.number().default(1),
+                points: z.number().default(1),
+                duration: z.number().default(1),
+                blockDuration: z.number().default(1800),
+                inMemoryBlockDuration: z.number().default(1800)
+                }).prefault({}),
+                slowCompositeKeyLimit: z.object({
+                  inMemoryBlockOnConsumed: z.number().default(3),
+                  points: z.number().default(3),
+                  duration: z.number().default(86400),
+                  blockDuration: z.number().default(86400),
+                  inMemoryBlockDuration: z.number().default(86400)
+             }).prefault({})
+          }).prefault({}),
+        }).prefault({}),
+        emailLimit: z.object({
+           inMemoryBlockOnConsumed: z.number().default(3),
+           points: z.number().default(3),
+           duration: z.number().default(86400),
+           blockDuration: z.number().default(86400),
+           inMemoryBlockDuration: z.number().default(86400)
+        }).prefault({})
+    }).prefault({}),
 
     tempPostRoutesLimiters: z.object({
         unionLimiters: z.object({
              limit: z.object({
-                inMemoryBlockOnConsumed: z.number(),
-                points: z.number(),
-                duration: z.number(),
-                blockDuration: z.number(),
-                inMemoryBlockDuration: z.number()  
-             }),
+                inMemoryBlockOnConsumed: z.number().default(1),
+                points: z.number().default(1),
+                duration: z.number().default(1),
+                blockDuration: z.number().default(1800),
+                inMemoryBlockDuration: z.number().default(1800)
+             }).prefault({}),
              slowLimit: z.object({
-                    inMemoryBlockOnConsumed: z.number(),
-                    points: z.number(),
-                    duration: z.number(),
-                    blockDuration: z.number(),
-                    inMemoryBlockDuration: z.number() 
-             }),
-        }),
+                    inMemoryBlockOnConsumed: z.number().default(5),
+                    points: z.number().default(5),
+                    duration: z.number().default(600),
+                    blockDuration: z.number().default(600),
+                    inMemoryBlockDuration: z.number().default(600)
+             }).prefault({}),
+        }).prefault({}),
 
         ipLimit: z.object({
-           inMemoryBlockOnConsumed: z.number(),
-           points: z.number(),
-           duration: z.number(),
-           blockDuration: z.number(),
-           inMemoryBlockDuration: z.number()   
-        }),
+           inMemoryBlockOnConsumed: z.number().default(6),
+           points: z.number().default(6),
+           duration: z.number().default(600),
+           blockDuration: z.number().default(600),
+           inMemoryBlockDuration: z.number().default(600)
+        }).prefault({}),
 
+    }).prefault({}),
 
-    }).optional(),
+    tokenLimiters: z.object({
+      unionLimiters: z.object({
+        refreshAccessTokenLimiter: z.object({
+        accessTokenBrute: z.object({
+           inMemoryBlockOnConsumed: z.number().default(2),
+           points: z.number().default(2),
+           duration: z.number().default(1),
+           blockDuration: z.number().default(1800),
+           inMemoryBlockDuration: z.number().default(1800)
+        }).prefault({}),
+        accessTokenSlow: z.object({
+           inMemoryBlockOnConsumed: z.number().default(3),
+           points: z.number().default(3),
+           duration: z.number().default(600),
+           blockDuration: z.number().default(3600),
+           inMemoryBlockDuration: z.number().default(3600)
+        }).prefault({})
+       }).prefault({}),
+        refreshTokenLimiterUnion: z.object({
+        refreshTokenBrute: z.object({
+           inMemoryBlockOnConsumed: z.number().default(2),
+           points: z.number().default(2),
+           duration: z.number().default(1),
+           blockDuration: z.number().default(1800),
+           inMemoryBlockDuration: z.number().default(1800)
+        }).prefault({}),
+        refreshTokenSlow: z.object({
+           inMemoryBlockOnConsumed: z.number().default(4),
+           points: z.number().default(4),
+           duration: z.number().default(43200),
+           blockDuration: z.number().default(43200),
+           inMemoryBlockDuration: z.number().default(43200)
+        }).prefault({})
+       }).prefault({}),
 
-    tokenLimiters: z.object({ 
-      unionLimiters: z.object({ 
-        refreshAccessTokenLimiter: z.object({  
-        accessTokenBrute: z.object({ 
-           inMemoryBlockOnConsumed: z.number(),
-           points: z.number(),
-           duration: z.number(),
-           blockDuration: z.number(),
-           inMemoryBlockDuration: z.number()           
-        }),
-        accessTokenSlow: z.object({ 
-           inMemoryBlockOnConsumed: z.number(),
-           points: z.number(),
-           duration: z.number(),
-           blockDuration: z.number(),
-           inMemoryBlockDuration: z.number() 
-        })
-       }),
-        refreshTokenLimiterUnion: z.object({  
-        refreshTokenBrute: z.object({ 
-           inMemoryBlockOnConsumed: z.number(),
-           points: z.number(),
-           duration: z.number(),
-           blockDuration: z.number(),
-           inMemoryBlockDuration: z.number()           
-        }),
-        refreshTokenSlow: z.object({ 
-           inMemoryBlockOnConsumed: z.number(),
-           points: z.number(),
-           duration: z.number(),
-           blockDuration: z.number(),
-           inMemoryBlockDuration: z.number() 
-        })
-       }),
-
-      }),
-      refreshTokenLimiter: z.object({ 
-           inMemoryBlockOnConsumed: z.number(),
-           points: z.number(),
-           duration: z.number(),
-           blockDuration: z.number(),
-           inMemoryBlockDuration: z.number()         
-      }),
-    }).optional(),
+      }).prefault({}),
+      refreshTokenLimiter: z.object({
+           inMemoryBlockOnConsumed: z.number().default(3),
+           points: z.number().default(3),
+           duration: z.number().default(43200),
+           blockDuration: z.number().default(54000),
+           inMemoryBlockDuration: z.number().default(54000)
+      }).prefault({}),
+    }).prefault({}),
 
 
  initPasswordResetLimiters: z.object({
-      unionLimiters: z.object({ 
+      unionLimiters: z.object({
         limit: z.object({
-           inMemoryBlockOnConsumed: z.number(),
-           points: z.number(),
-           duration: z.number(),
-           blockDuration: z.number(),
-           inMemoryBlockDuration: z.number()   
-        }),
+           inMemoryBlockOnConsumed: z.number().default(1),
+           points: z.number().default(1),
+           duration: z.number().default(1),
+           blockDuration: z.number().default(1800),
+           inMemoryBlockDuration: z.number().default(1800)
+        }).prefault({}),
         longLimiter: z.object({
-           inMemoryBlockOnConsumed: z.number(),
-           points: z.number(),
-           duration: z.number(),
-           blockDuration: z.number(),
-           inMemoryBlockDuration: z.number()   
-        })
+           inMemoryBlockOnConsumed: z.number().default(4),
+           points: z.number().default(4),
+           duration: z.number().default(1800),
+           blockDuration: z.number().default(900),
+           inMemoryBlockDuration: z.number().default(900)
+        }).prefault({})
 
-      }),
+      }).prefault({}),
       ipLimiter: z.object({
-           inMemoryBlockOnConsumed: z.number(),
-           points: z.number(),
-           duration: z.number(),
-           blockDuration: z.number(),
-           inMemoryBlockDuration: z.number()   
-      }),
+           inMemoryBlockOnConsumed: z.number().default(5),
+           points: z.number().default(5),
+           duration: z.number().default(86400),
+           blockDuration: z.number().default(14400),
+           inMemoryBlockDuration: z.number().default(14400)
+      }).prefault({}),
       emailLimiter: z.object({
-           inMemoryBlockOnConsumed: z.number(),
-           points: z.number(),
-           duration: z.number(),
-           blockDuration: z.number(),
-           inMemoryBlockDuration: z.number()   
-      })
+           inMemoryBlockOnConsumed: z.number().default(5),
+           points: z.number().default(5),
+           duration: z.number().default(86400),
+           blockDuration: z.number().default(14400),
+           inMemoryBlockDuration: z.number().default(14400)
+      }).prefault({})
 
-    }).optional(),
+    }).prefault({}),
 
     emailMfaLimiters: z.object({
-      unionLimiters: z.object({ 
+      unionLimiters: z.object({
         limit: z.object({
-           inMemoryBlockOnConsumed: z.number(),
-           points: z.number(),
-           duration: z.number(),
-           blockDuration: z.number(),
-           inMemoryBlockDuration: z.number()   
-        }),
+           inMemoryBlockOnConsumed: z.number().default(1),
+           points: z.number().default(1),
+           duration: z.number().default(1),
+           blockDuration: z.number().default(1800),
+           inMemoryBlockDuration: z.number().default(1800)
+        }).prefault({}),
         longLimiter: z.object({
-           inMemoryBlockOnConsumed: z.number(),
-           points: z.number(),
-           duration: z.number(),
-           blockDuration: z.number(),
-           inMemoryBlockDuration: z.number()   
-        })
-      }),
+           inMemoryBlockOnConsumed: z.number().default(4),
+           points: z.number().default(4),
+           duration: z.number().default(1800),
+           blockDuration: z.number().default(900),
+           inMemoryBlockDuration: z.number().default(900)
+        }).prefault({})
+      }).prefault({}),
       ipLimiter: z.object({
-           inMemoryBlockOnConsumed: z.number(),
-           points: z.number(),
-           duration: z.number(),
-           blockDuration: z.number(),
-           inMemoryBlockDuration: z.number()   
-      }),
+           inMemoryBlockOnConsumed: z.number().default(5),
+           points: z.number().default(5),
+           duration: z.number().default(86400),
+           blockDuration: z.number().default(14400),
+           inMemoryBlockDuration: z.number().default(14400)
+      }).prefault({}),
       userIdLimiter: z.object({
-           inMemoryBlockOnConsumed: z.number(),
-           points: z.number(),
-           duration: z.number(),
-           blockDuration: z.number(),
-           inMemoryBlockDuration: z.number()   
-      }),
+           inMemoryBlockOnConsumed: z.number().default(8),
+           points: z.number().default(8),
+           duration: z.number().default(86400),
+           blockDuration: z.number().default(43200),
+           inMemoryBlockDuration: z.number().default(43200)
+      }).prefault({}),
       globalEmailLimiter: z.object({
-           inMemoryBlockOnConsumed: z.number(),
-           points: z.number(),
-           duration: z.number(),
-           blockDuration: z.number(),
-           inMemoryBlockDuration: z.number()   
-      })
-    }).optional(),
+           inMemoryBlockOnConsumed: z.number().default(800),
+           points: z.number().default(800),
+           duration: z.number().default(86400),
+           blockDuration: z.number().default(86400),
+           inMemoryBlockDuration: z.number().default(86400)
+      }).prefault({})
+    }).prefault({}),
 
-}).optional(),
+}).prefault({}),
 logLevel: z.enum(['trace' , 'debug' , 'info' , 'warn' , 'error' , 'fatal']).optional()  
 
 }).strict()

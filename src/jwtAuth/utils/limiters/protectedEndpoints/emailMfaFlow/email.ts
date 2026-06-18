@@ -18,71 +18,71 @@ let limiter: LimiterBundle | null;
 function buildLimiter(): LimiterBundle {
     const { store, rate_limiters } = getConfiguration();
     const pool = poolForLibrary();
-    const limiterConfig = rate_limiters?.emailMfaLimiters?.unionLimiters;
+    const limiterConfig = rate_limiters.emailMfaLimiters.unionLimiters;
 
   const limit = makeRateLimiter(true, false, {
     dbName: store.rate_limiters_pool.dbName,
     storeClient: pool,
     storeType: 'mysql2',
-    inMemoryBlockOnConsumed: limiterConfig?.limit.inMemoryBlockOnConsumed ?? 1,
+    inMemoryBlockOnConsumed: limiterConfig.limit.inMemoryBlockOnConsumed,
     keyPrefix: 'email_mfa',
-    points: limiterConfig?.limit.points ?? 1,
+    points: limiterConfig.limit.points,
     tableName: 'email_mfa',
-    duration: limiterConfig?.limit.duration ?? 1, 
-    blockDuration: limiterConfig?.limit.blockDuration ?? 1800,  
-    inMemoryBlockDuration: limiterConfig?.limit.inMemoryBlockDuration ?? 1800 
+    duration: limiterConfig.limit.duration, 
+    blockDuration: limiterConfig.limit.blockDuration,  
+    inMemoryBlockDuration: limiterConfig.limit.inMemoryBlockDuration 
   });
   
   const longLimiter = makeRateLimiter(true, false, {
     dbName: store.rate_limiters_pool.dbName,
     storeClient: pool,
     storeType  : 'mysql2',
-    inMemoryBlockOnConsumed: limiterConfig?.longLimiter.inMemoryBlockOnConsumed ?? 4,
+    inMemoryBlockOnConsumed: limiterConfig.longLimiter.inMemoryBlockOnConsumed,
     tableName: 'email_mfa',
     keyPrefix: 'email_mfa_slow_down',
-    points: limiterConfig?.longLimiter.points ?? 4,
-    duration: limiterConfig?.longLimiter.duration ?? 60 * 30, 
-    blockDuration: limiterConfig?.longLimiter.blockDuration ?? 60 * 15,
-    inMemoryBlockDuration: limiterConfig?.longLimiter.inMemoryBlockDuration ?? 60 * 15 
+    points: limiterConfig.longLimiter.points,
+    duration: limiterConfig.longLimiter.duration, 
+    blockDuration: limiterConfig.longLimiter.blockDuration,
+    inMemoryBlockDuration: limiterConfig.longLimiter.inMemoryBlockDuration 
   });
   
   const ipLimiter = makeRateLimiter(true, false, {
     dbName: store.rate_limiters_pool.dbName,
     storeClient: pool,
     storeType  : 'mysql2',
-    inMemoryBlockOnConsumed: rate_limiters?.emailMfaLimiters?.ipLimiter.inMemoryBlockOnConsumed ?? 5,
+    inMemoryBlockOnConsumed: rate_limiters.emailMfaLimiters.ipLimiter.inMemoryBlockOnConsumed,
     tableName: 'email_mfa',
     keyPrefix: 'ip_limiter',
-    points: rate_limiters?.emailMfaLimiters?.ipLimiter.points ?? 5,
-    duration: rate_limiters?.emailMfaLimiters?.ipLimiter.duration ?? 24 * 60 * 60, 
-    blockDuration: rate_limiters?.emailMfaLimiters?.ipLimiter.blockDuration ?? 4 * 60 * 60,
-    inMemoryBlockDuration: rate_limiters?.emailMfaLimiters?.ipLimiter.inMemoryBlockDuration ?? 4 * 60 * 60 
+    points: rate_limiters.emailMfaLimiters.ipLimiter.points,
+    duration: rate_limiters.emailMfaLimiters.ipLimiter.duration, 
+    blockDuration: rate_limiters.emailMfaLimiters.ipLimiter.blockDuration,
+    inMemoryBlockDuration: rate_limiters.emailMfaLimiters.ipLimiter.inMemoryBlockDuration 
   }); 
   
   const userIdLimiter = makeRateLimiter(true, false, {
     dbName: store.rate_limiters_pool.dbName,
     storeClient: pool,
     storeType  : 'mysql2',
-    inMemoryBlockOnConsumed: rate_limiters?.emailMfaLimiters?.userIdLimiter.inMemoryBlockOnConsumed ?? 8,
+    inMemoryBlockOnConsumed: rate_limiters.emailMfaLimiters.userIdLimiter.inMemoryBlockOnConsumed,
     tableName: 'email_mfa',
     keyPrefix: 'userIdLimiter',
-    points: rate_limiters?.emailMfaLimiters?.userIdLimiter.points ?? 8,
-    duration: rate_limiters?.emailMfaLimiters?.userIdLimiter.duration ?? 24 * 60 * 60, 
-    blockDuration: rate_limiters?.emailMfaLimiters?.userIdLimiter.blockDuration ?? 12 * 60 * 60,
-    inMemoryBlockDuration: rate_limiters?.emailMfaLimiters?.userIdLimiter.inMemoryBlockDuration ?? 12 * 60 * 60 
+    points: rate_limiters.emailMfaLimiters.userIdLimiter.points,
+    duration: rate_limiters.emailMfaLimiters.userIdLimiter.duration, 
+    blockDuration: rate_limiters.emailMfaLimiters.userIdLimiter.blockDuration,
+    inMemoryBlockDuration: rate_limiters.emailMfaLimiters.userIdLimiter.inMemoryBlockDuration 
   }); 
 
   const globalEmailLimiter = makeRateLimiter(true, false, {
         dbName: store.rate_limiters_pool.dbName,
         storeClient: pool,
         storeType  : 'mysql2',
-        inMemoryBlockOnConsumed: rate_limiters?.emailMfaLimiters?.globalEmailLimiter.inMemoryBlockOnConsumed ?? 800,
+        inMemoryBlockOnConsumed: rate_limiters.emailMfaLimiters.globalEmailLimiter.inMemoryBlockOnConsumed,
         tableName: 'email_mfa',
         keyPrefix: 'globalEmailLimiter',
-        points: rate_limiters?.emailMfaLimiters?.globalEmailLimiter.points ?? 800,
-        duration: rate_limiters?.emailMfaLimiters?.globalEmailLimiter.duration ?? 24 * 60 * 60, 
-        blockDuration: rate_limiters?.emailMfaLimiters?.globalEmailLimiter.blockDuration ?? 24 * 60 * 60,
-        inMemoryBlockDuration: rate_limiters?.emailMfaLimiters?.globalEmailLimiter.inMemoryBlockDuration ?? 24 * 60 * 60 
+        points: rate_limiters.emailMfaLimiters.globalEmailLimiter.points,
+        duration: rate_limiters.emailMfaLimiters.globalEmailLimiter.duration, 
+        blockDuration: rate_limiters.emailMfaLimiters.globalEmailLimiter.blockDuration,
+        inMemoryBlockDuration: rate_limiters.emailMfaLimiters.globalEmailLimiter.inMemoryBlockDuration 
   }); 
 
   return {

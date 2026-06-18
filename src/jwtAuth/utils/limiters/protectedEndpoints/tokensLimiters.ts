@@ -17,32 +17,32 @@ let limiter: LimiterBundle | null;
 function buildLimiter(): LimiterBundle { 
   const { store, rate_limiters } = getConfiguration();
   const pool = poolForLibrary() as unknown as any;
-  const limiterConfig = rate_limiters?.tokenLimiters?.unionLimiters;
+  const limiterConfig = rate_limiters.tokenLimiters.unionLimiters;
 
   const accessTokenBrute = makeRateLimiter(true, false, {
     dbName: store.rate_limiters_pool.dbName,
     storeClient: pool,
     storeType  : 'mysql2',
-    inMemoryBlockOnConsumed: limiterConfig?.refreshAccessTokenLimiter.accessTokenBrute.inMemoryBlockOnConsumed ?? 2,
+    inMemoryBlockOnConsumed: limiterConfig.refreshAccessTokenLimiter.accessTokenBrute.inMemoryBlockOnConsumed,
     keyPrefix: 'tokens_access_token_brute',
-    points: limiterConfig?.refreshAccessTokenLimiter.accessTokenBrute.points ?? 2,
+    points: limiterConfig.refreshAccessTokenLimiter.accessTokenBrute.points,
     tableName: 'tokens',
-    duration: limiterConfig?.refreshAccessTokenLimiter.accessTokenBrute.duration ?? 1, 
-    blockDuration: limiterConfig?.refreshAccessTokenLimiter.accessTokenBrute.blockDuration ?? 1800,  
-    inMemoryBlockDuration: limiterConfig?.refreshAccessTokenLimiter.accessTokenBrute.inMemoryBlockDuration ?? 1800 
+    duration: limiterConfig.refreshAccessTokenLimiter.accessTokenBrute.duration, 
+    blockDuration: limiterConfig.refreshAccessTokenLimiter.accessTokenBrute.blockDuration,  
+    inMemoryBlockDuration: limiterConfig.refreshAccessTokenLimiter.accessTokenBrute.inMemoryBlockDuration 
   });
   
   const accessTokenSlow = makeRateLimiter(true, false, {
     dbName: store.rate_limiters_pool.dbName,
     storeClient: pool,
     storeType  : 'mysql2',
-    inMemoryBlockOnConsumed: limiterConfig?.refreshAccessTokenLimiter.accessTokenSlow.inMemoryBlockOnConsumed ?? 3,
+    inMemoryBlockOnConsumed: limiterConfig.refreshAccessTokenLimiter.accessTokenSlow.inMemoryBlockOnConsumed,
     keyPrefix: 'tokens_access_token_slow',
-    points: limiterConfig?.refreshAccessTokenLimiter.accessTokenSlow.points ?? 3,
+    points: limiterConfig.refreshAccessTokenLimiter.accessTokenSlow.points,
     tableName: 'tokens',
-    duration: limiterConfig?.refreshAccessTokenLimiter.accessTokenSlow.duration ?? 60 * 10, 
-    blockDuration: limiterConfig?.refreshAccessTokenLimiter.accessTokenSlow.blockDuration ?? 60 * 60,  
-    inMemoryBlockDuration: limiterConfig?.refreshAccessTokenLimiter.accessTokenSlow.inMemoryBlockDuration ?? 60 * 60 
+    duration: limiterConfig.refreshAccessTokenLimiter.accessTokenSlow.duration, 
+    blockDuration: limiterConfig.refreshAccessTokenLimiter.accessTokenSlow.blockDuration,  
+    inMemoryBlockDuration: limiterConfig.refreshAccessTokenLimiter.accessTokenSlow.inMemoryBlockDuration 
   });
   
   
@@ -50,26 +50,26 @@ function buildLimiter(): LimiterBundle {
     dbName: store.rate_limiters_pool.dbName,
     storeClient: pool,
     storeType  : 'mysql2',
-    inMemoryBlockOnConsumed: limiterConfig?.refreshTokenLimiterUnion.refreshTokenBrute.inMemoryBlockOnConsumed ?? 2,
+    inMemoryBlockOnConsumed: limiterConfig.refreshTokenLimiterUnion.refreshTokenBrute.inMemoryBlockOnConsumed,
     keyPrefix: 'refreshToken_brute',
-    points: limiterConfig?.refreshTokenLimiterUnion.refreshTokenBrute.points ?? 2,
+    points: limiterConfig.refreshTokenLimiterUnion.refreshTokenBrute.points,
     tableName: 'tokens',
-    duration: limiterConfig?.refreshTokenLimiterUnion.refreshTokenBrute.duration ?? 1, 
-    blockDuration: limiterConfig?.refreshTokenLimiterUnion.refreshTokenBrute.blockDuration ?? 1800,  
-    inMemoryBlockDuration: limiterConfig?.refreshTokenLimiterUnion.refreshTokenBrute.inMemoryBlockDuration ?? 1800 
+    duration: limiterConfig.refreshTokenLimiterUnion.refreshTokenBrute.duration, 
+    blockDuration: limiterConfig.refreshTokenLimiterUnion.refreshTokenBrute.blockDuration,  
+    inMemoryBlockDuration: limiterConfig.refreshTokenLimiterUnion.refreshTokenBrute.inMemoryBlockDuration 
   });
   
   const refreshTokenSlow = makeRateLimiter(true, false, {
     dbName: store.rate_limiters_pool.dbName,
     storeClient: pool,
     storeType  : 'mysql2',
-    inMemoryBlockOnConsumed: limiterConfig?.refreshTokenLimiterUnion.refreshTokenSlow.inMemoryBlockOnConsumed ?? 4,
+    inMemoryBlockOnConsumed: limiterConfig.refreshTokenLimiterUnion.refreshTokenSlow.inMemoryBlockOnConsumed,
     keyPrefix: 'refreshToken_slow',
-    points: limiterConfig?.refreshTokenLimiterUnion.refreshTokenSlow.points ?? 4,
+    points: limiterConfig.refreshTokenLimiterUnion.refreshTokenSlow.points,
     tableName: 'tokens',
-    duration: limiterConfig?.refreshTokenLimiterUnion.refreshTokenSlow.duration ?? 60 * 60 * 12, 
-    blockDuration: limiterConfig?.refreshTokenLimiterUnion.refreshTokenSlow.blockDuration ?? 60 * 60 * 12,  
-    inMemoryBlockDuration: limiterConfig?.refreshTokenLimiterUnion.refreshTokenSlow.inMemoryBlockDuration ?? 60 * 60 * 12 
+    duration: limiterConfig.refreshTokenLimiterUnion.refreshTokenSlow.duration, 
+    blockDuration: limiterConfig.refreshTokenLimiterUnion.refreshTokenSlow.blockDuration,  
+    inMemoryBlockDuration: limiterConfig.refreshTokenLimiterUnion.refreshTokenSlow.inMemoryBlockDuration 
   });
   
   
@@ -77,13 +77,13 @@ function buildLimiter(): LimiterBundle {
     dbName: store.rate_limiters_pool.dbName,
     storeClient: pool,
     storeType  : 'mysql2',
-    inMemoryBlockOnConsumed: rate_limiters?.tokenLimiters?.refreshTokenLimiter.inMemoryBlockOnConsumed ?? 3,
+    inMemoryBlockOnConsumed: rate_limiters.tokenLimiters.refreshTokenLimiter.inMemoryBlockOnConsumed,
     keyPrefix: 'refreshTokenLimiter_slow',
-    points: rate_limiters?.tokenLimiters?.refreshTokenLimiter.points ?? 3,
+    points: rate_limiters.tokenLimiters.refreshTokenLimiter.points,
     tableName: 'tokens',
-    duration: rate_limiters?.tokenLimiters?.refreshTokenLimiter.duration ?? 60 * 60 * 12, 
-    blockDuration: rate_limiters?.tokenLimiters?.refreshTokenLimiter.blockDuration ?? 60 * 60 * 15,
-    inMemoryBlockDuration: rate_limiters?.tokenLimiters?.refreshTokenLimiter.inMemoryBlockDuration ?? 60 * 60 * 15
+    duration: rate_limiters.tokenLimiters.refreshTokenLimiter.duration, 
+    blockDuration: rate_limiters.tokenLimiters.refreshTokenLimiter.blockDuration,
+    inMemoryBlockDuration: rate_limiters.tokenLimiters.refreshTokenLimiter.inMemoryBlockDuration
   });
   
   const blackList = makeRateLimiter(true, false, {

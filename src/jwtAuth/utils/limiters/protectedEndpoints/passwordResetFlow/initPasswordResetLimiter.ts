@@ -17,58 +17,58 @@ let limiter: LimiterBundle | null;
 function buildLimiter(): LimiterBundle { 
   const { store, rate_limiters } = getConfiguration();
   const pool = poolForLibrary() as unknown as any;
-  const limiterConfig = rate_limiters?.initPasswordResetLimiters?.unionLimiters;
+  const limiterConfig = rate_limiters.initPasswordResetLimiters.unionLimiters;
 
   const limit = makeRateLimiter(true, false, {
     dbName: store.rate_limiters_pool.dbName,
     storeClient: pool,
     storeType  : 'mysql2',
-    inMemoryBlockOnConsumed: limiterConfig?.limit.inMemoryBlockOnConsumed ?? 1,
+    inMemoryBlockOnConsumed: limiterConfig.limit.inMemoryBlockOnConsumed,
     keyPrefix: 'password_reset',
-    points: limiterConfig?.limit.points ?? 1,
+    points: limiterConfig.limit.points,
     tableName: 'password_reset',
-    duration: limiterConfig?.limit.duration ?? 1, 
-    blockDuration: limiterConfig?.limit.blockDuration ?? 1800,  
-    inMemoryBlockDuration: limiterConfig?.limit.inMemoryBlockDuration ?? 1800 
+    duration: limiterConfig.limit.duration, 
+    blockDuration: limiterConfig.limit.blockDuration,  
+    inMemoryBlockDuration: limiterConfig.limit.inMemoryBlockDuration 
   });
   
   const longLimiter = makeRateLimiter(true, false, {
     dbName: store.rate_limiters_pool.dbName,
     storeClient: pool,
     storeType  : 'mysql2',
-    inMemoryBlockOnConsumed: limiterConfig?.longLimiter.inMemoryBlockOnConsumed ?? 4,
+    inMemoryBlockOnConsumed: limiterConfig.longLimiter.inMemoryBlockOnConsumed,
     tableName: 'password_reset',
     keyPrefix: 'password_reset_slow_down',
-    points: limiterConfig?.longLimiter.points ?? 4,
-    duration: limiterConfig?.longLimiter.duration ?? 60 * 30, 
-    blockDuration: limiterConfig?.longLimiter.blockDuration ?? 60 * 15,
-    inMemoryBlockDuration: limiterConfig?.longLimiter.inMemoryBlockDuration ?? 60 * 15 
+    points: limiterConfig.longLimiter.points,
+    duration: limiterConfig.longLimiter.duration, 
+    blockDuration: limiterConfig.longLimiter.blockDuration,
+    inMemoryBlockDuration: limiterConfig.longLimiter.inMemoryBlockDuration 
   });
   
   const ipLimiter = makeRateLimiter(true, false, {
     dbName: store.rate_limiters_pool.dbName,
     storeClient: pool,
     storeType  : 'mysql2',
-    inMemoryBlockOnConsumed: rate_limiters?.initPasswordResetLimiters?.ipLimiter.inMemoryBlockOnConsumed ?? 5,
+    inMemoryBlockOnConsumed: rate_limiters.initPasswordResetLimiters.ipLimiter.inMemoryBlockOnConsumed,
     tableName: 'password_reset',
     keyPrefix: 'ip_limiter',
-    points: rate_limiters?.initPasswordResetLimiters?.ipLimiter.points ?? 5,
-    duration: rate_limiters?.initPasswordResetLimiters?.ipLimiter.duration ?? 24 * 60 * 60, 
-    blockDuration: rate_limiters?.initPasswordResetLimiters?.ipLimiter.blockDuration ?? 4 * 60 * 60,
-    inMemoryBlockDuration: rate_limiters?.initPasswordResetLimiters?.ipLimiter.inMemoryBlockDuration ?? 4 * 60 * 60 
+    points: rate_limiters.initPasswordResetLimiters.ipLimiter.points,
+    duration: rate_limiters.initPasswordResetLimiters.ipLimiter.duration, 
+    blockDuration: rate_limiters.initPasswordResetLimiters.ipLimiter.blockDuration,
+    inMemoryBlockDuration: rate_limiters.initPasswordResetLimiters.ipLimiter.inMemoryBlockDuration 
   }); 
   
   const emailLimiter = makeRateLimiter(true, false, {
     dbName: store.rate_limiters_pool.dbName,
     storeClient: pool,
     storeType  : 'mysql2',
-    inMemoryBlockOnConsumed: rate_limiters?.initPasswordResetLimiters?.emailLimiter.inMemoryBlockOnConsumed ?? 5,
+    inMemoryBlockOnConsumed: rate_limiters.initPasswordResetLimiters.emailLimiter.inMemoryBlockOnConsumed,
     tableName: 'password_reset',
     keyPrefix: 'email_limiter',
-    points: rate_limiters?.initPasswordResetLimiters?.emailLimiter.points ?? 5,
-    duration: rate_limiters?.initPasswordResetLimiters?.emailLimiter.duration ?? 24 * 60 * 60, 
-    blockDuration: rate_limiters?.initPasswordResetLimiters?.emailLimiter.blockDuration ?? 4 * 60 * 60,
-    inMemoryBlockDuration: rate_limiters?.initPasswordResetLimiters?.emailLimiter.inMemoryBlockDuration ?? 4 * 60 * 60 
+    points: rate_limiters.initPasswordResetLimiters.emailLimiter.points,
+    duration: rate_limiters.initPasswordResetLimiters.emailLimiter.duration, 
+    blockDuration: rate_limiters.initPasswordResetLimiters.emailLimiter.blockDuration,
+    inMemoryBlockDuration: rate_limiters.initPasswordResetLimiters.emailLimiter.inMemoryBlockDuration 
   }); 
 
   return {

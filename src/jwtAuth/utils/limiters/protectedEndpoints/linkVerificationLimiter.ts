@@ -13,32 +13,32 @@ let limiter: LimiterBundle | null;
 function buildLimiter(): LimiterBundle { 
   const { store, rate_limiters } = getConfiguration();
   const pool = poolForLibrary() as unknown as any;
-  const limiterConfig = rate_limiters?.linkVerificationLimiter?.unionLimiter;
+  const limiterConfig = rate_limiters.linkVerificationLimiter.unionLimiter;
 
 const limit = makeRateLimiter(true, false, {
   dbName: store.rate_limiters_pool.dbName,
   storeClient: pool,
   storeType  : 'mysql2',
-  inMemoryBlockOnConsumed: limiterConfig?.burstLimiter.inMemoryBlockOnConsumed ?? 2,
+  inMemoryBlockOnConsumed: limiterConfig.burstLimiter.inMemoryBlockOnConsumed,
   keyPrefix: 'link_verification_brute',
-  points: limiterConfig?.burstLimiter.points ?? 2,
+  points: limiterConfig.burstLimiter.points,
   tableName: 'link_verification',
-  duration: limiterConfig?.burstLimiter.duration ?? 1, 
-  blockDuration: limiterConfig?.burstLimiter.blockDuration ?? 60 * 15,  
-  inMemoryBlockDuration: limiterConfig?.burstLimiter.inMemoryBlockDuration ?? 60 * 15 
+  duration: limiterConfig.burstLimiter.duration, 
+  blockDuration: limiterConfig.burstLimiter.blockDuration,  
+  inMemoryBlockDuration: limiterConfig.burstLimiter.inMemoryBlockDuration 
 });
 
 const slowLimit = makeRateLimiter(true, false, {
   dbName: store.rate_limiters_pool.dbName,
   storeClient: pool,
   storeType  : 'mysql2',
-  inMemoryBlockOnConsumed: limiterConfig?.slowLimiter.inMemoryBlockOnConsumed ?? 30,
+  inMemoryBlockOnConsumed: limiterConfig.slowLimiter.inMemoryBlockOnConsumed,
   keyPrefix: 'link_verification_slow',
-  points: limiterConfig?.slowLimiter.points ?? 30,
+  points: limiterConfig.slowLimiter.points,
   tableName: 'link_verification',
-  duration: limiterConfig?.slowLimiter.duration ?? 60 * 30, 
-  blockDuration: limiterConfig?.slowLimiter.blockDuration ?? 1800,  
-  inMemoryBlockDuration: limiterConfig?.slowLimiter.inMemoryBlockDuration ?? 1800 
+  duration: limiterConfig.slowLimiter.duration, 
+  blockDuration: limiterConfig.slowLimiter.blockDuration,  
+  inMemoryBlockDuration: limiterConfig.slowLimiter.inMemoryBlockDuration 
 });
  return {
   uniLimiter: unionLimiter([limit, slowLimit ], false),

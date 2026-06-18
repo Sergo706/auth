@@ -18,45 +18,45 @@ let limiter: LimiterBundle | null;
 function buildLimiter(): LimiterBundle { 
   const { store, rate_limiters } = getConfiguration();
   const pool = poolForLibrary() as unknown as any;
-  const limiterConfig = rate_limiters?.tempPostRoutesLimiters?.unionLimiters;
+  const limiterConfig = rate_limiters.tempPostRoutesLimiters.unionLimiters;
 
   const limit = makeRateLimiter(true, false, {
     dbName: store.rate_limiters_pool.dbName,
     storeClient: pool,
     storeType  : 'mysql2',
-    inMemoryBlockOnConsumed: limiterConfig?.limit.inMemoryBlockOnConsumed ?? 1,
+    inMemoryBlockOnConsumed: limiterConfig.limit.inMemoryBlockOnConsumed,
     keyPrefix: 'tempPostRoutes_brute',
-    points: limiterConfig?.limit.points ?? 1,
+    points: limiterConfig.limit.points,
     tableName: 'tempPostRoutes',
-    duration: limiterConfig?.limit.duration ?? 1, 
-    blockDuration: limiterConfig?.limit.blockDuration ?? 1800,  
-    inMemoryBlockDuration: limiterConfig?.limit.inMemoryBlockDuration ?? 1800 
+    duration: limiterConfig.limit.duration, 
+    blockDuration: limiterConfig.limit.blockDuration,  
+    inMemoryBlockDuration: limiterConfig.limit.inMemoryBlockDuration 
   });
   
   const slowLimit = makeRateLimiter(true, false, {
     dbName: store.rate_limiters_pool.dbName,
     storeClient: pool,
     storeType  : 'mysql2',
-    inMemoryBlockOnConsumed: limiterConfig?.slowLimit.inMemoryBlockOnConsumed ?? 5,
+    inMemoryBlockOnConsumed: limiterConfig.slowLimit.inMemoryBlockOnConsumed,
     keyPrefix: 'tempPostRoutes_slow',
-    points: limiterConfig?.slowLimit.points ?? 5,
+    points: limiterConfig.slowLimit.points,
     tableName: 'tempPostRoutes',
-    duration: limiterConfig?.slowLimit.duration ?? 60 * 10, 
-    blockDuration: limiterConfig?.slowLimit.blockDuration ?? 60 * 10,  
-    inMemoryBlockDuration: limiterConfig?.slowLimit.inMemoryBlockDuration ?? 60 * 10 
+    duration: limiterConfig.slowLimit.duration, 
+    blockDuration: limiterConfig.slowLimit.blockDuration,  
+    inMemoryBlockDuration: limiterConfig.slowLimit.inMemoryBlockDuration 
   });
   
   const ipLimit = makeRateLimiter(true, false, {
     dbName: store.rate_limiters_pool.dbName,
     storeClient: pool,
     storeType  : 'mysql2',
-    inMemoryBlockOnConsumed: rate_limiters?.tempPostRoutesLimiters?.ipLimit.inMemoryBlockOnConsumed ?? 6,
+    inMemoryBlockOnConsumed: rate_limiters.tempPostRoutesLimiters.ipLimit.inMemoryBlockOnConsumed,
     keyPrefix: 'tempPostRoutes_ip',
-    points: rate_limiters?.tempPostRoutesLimiters?.ipLimit.points ?? 6,
+    points: rate_limiters.tempPostRoutesLimiters.ipLimit.points,
     tableName: 'tempPostRoutes',
-    duration: rate_limiters?.tempPostRoutesLimiters?.ipLimit.duration ?? 60 * 10, 
-    blockDuration: rate_limiters?.tempPostRoutesLimiters?.ipLimit.blockDuration ?? 60 * 10,  
-    inMemoryBlockDuration: rate_limiters?.tempPostRoutesLimiters?.ipLimit.inMemoryBlockDuration ?? 60 * 10 
+    duration: rate_limiters.tempPostRoutesLimiters.ipLimit.duration, 
+    blockDuration: rate_limiters.tempPostRoutesLimiters.ipLimit.blockDuration,  
+    inMemoryBlockDuration: rate_limiters.tempPostRoutesLimiters.ipLimit.inMemoryBlockDuration 
   });
 
   const usedJtiLimiter = makeRateLimiter(true, false, {

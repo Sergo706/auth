@@ -16,58 +16,58 @@ function buildLimiter(): LimiterBundle {
 
   const { store, rate_limiters } = getConfiguration();
   const pool = poolForLibrary() as unknown as any;
-  const limiterConfig = rate_limiters?.oauthLimiters?.unionLimiter;
+  const limiterConfig = rate_limiters.oauthLimiters.unionLimiter;
   
   const ipLimiterBrute = makeRateLimiter(true, false, {
     dbName: store.rate_limiters_pool.dbName,
     storeClient: pool,
     storeType  : 'mysql2',
-    inMemoryBlockOnConsumed: limiterConfig?.ipLimiterBrute.inMemoryBlockOnConsumed ?? 1,
+    inMemoryBlockOnConsumed: limiterConfig.ipLimiterBrute.inMemoryBlockOnConsumed,
     keyPrefix: 'oauth_ip_brute',
-    points: limiterConfig?.ipLimiterBrute.points ?? 1,
+    points: limiterConfig.ipLimiterBrute.points,
     tableName: 'oauth',
-    duration: limiterConfig?.ipLimiterBrute.duration ?? 1, 
-    blockDuration: limiterConfig?.ipLimiterBrute.blockDuration ?? 60 * 5,  
-    inMemoryBlockDuration: limiterConfig?.ipLimiterBrute.inMemoryBlockDuration ?? 60 * 5 
+    duration: limiterConfig.ipLimiterBrute.duration, 
+    blockDuration: limiterConfig.ipLimiterBrute.blockDuration,  
+    inMemoryBlockDuration: limiterConfig.ipLimiterBrute.inMemoryBlockDuration 
   });
   
   const ipLimiterSlow = makeRateLimiter(true, false, {
     dbName: store.rate_limiters_pool.dbName,
     storeClient: pool,
     storeType  : 'mysql2',
-    inMemoryBlockOnConsumed: limiterConfig?.ipLimiterSlow.inMemoryBlockOnConsumed ?? 25,
+    inMemoryBlockOnConsumed: limiterConfig.ipLimiterSlow.inMemoryBlockOnConsumed,
     keyPrefix: 'oauth_ip_slow',
-    points: limiterConfig?.ipLimiterSlow.points ?? 25,
+    points: limiterConfig.ipLimiterSlow.points,
     tableName: 'oauth',
-    duration: limiterConfig?.ipLimiterSlow.duration ?? 60 * 60, 
-    blockDuration: limiterConfig?.ipLimiterSlow.blockDuration ?? 60 * 30,  
-    inMemoryBlockDuration: limiterConfig?.ipLimiterSlow.inMemoryBlockDuration ?? 60 * 30 
+    duration: limiterConfig.ipLimiterSlow.duration, 
+    blockDuration: limiterConfig.ipLimiterSlow.blockDuration,  
+    inMemoryBlockDuration: limiterConfig.ipLimiterSlow.inMemoryBlockDuration 
   });
   
    const subLimiter = makeRateLimiter(true, false, {
     dbName: store.rate_limiters_pool.dbName,
     storeClient: pool,
     storeType  : 'mysql2',
-    inMemoryBlockOnConsumed: rate_limiters?.oauthLimiters?.subLimiter.inMemoryBlockOnConsumed ?? 5,
+    inMemoryBlockOnConsumed: rate_limiters.oauthLimiters.subLimiter.inMemoryBlockOnConsumed,
     keyPrefix: 'oauth_sub',
-    points: rate_limiters?.oauthLimiters?.subLimiter.points ?? 5,
+    points: rate_limiters.oauthLimiters.subLimiter.points,
     tableName: 'oauth',
-    duration: rate_limiters?.oauthLimiters?.subLimiter.duration ?? 60 * 5, 
-    blockDuration: rate_limiters?.oauthLimiters?.subLimiter.blockDuration ?? 60 * 15,  
-    inMemoryBlockDuration: rate_limiters?.oauthLimiters?.subLimiter.inMemoryBlockDuration ?? 60 * 15 
+    duration: rate_limiters.oauthLimiters.subLimiter.duration, 
+    blockDuration: rate_limiters.oauthLimiters.subLimiter.blockDuration,  
+    inMemoryBlockDuration: rate_limiters.oauthLimiters.subLimiter.inMemoryBlockDuration 
   });
   
    const compositeKeyLimiter = makeRateLimiter(true, false, {
     dbName: store.rate_limiters_pool.dbName,
     storeClient: pool,
     storeType  : 'mysql2',
-    inMemoryBlockOnConsumed: rate_limiters?.oauthLimiters?.compositeKeyLimiter.inMemoryBlockOnConsumed ?? 3,
+    inMemoryBlockOnConsumed: rate_limiters.oauthLimiters.compositeKeyLimiter.inMemoryBlockOnConsumed,
     keyPrefix: 'oauth_compositeKey',
-    points: rate_limiters?.oauthLimiters?.compositeKeyLimiter.points ?? 3,
+    points: rate_limiters.oauthLimiters.compositeKeyLimiter.points,
     tableName: 'oauth',
-    duration: rate_limiters?.oauthLimiters?.compositeKeyLimiter.duration ?? 60 * 10, 
-    blockDuration: rate_limiters?.oauthLimiters?.compositeKeyLimiter.blockDuration ?? 60 * 15,  
-    inMemoryBlockDuration: rate_limiters?.oauthLimiters?.compositeKeyLimiter.inMemoryBlockDuration ?? 60 * 15 
+    duration: rate_limiters.oauthLimiters.compositeKeyLimiter.duration, 
+    blockDuration: rate_limiters.oauthLimiters.compositeKeyLimiter.blockDuration,  
+    inMemoryBlockDuration: rate_limiters.oauthLimiters.compositeKeyLimiter.inMemoryBlockDuration 
   });
  return {
   uniLimiter: unionLimiter([ipLimiterBrute, ipLimiterSlow ], false),
