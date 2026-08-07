@@ -76,7 +76,7 @@
         "@riavzon/bot-detector": "^2.0.11",
         "@riavzon/shield-base": "^3.0.4",
         "@riavzon/utils": "^1.1.0",
-        "argon2": "0.44.0",
+        "argon2": "0.45.1",
         "cookie-parser": "1.4.7",
         "ejs": "4.0.1",
         "express": "5.1.0",
